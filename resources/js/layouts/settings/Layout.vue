@@ -18,6 +18,10 @@ const sidebarNavItems: NavItem[] = [
         title: 'Appearance',
         href: '/settings/appearance',
     },
+    {
+        title: 'Custom Form',
+        href: '/settings/forms',
+    },
 ];
 
 const currentPath = window.location.pathname;

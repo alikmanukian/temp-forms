@@ -88,4 +88,13 @@ html {
     body {
         @apply bg-background text-foreground;
     }
+
+    .im-backdrop {
+        @apply !bg-black/40;
+    }
+    .im-close-button {
+        @apply focus:outline-none;
+    }
 }
+
+

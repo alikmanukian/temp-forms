@@ -54,7 +54,7 @@ const submit = () => {
                     <div class="grid gap-2">
                         <Label for="name">Name</Label>
                         <Input id="name" class="mt-1 block w-full" v-model="form.name" required autocomplete="name" placeholder="Full name" />
-                        <InputError class="mt-2" :message="form.errors.name" />
+                        <InputError :message="form.errors.name" />
                     </div>
 
                     <div class="grid gap-2">
@@ -68,7 +68,7 @@ const submit = () => {
                             autocomplete="username"
                             placeholder="Email address"
                         />
-                        <InputError class="mt-2" :message="form.errors.email" />
+                        <InputError :message="form.errors.email" />
                     </div>
 
                     <div v-if="mustVerifyEmail && !user.email_verified_at">
