@@ -12,6 +12,7 @@
         "php": "^8.2",
         "inertiajs/inertia-laravel": "^2.0",
         "inertiaui/modal": "^0.19.4",
+        "inertiaui/table": "*",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
         "tightenco/ziggy": "^2.4"
@@ -75,5 +76,11 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://satis.inertiaui.com"
+        }
+    ]
 }

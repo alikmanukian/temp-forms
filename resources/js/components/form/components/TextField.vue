@@ -1,26 +1,30 @@
 <script setup lang="ts">
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import InputError from '@/components/InputError.vue';
-import { computed, inject, useAttrs } from 'vue';
+import { InertiaForm } from '@inertiajs/vue3';
+import { computed, inject, reactive, useAttrs, defineAsyncComponent } from 'vue';
 import { cn } from '@/lib/utils';
 import { getConfig } from '../config';
-import { InertiaForm } from '@inertiajs/vue3';
-import { useDelegatedAttrs } from '@/components/form/utils';
+import { useDelegatedAttrs } from '../utils';
+import { TextFieldType } from '../types';
 
-interface Props {
+interface Props extends TextFieldType {
     id?: string
     name?: string
     label?: string
     error?: string|undefined
-    wrapperClass?: string
-    labelClass?: string
-    inputClass?: string
-    errorClass?: string
     precognitive?: boolean
 }
 
 const props = defineProps<Props>();
+
+const components = reactive<{
+    label: ReturnType<typeof defineAsyncComponent>,
+    input: ReturnType<typeof defineAsyncComponent>,
+    error: ReturnType<typeof defineAsyncComponent>,
+}>({
+    label: defineAsyncComponent(() => import(/* @vite-ignore */props.labelComponent)),
+    input: defineAsyncComponent(() => import(/* @vite-ignore */props.inputComponent)),
+    error: defineAsyncComponent(() => import(/* @vite-ignore */props.errorComponent))
+})
 
 const form = inject('form') as InertiaForm<any> || null;
 
@@ -49,7 +53,13 @@ const error = computed(() => form && props.name ? form.errors[props.name] : prop
 
 const attrs = useAttrs()
 
-const delegatedAttrs = useDelegatedAttrs(attrs,props.precognitive ? ['autocomplete'] : [] )
+const disallowedAttributes = ['component', 'value']
+
+if (props.precognitive) {
+    disallowedAttributes.push('autocomplete')
+}
+
+const delegatedAttrs = useDelegatedAttrs(attrs, disallowedAttributes)
 
 const handleChange = (event: Event) => {
     event.preventDefault();
@@ -58,20 +68,23 @@ const handleChange = (event: Event) => {
         form.validate(props.name);
     }
 }
+
+const labelSuffix = computed(() => attrs.required ? ' *' : '')
 </script>
+
 <template>
     <div :class="cn(getConfig('textfield.wrapperClass'), props.wrapperClass)">
-        <Label v-if="label"
+        <component :is="components.label" v-if="label"
                :for="computedId"
                :class="cn(getConfig('textfield.labelClass'), props.labelClass)"
-        >{{label}}</Label>
-        <Input :class="cn(getConfig('textfield.inputClass'), props.inputClass)"
+        >{{label}}{{labelSuffix}}</component>
+        <component :is="components.input" :class="cn(getConfig('textfield.inputClass'), props.inputClass)"
                v-model="modelValue"
                v-bind="delegatedAttrs"
                :id="computedId"
                @change="handleChange"
         />
-        <InputError v-if="error"
+        <component :is="components.error" v-if="error"
                     :class="cn(getConfig('textfield.errorClass'), props.errorClass)"
                     :message="error" />
     </div>

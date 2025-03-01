@@ -1,4 +1,6 @@
 import type { LucideIcon } from 'lucide-vue-next';
+import { PageProps } from '@inertiajs/core'
+import type { InertiaForm } from '@inertiajs/vue3';
 
 export interface Auth {
     user: User;
@@ -16,15 +18,8 @@ export interface NavItem {
     isActive?: boolean;
 }
 
-export interface SharedData {
-    auth: Auth;
-    ziggy: {
-        location: string;
-        url: string;
-        port: null | number;
-        defaults: Record<string, unknown>;
-        routes: Record<string, string>;
-    };
+export interface SharedData extends PageProps {
+    auth: Auth
 }
 
 export interface User {
@@ -38,3 +33,20 @@ export interface User {
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;
+
+export interface FormField {
+    name: string;
+    component: 'TextField';
+    required?: boolean;
+    type?: 'text' | 'email' | 'password' | 'checkbox' | 'radio';
+    label?: string;
+    precognitive?: boolean;
+    value?: string|number|boolean;
+    class?: string;
+}
+
+export interface FormProps extends InertiaForm<any>{
+    url: string
+    method: 'post'|'patch'|'put'|'delete'
+    fields: FormField[]
+}

@@ -1,20 +1,12 @@
-interface TextFieldType {
-    wrapperClass?: string,
-    labelClass?: string,
-    inputClass?: string,
-    errorClass?: string
-}
-
-interface ConfigType {
-    textfield?: TextFieldType
-}
+import { ConfigType, TextFieldType } from './types'
 
 const defaultConfig: ConfigType = {
     textfield: {
-        wrapperClass: 'grid gap-2',
+        wrapperClass: '',
         labelClass: '',
-        inputClass: 'mt-1 block w-full',
-        errorClass: ''
+        inputClass: '',
+        errorClass: '',
+        labelComponent: '',
     },
 }
 
@@ -23,7 +15,6 @@ class Config {
 
     constructor() {
         this.config = defaultConfig
-        this.reset()
     }
 
     reset() {
