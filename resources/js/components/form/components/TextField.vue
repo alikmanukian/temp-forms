@@ -49,7 +49,13 @@ const error = computed(() => form && props.name ? form.errors[props.name] : prop
 
 const attrs = useAttrs()
 
-const delegatedAttrs = useDelegatedAttrs(attrs,props.precognitive ? ['autocomplete'] : [] )
+const disallowedAttributes = ['component', 'value']
+
+if (props.precognitive) {
+    disallowedAttributes.push('autocomplete')
+}
+
+const delegatedAttrs = useDelegatedAttrs(attrs, disallowedAttributes)
 
 const handleChange = (event: Event) => {
     event.preventDefault();

@@ -8,7 +8,13 @@ use RuntimeException;
 class Field implements JsonSerializable
 {
     /**
-     * @var array{required: bool, precognitive: bool} $attributes
+     * @var array{
+     *     required: bool,
+     *     precognitive: bool,
+     *     label?: string,
+     *     value?: string|int|bool|float,
+     *     class?: string
+     * } $attributes
      */
     protected array $attributes = [];
     protected string|array|null $rule = null;
@@ -22,6 +28,25 @@ class Field implements JsonSerializable
     public static function make(string $name): static
     {
         return new static($name);
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function label(string $label): static
+    {
+        $this->attributes['label'] = $label;
+
+        return $this;
+    }
+
+    public function value(string|int|bool|float $value): static
+    {
+        $this->attributes['value'] = $value;
+
+        return $this;
     }
 
     public function required(): static
@@ -43,6 +68,11 @@ class Field implements JsonSerializable
         $this->rule = $rule;
 
         return $this;
+    }
+
+    public function getRule(): string|array|null
+    {
+        return $this->rule;
     }
 
     public function jsonSerialize(): array

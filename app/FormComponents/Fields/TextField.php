@@ -9,7 +9,14 @@ class TextField extends Field
     protected ?string $component = 'TextField';
 
     /**
-     * @var array{required: bool, precognitive: bool, type: string} $attributes
+     * @var array{
+     *     required: bool,
+     *     precognitive: bool,
+     *     type: string,
+     *     label?: string,
+     *     value?: string|int|bool|float,
+     *     class?: string
+     * } $attributes
      */
     protected array $attributes = [
         'type' => 'text',
