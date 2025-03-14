@@ -3,8 +3,7 @@
 namespace App\Forms;
 
 use App\FormComponents\Field;
-use App\FormComponents\Fields\Submit;
-use App\FormComponents\Fields\TextField;
+use App\FormComponents\Fields;
 use App\FormComponents\Form;
 use App\Models\User;
 use Illuminate\Validation\Rule;
@@ -21,13 +20,13 @@ class UserForm extends Form
     public function fields(): array
     {
         return [
-            TextField::make('name')
+            Fields\TextField::make('name')
                 ->required()
                 ->precognitive()
                 ->rule(['required', 'string', 'max:255'])
                 ->value(auth()->user()?->name),
 
-            TextField::make('email')
+            Fields\TextField::make('email')
                 ->email()
                 ->required()
                 ->precognitive()
@@ -41,7 +40,7 @@ class UserForm extends Form
                 ])
                 ->value(auth()->user()?->email),
 
-            Submit::make('Save')
+            Fields\Submit::make('Save')
         ];
     }
 }

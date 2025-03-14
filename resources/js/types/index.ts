@@ -50,3 +50,20 @@ export interface FormProps extends InertiaForm<any>{
     method: 'post'|'patch'|'put'|'delete'
     fields: FormField[]
 }
+
+export interface Paginated<T> {
+    data: T[]
+    meta: {
+        current_page: number
+        per_page: number
+        total: number
+        last_page: number
+    }
+    links: {
+        first: string
+        last: string
+        prev: string | null
+        next: string | null
+    }
+    headers: Record<string, string>
+}
