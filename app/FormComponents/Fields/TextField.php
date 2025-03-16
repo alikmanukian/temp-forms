@@ -20,9 +20,9 @@ class TextField extends Field
      */
     protected array $attributes = [
         'type' => 'text',
-        'labelComponent' => '/resources/js/components/ui/label/Label.vue',
-        'inputComponent' => '/resources/js/components/ui/input/Input.vue',
-        'errorComponent' => '/resources/js/components/InputError.vue'
+        'labelComponent' => 'Label',
+        'inputComponent' => 'Input',
+        'errorComponent' => 'Error'
     ];
 
     public function email(): static

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { TransitionRoot } from '@headlessui/vue';
 import { Head } from '@inertiajs/vue3';
 
 import HeadingSmall from '@/components/HeadingSmall.vue';

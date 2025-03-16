@@ -6,6 +6,5 @@ return [
         'labelClass' => '',
         'inputClass' => 'mt-1 block w-full',
         'errorClass' => '',
-        'labelComponent' => '@/components/ui/Label',
     ],
 ];

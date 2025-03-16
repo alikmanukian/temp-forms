@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { InertiaForm } from '@inertiajs/vue3';
-import { computed, inject, reactive, useAttrs, defineAsyncComponent } from 'vue';
+import { computed, inject, useAttrs } from 'vue';
 import { cn } from '@/lib/utils';
 import { getConfig } from '../config';
 import { useDelegatedAttrs } from '../utils';
 import { TextFieldType } from '../types';
+import * as Labels from './subcomponents/label'
+import * as Inputs from './subcomponents/input'
+import * as Errors from './subcomponents/error'
 
 interface Props extends TextFieldType {
     id?: string
@@ -15,16 +18,6 @@ interface Props extends TextFieldType {
 }
 
 const props = defineProps<Props>();
-
-const components = reactive<{
-    label: ReturnType<typeof defineAsyncComponent>,
-    input: ReturnType<typeof defineAsyncComponent>,
-    error: ReturnType<typeof defineAsyncComponent>,
-}>({
-    label: defineAsyncComponent(() => import(/* @vite-ignore */props.labelComponent)),
-    input: defineAsyncComponent(() => import(/* @vite-ignore */props.inputComponent)),
-    error: defineAsyncComponent(() => import(/* @vite-ignore */props.errorComponent))
-})
 
 const form = inject('form') as InertiaForm<any> || null;
 
@@ -59,6 +52,8 @@ if (props.precognitive) {
     disallowedAttributes.push('autocomplete')
 }
 
+console.log(props.labelComponent);
+
 const delegatedAttrs = useDelegatedAttrs(attrs, disallowedAttributes)
 
 const handleChange = (event: Event) => {
@@ -74,17 +69,17 @@ const labelSuffix = computed(() => attrs.required ? ' *' : '')
 
 <template>
     <div :class="cn(getConfig('textfield.wrapperClass'), props.wrapperClass)">
-        <component :is="components.label" v-if="label"
+        <component :is="Labels[labelComponent]" v-if="label"
                :for="computedId"
                :class="cn(getConfig('textfield.labelClass'), props.labelClass)"
         >{{label}}{{labelSuffix}}</component>
-        <component :is="components.input" :class="cn(getConfig('textfield.inputClass'), props.inputClass)"
+        <component :is="Inputs[inputComponent]" :class="cn(getConfig('textfield.inputClass'), props.inputClass)"
                v-model="modelValue"
                v-bind="delegatedAttrs"
                :id="computedId"
                @change="handleChange"
         />
-        <component :is="components.error" v-if="error"
+        <component :is="Errors[errorComponent]" v-if="error"
                     :class="cn(getConfig('textfield.errorClass'), props.errorClass)"
                     :message="error" />
     </div>
