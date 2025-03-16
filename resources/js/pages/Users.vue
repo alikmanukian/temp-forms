@@ -6,8 +6,8 @@ import { Table } from '@/components/table';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
-        href: '/dashboard',
+        title: 'Tables',
+        href: '/tables',
     },
 ];
 
@@ -21,7 +21,7 @@ defineProps<{
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-            <Table :resource="users"></Table>
+            <Table :resource="users" :reloadOnly="['users']" stickyPagination></Table>
         </div>
     </AppLayout>
 </template>

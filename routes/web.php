@@ -19,6 +19,6 @@ Route::inertiaTable();
 
 Route::get('tables', function () {
     return Inertia::render('Users', [
-        'users' => Users::make(),
+        'users' => fn() => Users::make(),
     ]);
-});
+})->middleware(['auth']);

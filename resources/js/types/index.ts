@@ -51,19 +51,17 @@ export interface FormProps extends InertiaForm<any>{
     fields: FormField[]
 }
 
+export interface PaginatedMeta {
+    currentPage: number
+    perPage: number
+    total: number
+    lastPage: number
+    perPageItems: number[]
+}
+
 export interface Paginated<T> {
+    pageName: string
     data: T[]
-    meta: {
-        current_page: number
-        per_page: number
-        total: number
-        last_page: number
-    }
-    links: {
-        first: string
-        last: string
-        prev: string | null
-        next: string | null
-    }
+    meta: PaginatedMeta
     headers: Record<string, string>
 }

@@ -4,6 +4,9 @@ namespace App\TableComponents;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+use Illuminate\View\View;
 use RuntimeException;
 
 abstract class Table
@@ -32,7 +35,7 @@ abstract class Table
     {
         $table = (new static());
 
-        foreach($table->columns() as $column) {
+        foreach ($table->columns() as $column) {
             $table->builder->addSelect($column->getName());
         }
 
@@ -49,24 +52,46 @@ abstract class Table
      */
     private function response(): array
     {
-        $paginator = $this->builder->paginate(20);
+        $request = request();
+
+        $perPageItems = [10, 25, 50, 100, 250, 500];
+        $perPage = (int) $request->cookie('perPage', $perPageItems[0]);
+
+        if (! in_array($perPage, $perPageItems)) {
+            $perPage = $perPageItems[0];
+        }
+
+        $paginator = $this->builder
+//            ->where('id', '<', 10)
+            ->paginate(
+                perPage: $perPage,
+//            pageName: Str::of(get_class($this))->afterLast('\\')->lower()->toString()
+            );
+
+//        /** @var View $links */
+//        $links = $paginator->links();
+//        $pagination = Arr::get($links->getData(), 'elements', []);
 
         return [
+            'pageName' => 'page', // change this to value of pageName in the future
             'data' => $paginator->items(),
             'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'per_page' => $paginator->perPage(),
+                'currentPage' => $paginator->currentPage(),
+                'perPage' => $paginator->perPage(),
                 'total' => $paginator->total(),
-                'last_page' => $paginator->lastPage(),
+                'lastPage' => $paginator->lastPage(),
+                'perPageItems' => $perPageItems
             ],
-            'links' => [
+           /* 'links' => [
                 'first' => $paginator->url(1),
                 'last' => $paginator->url($paginator->lastPage()),
                 'prev' => $paginator->previousPageUrl(),
                 'next' => $paginator->nextPageUrl(),
+                'links' => $paginator->links(),
             ],
+            'pagination' => $pagination,*/
             'headers' => collect($this->columns())
-                ->map(fn(Column $column) => [
+                ->map(fn (Column $column) => [
                     $column->getName() => $column->getHeader()
                 ])->collapse()
         ];

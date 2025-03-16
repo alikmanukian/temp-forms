@@ -19,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
             HandlePrecognitiveRequests::class
         ]);
+
+        $middleware->encryptCookies(except: ['perPage']); // this cookie set from js
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
