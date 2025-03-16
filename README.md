@@ -1,12 +1,17 @@
 ## TODO
 
-- no content
+- sort columns
 - filters
 - sorting (also multiple columns)
-- column visibility
 - resize columns
 - actions
 - footer
 - horizontal scrolling (Adam Wattan)
 - customization
 - select rows
+- search
+- translate
+- action columns
+- show loader before starting to reload table
+- sticky header
+- slots
