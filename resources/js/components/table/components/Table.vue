@@ -36,6 +36,18 @@ const to = computed(() => props.resource.meta.currentPage * props.resource.meta.
 const noResults = computed(() => props.resource.data.length === 0)
 
 const filteredColumns = useLocalStorage('table_columns:' + window.location.pathname, props.resource.headers)
+
+const onTableResizeStart = (e: CustomEvent) => {
+    const el = e.target as HTMLElement
+
+    const table = el.closest('table') as HTMLElement
+
+    table.querySelectorAll('colgroup col').forEach((col: HTMLElement) => col.style.width = 'auto')
+}
+const onTableResizeEnd = (e: CustomEvent) => {
+    const el = e.target as HTMLElement
+    el.querySelectorAll('th').forEach((th: HTMLElement, index: number) => filteredColumns.value[index].width = th.style.width)
+}
 </script>
 
 <template>
@@ -56,17 +68,25 @@ const filteredColumns = useLocalStorage('table_columns:' + window.location.pathn
             </div>
         </div>
 
-        <Table v-if="!noResults">
-            <TableHeader :class="{'sticky top-0 bg-opacity-75 backdrop-blur backdrop-filter': stickyHeader}">
+        <Table v-if="!noResults" border="1">
+            <colgroup>
+                <col :style="{width: column.width}" v-for="column in filteredColumns" :key="column.name">
+            </colgroup>
+
+            <TableHeader :class="{'sticky top-0 bg-opacity-75 backdrop-blur backdrop-filter': stickyHeader}"
+                         v-columns-resizable
+                         @resize:start="onTableResizeStart"
+                         @resize:end="onTableResizeEnd"
+            >
                 <TableRow>
-                    <TableHead v-for="(title, name) in filteredColumns" :key="name">{{ title }}</TableHead>
+                    <TableHead v-for="column in filteredColumns" :key="column.name">{{ column.header }}</TableHead>
                 </TableRow>
             </TableHeader>
 
             <TableBody>
-                <TableRow v-for="(row, index) in resource.data" :key="index">
-                    <TableCell v-for="(_, name) in filteredColumns" :key="name">
-                        {{ row[name] }}
+                <TableRow v-for="(row, index) in resource.data" :key="index" style="white-space: nowrap">
+                    <TableCell v-for="column in filteredColumns" :key="column.name">
+                        {{ row[column.name] }}
                     </TableCell>
                 </TableRow>
             </TableBody>

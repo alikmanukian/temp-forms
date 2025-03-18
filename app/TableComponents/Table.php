@@ -7,9 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use JsonSerializable;
 use RuntimeException;
 
-abstract class Table
+abstract class Table implements JsonSerializable
 {
     protected string $defaultSort = 'id';
 
@@ -19,6 +20,11 @@ abstract class Table
 
     /** @var class-string $resource */
     protected ?string $resource = null;
+
+    /**
+     * @return list<Column>
+     */
+    abstract public function columns(): array;
 
     private function __construct()
     {
@@ -31,26 +37,29 @@ abstract class Table
         $this->builder = $this->resource::query();
     }
 
-    public static function make(): array
+    public static function make(): static
     {
         $table = (new static());
 
-        foreach ($table->columns() as $column) {
+        /*foreach ($table->columns() as $column) {
             $table->builder->addSelect($column->getName());
-        }
+        }*/
 
-        return $table->response();
+        return $table;
     }
-
-    /**
-     * @return list<Column>
-     */
-    abstract public function columns(): array;
 
     /**
      * This function used when form sending in response data
      */
-    private function response(): array
+    public function jsonSerialize(): array
+    {
+        return $this->resolve();
+    }
+
+    /**
+     * This function used when form sending in response data
+     */
+    public function resolve(): array
     {
         $request = request();
 
@@ -92,7 +101,11 @@ abstract class Table
             'pagination' => $pagination,*/
             'headers' => collect($this->columns())
                 ->map(fn (Column $column) => [
-                    $column->getName() => $column->getHeader()
+                    [
+                        'name' => $column->getName(),
+                        'header' => $column->getHeader(),
+                        'width' => $column->getWidth()
+                    ]
                 ])->collapse()
         ];
     }

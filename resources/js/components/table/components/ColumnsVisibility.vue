@@ -11,35 +11,54 @@ import {
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/Icon.vue';
 import { useLocalStorage } from '@vueuse/core';
+import { type TableHeader } from '@/types';
+import DraggableList from '@/components/table/components/DraggableList.vue';
+import { ref } from 'vue';
 
 interface Props {
-    columns: Record<string, string>
-    fixedColumn: keyof Props["columns"]
+    columns: TableHeader[]
+    fixedColumn: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
     fixedColumn: 'id'
 });
 
-const filteredColumns = useLocalStorage('table_columns:' + window.location.pathname, props.columns)
+const sortArr1ByArr2 = (arr1: TableHeader[], arr2: TableHeader[]) => {
+    arr1.sort((a, b) => {
+        const indexA = arr2.findIndex(obj => obj.name === a.name);
+        const indexB = arr2.findIndex(obj => obj.name === b.name);
+        return (indexA === -1 ? Infinity : indexA) - (indexB === -1 ? Infinity : indexB);
+    })
+}
+
+const columns = ref<TableHeader[]>(props.columns)
+const filteredColumns = useLocalStorage('table_columns:' + window.location.pathname, columns.value)
+sortArr1ByArr2(columns.value, filteredColumns.value)
 
 const toggleColumn = (columnName: string) => {
-    const exists = filteredColumns.value.hasOwnProperty(columnName);
-    console.log(exists);
-    if (exists) {
-        filteredColumns.value = Object.fromEntries(
-            Object.entries(filteredColumns.value).filter(([name, _]) => name !== columnName)
-        )
-    } else {
-        filteredColumns.value = Object.fromEntries(
-            Object.entries(props.columns).filter(([name, _]) => filteredColumns.value.hasOwnProperty(name) || name === columnName)
+    const exists = filteredColumns.value.map((column) => column.name).includes(columnName)
+
+    if (exists) { // hide
+        filteredColumns.value = columns.value.filter((column) => column.name !== columnName)
+    } else { // show
+        filteredColumns.value = columns.value.filter(
+            (column) => column.name === columnName
+                || filteredColumns.value.map((column) => column.name).includes(column.name)
         )
     }
+}
+
+const getGhostParent = () => document.body
+
+const onDropColumn = (items: TableHeader[]) => {
+    columns.value = items
+    sortArr1ByArr2(filteredColumns.value, items);
 }
 </script>
 
 <template>
-    <DropdownMenu>
+    <DropdownMenu class="relative">
         <DropdownMenuTrigger as-child>
             <Button variant="outline" class="flex items-center">
                 <Icon name="Columns3" class="mr-1 w-4 h-4"/>
@@ -49,14 +68,21 @@ const toggleColumn = (columnName: string) => {
         <DropdownMenuContent>
             <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
             <DropdownMenuSeparator class="bg-gray-300" />
-            <DropdownMenuCheckboxItem v-for="(header, name) in columns"
-                                      :key="name"
-                                      :checked="filteredColumns.hasOwnProperty(name)"
-                                      @click="toggleColumn(name)"
-                                      :disabled="name === fixedColumn"
+
+            <DraggableList #default="{ item }: { item: TableHeader }"
+                           :list="columns"
+                           class="space-y-1"
+                           :get-ghost-parent="getGhostParent"
+                           @updated="onDropColumn"
             >
-                {{header}}
-            </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem :key="item.name"
+                                          :checked="filteredColumns.map((column) => column.name).includes(item.name)"
+                                          @click="toggleColumn(item.name)"
+                                          :disabled="item.name === fixedColumn"
+                >
+                    {{item.header}}
+                </DropdownMenuCheckboxItem>
+            </DraggableList>
         </DropdownMenuContent>
     </DropdownMenu>
 </template>

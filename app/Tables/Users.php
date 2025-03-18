@@ -19,7 +19,7 @@ class Users extends Table
     public function columns(): array
     {
         return [
-            Columns\TextColumn::make('id', 'ID', sortable: true),
+            Columns\TextColumn::make('id', 'ID', sortable: true, width: '60px'),
             Columns\TextColumn::make('name', 'Full Name', sortable: true),
             Columns\TextColumn::make('email', sortable: true),
 //            Columns\NumericColumn::make('visit_count', sortable: true),

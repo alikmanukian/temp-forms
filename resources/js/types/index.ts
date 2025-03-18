@@ -59,9 +59,15 @@ export interface PaginatedMeta {
     perPageItems: number[]
 }
 
+export interface TableHeader {
+    name: string
+    header: string
+    width: string
+}
+
 export interface Paginated<T> {
     pageName: string
     data: T[]
     meta: PaginatedMeta
-    headers: Record<string, string>
+    headers: TableHeader[]
 }
