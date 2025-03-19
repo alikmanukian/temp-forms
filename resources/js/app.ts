@@ -7,7 +7,6 @@ import { createApp } from 'vue';
 import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
 import { renderApp } from '@/components/Modal/modalStack';
-import VueColumnsResizable from '@/components/table/utils/column-resizable';
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
@@ -30,7 +29,6 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         createApp({ render: renderApp(App, props) })
             .use(plugin)
-            .use(VueColumnsResizable)
             .use(ZiggyVue)
             .mount(el);
     },

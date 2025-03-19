@@ -13,14 +13,16 @@ import RowsPerPage from '@/components/table/components/RowsPerPage.vue';
 import { computed } from 'vue';
 import ColumnsVisibility from '@/components/table/components/ColumnsVisibility.vue';
 import { useLocalStorage } from '@vueuse/core';
+import vResizable from '../utils/resizable';
 
 interface Props {
     resource: Paginated<any>;
-    reloadOnly: boolean | string[];
-    stickyPagination: boolean;
-    stickyHeader: boolean;
-    includeQueryString: boolean;
-    fixedColumn: string;
+    reloadOnly?: boolean | string[];
+    stickyPagination?: boolean;
+    stickyHeader?: boolean;
+    includeQueryString?: boolean;
+    fixedColumn?: string;
+    resizable?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -28,6 +30,7 @@ const props = withDefaults(defineProps<Props>(), {
     stickyHeader: false,
     stickyPagination: false,
     includeQueryString: true,
+    resizable: false,
     fixedColumn: 'id'
 });
 
@@ -40,9 +43,7 @@ const filteredColumns = useLocalStorage('table_columns:' + window.location.pathn
 const onTableResizeStart = (e: CustomEvent) => {
     const el = e.target as HTMLElement
 
-    const table = el.closest('table') as HTMLElement
-
-    table.querySelectorAll('colgroup col').forEach((col: HTMLElement) => col.style.width = 'auto')
+    el.querySelectorAll('colgroup col').forEach((col: HTMLElement) => col.style.width = 'auto')
 }
 const onTableResizeEnd = (e: CustomEvent) => {
     const el = e.target as HTMLElement
@@ -68,18 +69,22 @@ const onTableResizeEnd = (e: CustomEvent) => {
             </div>
         </div>
 
-        <Table v-if="!noResults" border="1">
-            <colgroup>
+        <Table v-if="!noResults"
+               v-resizable="resizable"
+               @resize:start="onTableResizeStart"
+               @resize:end="onTableResizeEnd"
+               :style="{overflow: stickyHeader ? 'visible': 'auto'}"
+        >
+            <colgroup v-if="!resizable">
                 <col :style="{width: column.width}" v-for="column in filteredColumns" :key="column.name">
             </colgroup>
 
             <TableHeader :class="{'sticky top-0 bg-opacity-75 backdrop-blur backdrop-filter': stickyHeader}"
-                         v-columns-resizable
-                         @resize:start="onTableResizeStart"
-                         @resize:end="onTableResizeEnd"
             >
                 <TableRow>
-                    <TableHead v-for="column in filteredColumns" :key="column.name">{{ column.header }}</TableHead>
+                    <TableHead v-for="column in filteredColumns"
+                               :style="{width: column.width}"
+                               :key="column.name">{{ column.header }}</TableHead>
                 </TableRow>
             </TableHeader>
 

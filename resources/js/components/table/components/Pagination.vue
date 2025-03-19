@@ -20,12 +20,12 @@ import { type VisitOptions } from '@inertiajs/core';
 
 interface Props {
     meta: PaginatedMeta
-    reloadOnly: boolean|string[]
-    includeQueryString: boolean
     pageName: string
-    stickyPagination: boolean
-    hidePageNumbers: boolean
-    hideArrows: boolean
+    reloadOnly?: boolean|string[]
+    includeQueryString?: boolean
+    stickyPagination?: boolean
+    hidePageNumbers?: boolean
+    hideArrows?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {

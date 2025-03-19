@@ -24,7 +24,9 @@ defineProps<{
             <Table :resource="users"
                    :reloadOnly="['users']"
                    stickyPagination
-                   stickyHeader />
+                   stickyHeader
+                   resizable
+            />
         </div>
     </AppLayout>
 </template>
