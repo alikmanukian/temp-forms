@@ -2,38 +2,41 @@
 
 namespace App\TableComponents;
 
+use App\TableComponents\Enums\ColumnAlignment;
+use BadMethodCallException;
 use Illuminate\Support\Str;
+use JsonSerializable;
+use ReflectionProperty;
 
-class Column
+/**
+ * @method header()
+ * @method sortable(?boolean $value)
+ * @method searchable(?boolean $value)
+ * @method toggleable(?boolean $value)
+ * @method headerAlignment(ColumnAlignment $value)
+ * @method alignment(ColumnAlignment $value)
+ * @method visible(?boolean $value)
+ */
+class Column implements JsonSerializable
 {
     private function __construct(
         protected string $name,
         protected ?string $header = null,
-        protected bool $sortable = false,
-        protected bool $searchable = false,
-        protected bool $toggleable = false,
-        protected bool $alignment = false,
+        protected bool $sortable = false, // todo
+        protected bool $searchable = false, // todo
+        protected bool $toggleable = true, // allow/disallow in columns visibility
+        protected ColumnAlignment $headerAlignment = ColumnAlignment::LEFT,
+        protected ColumnAlignment $alignment = ColumnAlignment::LEFT,
         protected bool $wrap = false,
-        protected bool $truncate = false,
-        protected bool $visible = true,
-        protected string|int $width = 'auto'
+        protected int $truncate = 1, // number of lines for line-clamp
+        protected bool $visible = true,  // show column by default
+        protected string $width = 'auto' // column width
     ) {
-        
     }
 
-    public static function make(
-        string $name,
-        ?string $header = null,
-        bool $sortable = false,
-        string|int $width = 'auto'
-    ): static
+    public static function make(...$arguments): static
     {
-        return (new static(
-            name: $name,
-            header: $header,
-            sortable: $sortable,
-            width: $width,
-        ));
+        return (new static(...$arguments));
     }
 
     public function getName(): string
@@ -43,15 +46,70 @@ class Column
 
     public function getHeader(): string
     {
-        return $this->header ?? Str::title($this->name);
+        return $this->header ?? Str::of($this->name)
+            ->title()
+            ->replace('_', ' ')
+            ->toString();
     }
 
     public function getWidth(): string
     {
-        if (is_int($this->width)) {
-            return "{$this->width}px";
+        return $this->width;
+    }
+
+    public function truncate(int $lines = 1): static
+    {
+        $this->truncate = $lines;
+        $this->wrap = false;
+
+        return $this;
+    }
+
+    public function wrap(bool $value = true): static
+    {
+        $this->wrap = $value;
+        $this->truncate = false;
+
+        return $this;
+    }
+
+    public function __call(string $name, array $arguments): static
+    {
+        if (property_exists($this, $name)) {
+            $reflection = new ReflectionProperty($this, $name);
+            $type = $reflection->getType();
+
+            if ($type?->getName() === 'bool') {
+                $this->$name = $arguments[0] ?? true;
+            } elseif (!empty($arguments)) {
+                $this->$name = $arguments[0];
+            }
+
+            return $this;
         }
 
-        return $this->width;
+        throw new BadMethodCallException("Method [$name] doesn't exists");
+    }
+
+    /**
+     * This function used when form sending in response data
+     */
+    public function jsonSerialize(): array
+    {
+        return [
+            'name' => $this->getName(),
+            'header' => $this->getHeader(),
+            'width' => $this->getWidth(),
+            'options' => [
+                'sortable' => $this->sortable,
+                'searchable' => $this->searchable,
+                'toggleable' => $this->toggleable,
+                'headerAlignment' => $this->headerAlignment->value,
+                'alignment' => $this->alignment->value,
+                'wrap' => $this->wrap,
+                'truncate' => $this->truncate,
+                'visible' => $this->visible,
+            ]
+        ];
     }
 }

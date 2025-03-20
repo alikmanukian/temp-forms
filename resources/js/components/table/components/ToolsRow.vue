@@ -9,16 +9,17 @@ interface Props {
     pageName: string;
     headers: TableHeader[];
     reloadOnly?: boolean | string[];
-    fixedColumns?: string[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
     reloadOnly: false,
-    fixedColumns: () => ['id']
 });
 
 const from = computed(() => (props.meta.currentPage - 1) * props.meta.perPage + 1);
 const to = computed(() => props.meta.currentPage * props.meta.perPage);
+
+const fixedColumns = props.headers.filter((column: TableHeader) =>
+        !column.options.toggleable).map((column: TableHeader) => column.name)
 </script>
 
 <template>

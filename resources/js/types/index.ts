@@ -59,10 +59,25 @@ export interface PaginatedMeta {
     perPageItems: number[]
 }
 
-export interface TableHeader {
+export interface TableHeaderOptions {
+    sortable: boolean
+    searchable: boolean
+    toggleable: boolean
+    headerAlignment: 'justify-start'|'justify-center'|'justify-end'
+    alignment: 'justify-start'|'justify-center'|'justify-end'
+    wrap: boolean
+    truncate: number
+    visible: boolean
+}
+
+export interface TableHeaderWithoutOptions {
     name: string
     header: string
-    width: string
+    width: string,
+}
+
+export interface TableHeader extends TableHeaderWithoutOptions {
+    options: TableHeaderOptions
 }
 
 export interface Paginated<T> {

@@ -11,9 +11,9 @@ import {
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/Icon.vue';
 import { useLocalStorage } from '@vueuse/core';
-import { type TableHeader } from '@/types';
+import { type TableHeader, TableHeaderWithoutOptions } from '@/types';
 import DraggableList from '@/components/table/components/DraggableList.vue';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 interface Props {
     columns: TableHeader[]
@@ -21,10 +21,10 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    fixedColumns: () => ['id']
+    fixedColumns: () => []
 });
 
-const sortArr1ByArr2 = (arr1: TableHeader[], arr2: TableHeader[]) => {
+const sortArr1ByArr2 = (arr1: TableHeaderWithoutOptions[], arr2: TableHeaderWithoutOptions[]) => {
     arr1.sort((a, b) => {
         const indexA = arr2.findIndex(obj => obj.name === a.name);
         const indexB = arr2.findIndex(obj => obj.name === b.name);
@@ -32,7 +32,7 @@ const sortArr1ByArr2 = (arr1: TableHeader[], arr2: TableHeader[]) => {
     })
 }
 
-const columnNames = (columns: TableHeader[]) => columns.map((column) => column.name)
+const columnNames = (columns: TableHeaderWithoutOptions[]) => columns.map((column) => column.name)
 
 function arrayDifference(arr1: string[], arr2: string[]) {
     const set2 = new Set(arr2); // Convert arr2 to a Set for fast lookup
@@ -40,7 +40,12 @@ function arrayDifference(arr1: string[], arr2: string[]) {
 }
 
 const columns = ref<TableHeader[]>(props.columns)
-const filteredColumns = useLocalStorage('table_columns:' + window.location.pathname, columns.value)
+
+const initialColumns = columns.value.map((column: TableHeader) => ({
+    name: column.name, header: column.header, width: column.width
+}))
+
+const filteredColumns = useLocalStorage('table_columns:' + window.location.pathname, initialColumns)
 sortArr1ByArr2(columns.value, filteredColumns.value)
 
 
@@ -50,7 +55,9 @@ const toggleColumn = (columnName: string) => {
     filteredColumns.value = columns.value.filter((column) => {
         const includes = hiddenColumns.includes(column.name);
         return column.name === columnName ? includes : !includes;
-    })
+    }).map((column: TableHeader) => ({
+        name: column.name, header: column.header, width: column.width
+    }));
 }
 
 const getGhostParent = () => document.body

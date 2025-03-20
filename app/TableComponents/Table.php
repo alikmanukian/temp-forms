@@ -100,13 +100,7 @@ abstract class Table implements JsonSerializable
             ],
             'pagination' => $pagination,*/
             'headers' => collect($this->columns())
-                ->map(fn (Column $column) => [
-                    [
-                        'name' => $column->getName(),
-                        'header' => $column->getHeader(),
-                        'width' => $column->getWidth()
-                    ]
-                ])->collapse()
+                ->map(fn (Column $column) => $column->jsonSerialize())
         ];
     }
 }

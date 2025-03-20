@@ -3,6 +3,7 @@
 namespace App\Tables;
 
 use App\Models\User;
+use App\TableComponents\Enums\ColumnAlignment;
 use App\TableComponents\Table;
 use App\TableComponents\Columns;
 use App\TableComponents\Filters;
@@ -19,10 +20,15 @@ class Users extends Table
     public function columns(): array
     {
         return [
-            Columns\TextColumn::make('id', 'ID', sortable: true, width: '60px'),
-            Columns\TextColumn::make('name', 'Full Name', sortable: true),
-            Columns\TextColumn::make('email', sortable: true),
+            Columns\TextColumn::make('id', 'ID')
+                ->toggleable(false)
+                ->width('60px'),
+            Columns\TextColumn::make('name', 'Full Name'),
+            Columns\TextColumn::make('email'),
+            Columns\TextColumn::make('bio')->truncate(2),
+            Columns\TextColumn::make('email_verified_at'),
             Columns\TextColumn::make('created_at'),
+            Columns\TextColumn::make('updated_at'),
 //            Columns\NumericColumn::make('visit_count', sortable: true),
 //            Columns\DateColumn::make('email_verified_at'),
 //            Columns\ActionColumn::new(),

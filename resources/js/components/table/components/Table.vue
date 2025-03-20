@@ -14,7 +14,6 @@ interface Props {
     stickyPagination?: boolean;
     stickyHeader?: boolean;
     includeQueryString?: boolean;
-    fixedColumns?: string[];
     resizable?: boolean;
 }
 
@@ -24,18 +23,44 @@ const props = withDefaults(defineProps<Props>(), {
     stickyPagination: false,
     includeQueryString: true,
     resizable: false,
-    fixedColumns: () => ['id'],
 });
 
 const noResults = computed(() => props.resource.data.length === 0);
 
-const filteredColumns = useLocalStorage('table_columns:' + window.location.pathname, props.resource.headers);
+const headers = props.resource.headers
+    .filter((column: TableHeader) => column.options.visible)
+    .map((column: TableHeader) => ({
+        name: column.name, header: column.header, width: column.width
+    }))
 
-const onTableResizeStart = (e: CustomEvent) => {
-    const el = e.target as HTMLElement;
+const filteredColumns = useLocalStorage('table_columns:' + window.location.pathname, headers);
 
-    el.querySelectorAll('colgroup col').forEach((col: HTMLElement) => (col.style.width = 'auto'));
-};
+const columnWrappingMethod = (column: TableHeader) => {
+    if (column.options.truncate == 1) {
+        return 'truncate';
+    }
+
+    if (column.options.truncate > 1) {
+        // line-clamp-2
+        // line-clamp-3
+        // line-clamp-4
+        // line-clamp-5
+        return 'line-clamp-' + column.options.truncate;
+    }
+
+    if (column.options.wrap) {
+        return ''
+    }
+
+    if (!props.stickyHeader) {
+        return 'whitespace-nowrap';
+    }
+}
+
+const getColumn = (column: string) => {
+    return props.resource.headers.find((header: TableHeader) => header.name === column)
+}
+
 const onTableResizeEnd = (e: CustomEvent) => {
     const el = e.target as HTMLElement;
     el.querySelectorAll('th').forEach((th: HTMLElement, index: number) => (filteredColumns.value[index].width = th.style.width));
@@ -44,12 +69,15 @@ const onTableResizeEnd = (e: CustomEvent) => {
 
 <template>
     <div class="-mx-4">
-        <ToolsRow v-if="!noResults" :meta="resource.meta" :page-name="resource.pageName" :headers="resource.headers" :reloadOnly :fixedColumns />
+        <ToolsRow v-if="!noResults"
+                  :meta="resource.meta"
+                  :page-name="resource.pageName"
+                  :headers="resource.headers"
+                  :reloadOnly />
 
         <Table
             v-if="!noResults"
             v-resizable="resizable"
-            @resize:start="onTableResizeStart"
             @resize:end="onTableResizeEnd"
             :style="{ overflow: stickyHeader ? 'visible' : 'auto' }"
             class="table-fixed"
@@ -64,7 +92,9 @@ const onTableResizeEnd = (e: CustomEvent) => {
             >
                 <TableRow>
                     <TableHead v-for="column in filteredColumns" :style="{ width: column.width }" class="dark:text-white" :key="column.name">
-                        <div class="flex items-center justify-start">
+                        <div class="flex items-center"
+                            :class="getColumn(column.name)?.options.headerAlignment"
+                        >
                             <div class="truncate">
                                 {{ column.header }}
                             </div>
@@ -76,8 +106,12 @@ const onTableResizeEnd = (e: CustomEvent) => {
             <TableBody>
                 <TableRow v-for="(row, index) in resource.data" :key="index">
                     <TableCell v-for="column in filteredColumns" :key="column.name">
-                        <div class="flex items-center justify-start">
-                            <div class="truncate">{{ row[column.name] }}</div>
+                        <div class="flex items-center"
+                             :class="getColumn(column.name)?.options.alignment"
+                        >
+                            <div :class="columnWrappingMethod(getColumn(column.name))">
+                                {{ row[column.name] }}
+                            </div>
                         </div>
                     </TableCell>
                 </TableRow>
