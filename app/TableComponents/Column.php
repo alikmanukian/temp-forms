@@ -10,8 +10,15 @@ class Column
         protected string $name,
         protected ?string $header = null,
         protected bool $sortable = false,
+        protected bool $searchable = false,
+        protected bool $toggleable = false,
+        protected bool $alignment = false,
+        protected bool $wrap = false,
+        protected bool $truncate = false,
+        protected bool $visible = true,
         protected string|int $width = 'auto'
     ) {
+        
     }
 
     public static function make(

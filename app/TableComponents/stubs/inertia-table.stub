@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Tables;
+
+use App\Models\{{RESOURCE}};
+use {{NAMESPACE}}\Action;
+use {{NAMESPACE}}\Columns;
+use {{NAMESPACE}}\Filters;
+use {{NAMESPACE}}\Table;
+
+class {{CLASS}} extends Table
+{
+    protected ?string $resource = {{RESOURCE}}::class;
+
+    public function columns(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public function filters(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public function actions(): array
+    {
+        return [
+            //
+        ];
+    }
+
+    public function exports(): array
+    {
+        return [
+            //
+        ];
+    }
+}

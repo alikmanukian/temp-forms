@@ -71,7 +71,7 @@ abstract class Table implements JsonSerializable
         }
 
         $paginator = $this->builder
-//            ->where('id', '<', 10)
+//            ->where('id', '<', 0)
             ->paginate(
                 perPage: $perPage,
 //            pageName: Str::of(get_class($this))->afterLast('\\')->lower()->toString()

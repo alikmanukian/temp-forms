@@ -17,11 +17,11 @@ import { ref } from 'vue';
 
 interface Props {
     columns: TableHeader[]
-    fixedColumn: string
+    fixedColumns: string[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    fixedColumn: 'id'
+    fixedColumns: () => ['id']
 });
 
 const sortArr1ByArr2 = (arr1: TableHeader[], arr2: TableHeader[]) => {
@@ -32,21 +32,25 @@ const sortArr1ByArr2 = (arr1: TableHeader[], arr2: TableHeader[]) => {
     })
 }
 
+const columnNames = (columns: TableHeader[]) => columns.map((column) => column.name)
+
+function arrayDifference(arr1: string[], arr2: string[]) {
+    const set2 = new Set(arr2); // Convert arr2 to a Set for fast lookup
+    return arr1.filter(item => !set2.has(item)); // O(n) instead of O(n²)
+}
+
 const columns = ref<TableHeader[]>(props.columns)
 const filteredColumns = useLocalStorage('table_columns:' + window.location.pathname, columns.value)
 sortArr1ByArr2(columns.value, filteredColumns.value)
 
-const toggleColumn = (columnName: string) => {
-    const exists = filteredColumns.value.map((column) => column.name).includes(columnName)
 
-    if (exists) { // hide
-        filteredColumns.value = columns.value.filter((column) => column.name !== columnName)
-    } else { // show
-        filteredColumns.value = columns.value.filter(
-            (column) => column.name === columnName
-                || filteredColumns.value.map((column) => column.name).includes(column.name)
-        )
-    }
+const toggleColumn = (columnName: string) => {
+    const hiddenColumns = arrayDifference(columnNames(columns.value), columnNames(filteredColumns.value));
+
+    filteredColumns.value = columns.value.filter((column) => {
+        const includes = hiddenColumns.includes(column.name);
+        return column.name === columnName ? includes : !includes;
+    })
 }
 
 const getGhostParent = () => document.body
@@ -78,7 +82,7 @@ const onDropColumn = (items: TableHeader[]) => {
                 <DropdownMenuCheckboxItem :key="item.name"
                                           :checked="filteredColumns.map((column) => column.name).includes(item.name)"
                                           @click="toggleColumn(item.name)"
-                                          :disabled="item.name === fixedColumn"
+                                          :disabled="fixedColumns.includes(item.name)"
                 >
                     {{item.header}}
                 </DropdownMenuCheckboxItem>

@@ -22,6 +22,7 @@ class Users extends Table
             Columns\TextColumn::make('id', 'ID', sortable: true, width: '60px'),
             Columns\TextColumn::make('name', 'Full Name', sortable: true),
             Columns\TextColumn::make('email', sortable: true),
+            Columns\TextColumn::make('created_at'),
 //            Columns\NumericColumn::make('visit_count', sortable: true),
 //            Columns\DateColumn::make('email_verified_at'),
 //            Columns\ActionColumn::new(),

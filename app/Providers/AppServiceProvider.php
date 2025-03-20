@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -20,8 +21,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
         Route::macro('inertiaTable', function() {
             // defined routes for execute actions and export data
+            // todo: add your code here
         });
+
+        Artisan::addCommandPaths([
+            base_path('app/TableComponents/Commands'),
+        ]);
     }
 }

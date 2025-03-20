@@ -70,7 +70,7 @@ const changePage = (page: number) => {
 </script>
 
 <template>
-    <div class="flex gap-6 py-4 mt-4 justify-end border-t border-input items-center"
+    <div class="flex gap-6 px-4 py-4 mt-4 justify-end border-t border-input items-center"
         :class="{
             'sticky bottom-0 bg-white/75 backdrop-blur backdrop-filter dark:bg-black/25': stickyPagination,
         }"
