@@ -50,39 +50,3 @@ export interface FormProps extends InertiaForm<any>{
     method: 'post'|'patch'|'put'|'delete'
     fields: FormField[]
 }
-
-export interface PaginatedMeta {
-    currentPage: number
-    perPage: number
-    total: number
-    lastPage: number
-    perPageItems: number[]
-}
-
-export interface TableHeaderOptions {
-    sortable: boolean
-    searchable: boolean
-    toggleable: boolean
-    headerAlignment: 'justify-start'|'justify-center'|'justify-end'
-    alignment: 'justify-start'|'justify-center'|'justify-end'
-    wrap: boolean
-    truncate: number
-    visible: boolean
-}
-
-export interface TableHeaderWithoutOptions {
-    name: string
-    header: string
-    width: string,
-}
-
-export interface TableHeader extends TableHeaderWithoutOptions {
-    options: TableHeaderOptions
-}
-
-export interface Paginated<T> {
-    pageName: string
-    data: T[]
-    meta: PaginatedMeta
-    headers: TableHeader[]
-}

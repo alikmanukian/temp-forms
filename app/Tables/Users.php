@@ -3,7 +3,6 @@
 namespace App\Tables;
 
 use App\Models\User;
-use App\TableComponents\Enums\ColumnAlignment;
 use App\TableComponents\Table;
 use App\TableComponents\Columns;
 use App\TableComponents\Filters;
@@ -17,13 +16,18 @@ class Users extends Table
 
     protected array $search = ['name', 'email'];
 
+    protected bool $stickyHeader = true;
+    protected bool $stickyPagination = true;
+
     public function columns(): array
     {
         return [
             Columns\TextColumn::make('id', 'ID')
                 ->toggleable(false)
+                ->stickable()
                 ->width('60px'),
-            Columns\TextColumn::make('name', 'Full Name'),
+            Columns\TextColumn::make('name', 'Full Name')
+                ->stickable(),
             Columns\TextColumn::make('email'),
             Columns\TextColumn::make('bio')->truncate(2),
             Columns\TextColumn::make('email_verified_at'),

@@ -11,7 +11,7 @@ import Icon from '@/components/Icon.vue';
 import type { VisitOptions } from '@inertiajs/core';
 import { router } from '@inertiajs/vue3';
 import { useCookies } from '@vueuse/integrations/useCookies';
-import type { PaginatedMeta } from '@/types';
+import type { PaginatedMeta } from '../index';
 
 const cookies = useCookies();
 
@@ -71,7 +71,7 @@ const setPerPage = (value: number) => {
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-                <DropdownMenuCheckboxItem v-for="page in meta.perPageItems"
+                <DropdownMenuCheckboxItem v-for="page in meta.perPageOptions"
                                           :checked="props.meta.perPage === page"
                                           @click="setPerPage(page)"
                                           :key="page"

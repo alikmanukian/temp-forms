@@ -14,7 +14,7 @@ import {
     PaginationPrev,
 } from '@/components/ui/pagination'
 
-import type { PaginatedMeta } from '@/types';
+import type { PaginatedMeta } from '../index';
 import { router } from '@inertiajs/vue3';
 import { type VisitOptions } from '@inertiajs/core';
 
@@ -70,7 +70,7 @@ const changePage = (page: number) => {
 </script>
 
 <template>
-    <div class="flex gap-6 px-4 py-4 mt-4 justify-end border-t border-input items-center"
+    <div class="flex gap-6 py-4 mt-4 justify-end border-t border-input items-center"
         :class="{
             'sticky bottom-0 bg-white/75 backdrop-blur backdrop-filter dark:bg-black/25': stickyPagination,
         }"
@@ -88,17 +88,22 @@ const changePage = (page: number) => {
                     show-edges
         >
             <PaginationList v-slot="{ items }" class="flex items-center gap-1">
-                <PaginationFirst v-if="!hideArrows"  />
+                <PaginationFirst v-if="!hideArrows" />
                 <PaginationPrev v-if="!hideArrows" />
 
                 <template v-if="!hidePageNumbers">
                     <template v-for="(item, index) in items">
-                        <PaginationListItem v-if="item.type === 'page'" :key="index" :value="item.value" as-child>
+                        <PaginationListItem v-if="item.type === 'page'"
+                                            :key="index"
+                                            :value="item.value"
+                                            as-child
+                                            class="hidden @lg:inline-flex"
+                        >
                             <Button class="w-9 h-9 p-0" :variant="item.value === page ? 'default' : 'outline'">
                                 {{ item.value }}
                             </Button>
                         </PaginationListItem>
-                        <PaginationEllipsis v-else :key="item.type" :index="index" />
+                        <PaginationEllipsis v-else :key="item.type" :index="index" class="hidden @lg:flex" />
                     </template>
                 </template>
 

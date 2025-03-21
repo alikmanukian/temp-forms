@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItem, User, Paginated } from '@/types';
+import type { BreadcrumbItem, User } from '@/types';
+import type { Paginated } from '@/components/table'
 import { Head } from '@inertiajs/vue3';
 import { Table } from '@/components/table';
 
@@ -23,9 +24,10 @@ defineProps<{
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 pb-0">
             <Table :resource="users"
                    :reloadOnly="['users']"
-                   stickyPagination
-                   stickyHeader
+                   hidePageNumbers
                    resizable
+                   expanded
+                   fixed
             />
         </div>
     </AppLayout>

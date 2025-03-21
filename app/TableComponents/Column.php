@@ -9,7 +9,6 @@ use JsonSerializable;
 use ReflectionProperty;
 
 /**
- * @method header()
  * @method sortable(?boolean $value)
  * @method searchable(?boolean $value)
  * @method toggleable(?boolean $value)
@@ -17,7 +16,7 @@ use ReflectionProperty;
  * @method alignment(ColumnAlignment $value)
  * @method visible(?boolean $value)
  */
-class Column implements JsonSerializable
+class Column
 {
     private function __construct(
         protected string $name,
@@ -29,8 +28,11 @@ class Column implements JsonSerializable
         protected ColumnAlignment $alignment = ColumnAlignment::LEFT,
         protected bool $wrap = false,
         protected int $truncate = 1, // number of lines for line-clamp
-        protected bool $visible = true,  // show column by default
-        protected string $width = 'auto' // column width
+        protected bool $visible = true,
+        protected bool $stickable = false,
+        protected string $width = 'auto',
+        protected string $headerClass = '',
+        protected string $cellClass = '',
     ) {
     }
 
@@ -73,6 +75,11 @@ class Column implements JsonSerializable
         return $this;
     }
 
+    /**
+     * This allows to set properties dynamically
+     * for example $column->sortable()
+     * or $column->sortable(false|true)
+     */
     public function __call(string $name, array $arguments): static
     {
         if (property_exists($this, $name)) {
@@ -94,7 +101,7 @@ class Column implements JsonSerializable
     /**
      * This function used when form sending in response data
      */
-    public function jsonSerialize(): array
+    public function headerInfo(): array
     {
         return [
             'name' => $this->getName(),
@@ -109,6 +116,9 @@ class Column implements JsonSerializable
                 'wrap' => $this->wrap,
                 'truncate' => $this->truncate,
                 'visible' => $this->visible,
+                'stickable' => $this->stickable,
+                'headerClass' => $this->headerClass,
+                'cellClass' => $this->cellClass,
             ]
         ];
     }
