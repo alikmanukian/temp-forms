@@ -8,6 +8,7 @@ import vResizable from '../utils/resizable';
 import EmptyState from '@/components/table/components/EmptyState.vue';
 import ToolsRow from '@/components/table/components/ToolsRow.vue';
 import { cn } from '@/lib/utils';
+import HeaderButton from '@/components/table/components/HeaderButton.vue';
 
 interface Props {
     resource: Paginated<any>;
@@ -155,19 +156,15 @@ onMounted(() => {
                         <TableHead
                             v-for="column in filteredColumns"
                             :style="{ width: column.width, left: !fixed ? columnsPositions[column.name]?.left + 'px' : 'auto'}"
-                            class="p-4"
                             :key="column.name"
                             :data-name="column.name"
+                            class="px-0"
                             :class="{
-                                'sticky z-10 bg-gray-50/90 dark:bg-background/80': !fixed && column.options.stickable,
+                                'sticky z-10 bg-gray-50/90 dark:bg-background/80 p-4': !fixed && column.options.stickable,
                                 'sticky-last': !fixed && column.options.stickable && column.name == lastStickableColumn?.name
                             }"
                         >
-                            <div class="flex items-center" :class="column.options.headerAlignment">
-                                <div class="truncate" :class="column.options.headerClass">
-                                    {{ column.header }}
-                                </div>
-                            </div>
+                            <HeaderButton :column />
                         </TableHead>
                     </TableRow>
                 </TableHeader>
