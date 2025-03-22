@@ -60,7 +60,7 @@ const getGhostParent = () => document.body
 
 const onDropColumn = (items: TableHeader[]) => {
     columns.value = items
-    sortArr1ByArr2(filteredColumns.value, items);
+    sortArr1ByArr2(localStorage.value, items);
 }
 </script>
 
