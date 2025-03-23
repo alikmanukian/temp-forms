@@ -25,7 +25,7 @@ class Users extends Table
             Columns\TextColumn::make('id', 'ID')
                 ->toggleable(false)
                 ->stickable()
-                ->width('60px'),
+                ->width('75px'),
             Columns\TextColumn::make('name', 'Full Name')
                 ->stickable(),
             Columns\TextColumn::make('email'),

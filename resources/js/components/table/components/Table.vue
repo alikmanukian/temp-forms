@@ -9,6 +9,7 @@ import EmptyState from '@/components/table/components/EmptyState.vue';
 import ToolsRow from '@/components/table/components/ToolsRow.vue';
 import { cn } from '@/lib/utils';
 import HeaderButton from '@/components/table/components/HeaderButton.vue';
+import { useToggleColumns } from '@/components/table/utils/toggleColumns';
 
 interface Props {
     resource: Paginated<any>;
@@ -31,9 +32,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const noResults = computed(() => props.resource.data.length === 0);
 
-const headers = useLocalStorage<TableHeaderType[]>('table_columns:' + window.location.pathname, props.resource.headers);
-
-const filteredColumns = computed(() => headers.value.filter((column: TableHeaderType) => column.options.visible));
+const { columns, filteredColumns } = useToggleColumns(props.resource.headers)
 
 const stickyHeader = computed(() => props.fixed && props.resource.stickyHeader);
 const stickyPagination = computed(() => props.resource.stickyPagination);
@@ -74,7 +73,7 @@ const cellClass = (column: TableHeaderType) => {
 };
 
 const lastStickableColumn = computed(() => {
-    return headers.value.filter((column) => column.options.stickable).pop();
+    return columns.value.filter((column) => column.options.stickable).pop();
 });
 
 const resizable = computed(() => props.resizable && props.fixed);
@@ -82,7 +81,7 @@ const resizable = computed(() => props.resizable && props.fixed);
 const onTableResizeEnd = (e: CustomEvent) => {
     const el = e.target as HTMLElement;
     el.querySelectorAll('th').forEach((th: HTMLElement) => {
-        const col = headers.value.find((column: TableHeaderType) => column.name == th.dataset.name);
+        const col = columns.value.find((column: TableHeaderType) => column.name == th.dataset.name);
         if (col) {
             col.width = th.style.width;
         }
