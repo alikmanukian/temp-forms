@@ -2,21 +2,20 @@
 import type { Paginated, TableHeader as TableHeaderType } from '../index';
 import Pagination from '@/components/table/components/Pagination.vue';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { computed, onMounted, ref, useTemplateRef } from 'vue';
-import { useLocalStorage } from '@vueuse/core';
+import { computed, onMounted, useTemplateRef } from 'vue';
 import vResizable from '../utils/resizable';
 import EmptyState from '@/components/table/components/EmptyState.vue';
 import ToolsRow from '@/components/table/components/ToolsRow.vue';
 import { cn } from '@/lib/utils';
 import HeaderButton from '@/components/table/components/HeaderButton.vue';
 import { useToggleColumns } from '@/components/table/utils/toggleColumns';
+import { useStickableColumns } from '@/components/table/utils/stickColumns';
 
 interface Props {
     resource: Paginated<any>;
     reloadOnly?: boolean | string[];
     includeQueryString?: boolean;
     resizable?: boolean;
-    fixed?: boolean;
     expanded?: boolean;
     hidePageNumbers?: boolean;
 }
@@ -25,25 +24,21 @@ const props = withDefaults(defineProps<Props>(), {
     reloadOnly: false,
     includeQueryString: true,
     resizable: false,
-    fixed: false,
     expanded: false,
     hidePageNumbers: false,
 });
 
 const noResults = computed(() => props.resource.data.length === 0);
+const fixed = computed(() => props.resource.fixed);
 
-const { columns, filteredColumns } = useToggleColumns(props.resource.headers)
+const { filteredColumns } = useToggleColumns(props.resource.headers)
+const { lastStickableColumn, scrollPosition, updateScrollPosition, saveColumnsPositions } = useStickableColumns(props.resource.headers, 'container')
 
-const stickyHeader = computed(() => props.fixed && props.resource.stickyHeader);
+const stickyHeader = computed(() => fixed.value && props.resource.stickyHeader);
 const stickyPagination = computed(() => props.resource.stickyPagination);
 
-const scrollPosition = ref(0);
-const columnsPositions = ref<Record<string, {left: number, width: number}>>({});
-const container = useTemplateRef('container');
-
-
 const columnWrappingMethod = (column: TableHeaderType) => {
-    if (!props.fixed) {
+    if (!fixed.value) {
         return 'whitespace-nowrap';
     }
 
@@ -72,56 +67,14 @@ const cellClass = (column: TableHeaderType) => {
     return cn([columnWrappingMethod(column), column.options.cellClass]);
 };
 
-const lastStickableColumn = computed(() => {
-    return columns.value.filter((column) => column.options.stickable).pop();
-});
+const resizable = computed(() => props.resizable && fixed.value);
 
-const resizable = computed(() => props.resizable && props.fixed);
-
-const onTableResizeEnd = (e: CustomEvent) => {
-    const el = e.target as HTMLElement;
-    el.querySelectorAll('th').forEach((th: HTMLElement) => {
-        const col = columns.value.find((column: TableHeaderType) => column.name == th.dataset.name);
-        if (col) {
-            col.width = th.style.width;
-        }
-    });
-
-    saveColumnsPositions();
-};
-
-const onTableScroll = (e: Event) => {
-    const target = e.target as HTMLElement;
-
-    if (target.scrollLeft === 0) {
-        scrollPosition.value = 0;
-    }
-
-    if (target?.scrollLeft > 0 && scrollPosition.value === 0) {
-        scrollPosition.value = target.scrollLeft;
-    }
-}
-
-const saveColumnsPositions = () => {
-    const table = document.querySelector("table");
-    if (!table) return;
-
-    const tableLeft = table.getBoundingClientRect().left;
-
-    container.value?.querySelectorAll('thead th')
-        .forEach((th) => {
-            const thElement = th as HTMLElement; // ✅ Type assertion
-            const name = thElement.dataset.name as string
-            columnsPositions.value[name] = {
-                left: th.getBoundingClientRect().left - tableLeft,
-                width: th.getBoundingClientRect().width,
-            };
-        });
-}
+const container = useTemplateRef<HTMLElement>('container')
 
 onMounted(() => {
-    saveColumnsPositions();
+    saveColumnsPositions(container.value);
 });
+
 </script>
 
 <template>
@@ -138,9 +91,9 @@ onMounted(() => {
         <div v-if="!noResults" :class="{ 'border-b border-t': expanded, 'rounded-lg border': !expanded }">
             <Table
                 v-resizable="resizable"
-                @resize:end="onTableResizeEnd"
+                @resize:end="(e) => saveColumnsPositions(container)"
                 :style="{ overflow: stickyHeader ? 'visible' : 'auto' }"
-                @scroll="onTableScroll"
+                @scroll="updateScrollPosition"
                 :class="{ 'table-fixed': fixed, 'scrolled': scrollPosition > 0 }"
             >
                 <colgroup v-if="!resizable">
@@ -154,13 +107,13 @@ onMounted(() => {
                     <TableRow>
                         <TableHead
                             v-for="column in filteredColumns"
-                            :style="{ width: column.width, left: !fixed ? columnsPositions[column.name]?.left + 'px' : 'auto'}"
+                            :style="{ width: column.width, left: !fixed ? column.left + 'px' : 'auto'}"
                             :key="column.name"
                             :data-name="column.name"
                             class="px-0"
                             :class="{
-                                'sticky z-10 bg-gray-50/90 dark:bg-background/80 p-4': !fixed && column.options.stickable,
-                                'sticky-last': !fixed && column.options.stickable && column.name == lastStickableColumn?.name
+                                'sticky z-10 bg-gray-50/90 dark:bg-background/80': !fixed && column.options.sticked,
+                                'sticky-last': !fixed && column.options.sticked && column.name == lastStickableColumn?.name
                             }"
                         >
                             <HeaderButton :column />
@@ -172,10 +125,10 @@ onMounted(() => {
                     <TableRow v-for="(row, index) in resource.data" :key="index">
                         <TableCell v-for="column in filteredColumns"
                                    :key="column.name"
-                                   :style="{ width: column.width, left: columnsPositions[column.name]?.left + 'px' }"
+                                   :style="{ width: column.width, left: column.left + 'px' }"
                                    :class="{
-                                       'sticky z-10 bg-white/90 dark:bg-background/80': !fixed && column.options.stickable,
-                                       'sticky-last': !fixed && column.options.stickable && column.name == lastStickableColumn?.name
+                                       'sticky z-10 bg-white/90 dark:bg-background/80': !fixed && column.options.sticked,
+                                       'sticky-last': !fixed && column.options.sticked && column.name == lastStickableColumn?.name
                                    }"
                         >
                             <div class="flex items-center" :class="column.options.alignment">

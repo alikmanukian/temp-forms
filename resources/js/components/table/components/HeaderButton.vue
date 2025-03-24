@@ -5,13 +5,15 @@ import {
     DropdownMenu,
     DropdownMenuItem,
     DropdownMenuContent,
-    DropdownMenuTrigger
+    DropdownMenuTrigger,
+    DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import DraggableList from '@/components/table/components/DraggableList.vue';
 import { Button } from '@/components/ui/button';
-import { computed } from 'vue';
+import { computed, useTemplateRef } from 'vue';
 import { cn } from '@/lib/utils';
 import { useToggleColumns } from '@/components/table/utils/toggleColumns';
+import { useStickableColumns } from '@/components/table/utils/stickColumns';
 
 interface Props {
     column: TableHeader
@@ -22,51 +24,97 @@ interface Callback {
 }
 
 interface ListItem {
-    name: string
-    title: string
-    icon: string
-    handler: Callback
+    type: 'divider'|'action'
+    name?: string
+    title?: string
+    icon?: string
+    handler?: Callback
 }
 
 const props = defineProps<Props>()
 
 const { toggleColumn } = useToggleColumns([])
+const { stickColumn } = useStickableColumns([])
 
 const hideColumn = () => {
     toggleColumn(props.column.name)
 }
 
-const list : ListItem[] = [
-    {
-        name: 'orderAsc',
-        title: 'Asc',
-        icon: 'ArrowUpNarrowWide',
-        handler: () => {}
-    },
-    {
-        name: 'orderDesc',
-        title: 'Desc',
-        icon: 'ArrowDownWideNarrow',
-        handler: () => {}
-    },
-    {
-        name: 'hide',
-        title: 'Hide',
-        icon: 'EyeOff',
-        handler: hideColumn
-    },
-    {
-        name: 'lock',
-        title: 'Freeze',
-        icon: 'LockKeyhole',
-        handler: hideColumn
-    }
-]
+const list = computed(() => {
+    const items : ListItem[] = [];
 
-const hasButton = computed(() => props.column.options.stickable)
+    if (props.column.options.sortable) {
+        items.push({
+            type: 'action',
+            name: 'orderAsc',
+            title: 'Asc',
+            icon: 'ArrowUpNarrowWide',
+            handler: () => {}
+        })
+
+        items.push({
+            type: 'action',
+            name: 'orderDesc',
+            title: 'Desc',
+            icon: 'ArrowDownWideNarrow',
+            handler: () => {}
+        })
+    }
+
+
+    if (props.column.options.toggleable) {
+        if (items.length > 0 && items[items.length - 1].name == 'orderDesc') {
+            items.push({
+                type: 'divider'
+            })
+        }
+
+        items.push({
+            type: 'action',
+            name: 'hide',
+            title: 'Hide',
+            icon: 'EyeOff',
+            handler: hideColumn
+        });
+    }
+
+    if (props.column.options.stickable) {
+        if (items.length > 0 && items[items.length - 1].name == 'orderDesc') {
+            items.push({
+                type: 'divider'
+            })
+        }
+
+        if (props.column.options.sticked) {
+            items.push({
+                type: 'action',
+                name: 'unstick',
+                title: 'Unstick',
+                icon: 'Unlock',
+                handler: () => {
+                    stickColumn(props.column.name, button.value?.closest('table') as HTMLElement)
+                }
+            })
+        } else {
+            items.push({
+                type: 'action',
+                name: 'stick',
+                title: 'Stick',
+                icon: 'Lock',
+                handler: () => {
+                    stickColumn(props.column.name, button.value?.closest('table') as HTMLElement)
+                }
+            });
+        }
+    }
+    return items;
+})
+
+const hasButton = computed(() => list.value.length > 0)
+const button = useTemplateRef<HTMLElement>('headerButton')
 </script>
 <template>
-    <div class="flex items-center h-full" :class="column.options.headerAlignment">
+    <div ref="headerButton" class="flex items-center h-full" :class="column.options.headerAlignment">
         <div class="truncate h-full flex items-center"
              :class="cn([column.options.headerClass, hasButton ? 'px-2' : 'px-4'])"
         >
@@ -75,8 +123,9 @@ const hasButton = computed(() => props.column.options.stickable)
                 <DropdownMenu class="relative">
                     <DropdownMenuTrigger as-child>
                         <Button variant="outline" class="flex items-center px-2 py-1 shadow-none border-none bg-inherit text-muted-foreground hover:text-muted-foreground hover:bg-background">
+                            <Icon name="Lock" class="!w-3.5 !h-3.5" v-if="column.options.sticked" />
                             <span class="text-sm">{{ column.header }}</span>
-                            <Icon name="ChevronsUpDown" class="w-4 h-4"/>
+                            <Icon name="ChevronsUpDown" class="w-4 h-4" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
@@ -84,8 +133,9 @@ const hasButton = computed(() => props.column.options.stickable)
                                        :list="list"
                                        class="space-y-1"
                         >
-                            <DropdownMenuItem :key="item.name" @click="item.handler">
-                                <Icon :name="item.icon" class="w-4 h-4"/>
+                            <DropdownMenuSeparator v-if="item.type === 'divider'"/>
+                            <DropdownMenuItem v-else :key="item.name!" @click="item.handler!">
+                                <Icon :name="item.icon!" class="w-4 h-4"/>
                                 <span class="text-sm">{{ item.title }}</span>
                             </DropdownMenuItem>
                         </DraggableList>

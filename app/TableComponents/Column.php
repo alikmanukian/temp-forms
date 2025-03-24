@@ -30,6 +30,7 @@ class Column
         protected int $truncate = 1, // number of lines for line-clamp
         protected bool $visible = true,
         protected bool $stickable = false,
+        protected bool $sticked = false,
         protected string $width = 'auto',
         protected string $headerClass = '',
         protected string $cellClass = '',
@@ -101,7 +102,7 @@ class Column
     /**
      * This function used when form sending in response data
      */
-    public function headerInfo(): array
+    public function headerInfo(bool $tableFixed): array
     {
         return [
             'name' => $this->getName(),
@@ -116,7 +117,8 @@ class Column
                 'wrap' => $this->wrap,
                 'truncate' => $this->truncate,
                 'visible' => $this->visible,
-                'stickable' => $this->stickable,
+                'stickable' => !$tableFixed && $this->stickable,
+                'sticked' => !$tableFixed && $this->sticked,
                 'headerClass' => $this->headerClass,
                 'cellClass' => $this->cellClass,
             ]

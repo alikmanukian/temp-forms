@@ -19,11 +19,14 @@ class Users extends Table
     protected bool $stickyHeader = true;
     protected bool $stickyPagination = true;
 
+    protected bool $fixed = true;
+
     public function columns(): array
     {
         return [
             Columns\TextColumn::make('id', 'ID')
                 ->toggleable(false)
+                ->sortable()
                 ->stickable()
                 ->width('75px'),
             Columns\TextColumn::make('name', 'Full Name')

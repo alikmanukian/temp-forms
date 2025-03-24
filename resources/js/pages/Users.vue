@@ -27,7 +27,6 @@ defineProps<{
                    hidePageNumbers
                    resizable
                    expanded
-                   fixed
             />
         </div>
     </AppLayout>

@@ -18,6 +18,7 @@ export interface TableHeaderOptions {
     truncate: number
     visible: boolean
     stickable: boolean
+    sticked: boolean
     headerClass: string
     cellClass: string
 }
@@ -25,7 +26,8 @@ export interface TableHeaderOptions {
 export interface TableHeader {
     name: string
     header: string
-    width: string,
+    width: string
+    left: number
     options: TableHeaderOptions
 }
 
@@ -36,4 +38,5 @@ export interface Paginated<T> {
     headers: TableHeader[]
     stickyHeader: boolean
     stickyPagination: boolean
+    fixed: boolean
 }
