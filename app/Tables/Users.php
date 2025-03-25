@@ -19,8 +19,6 @@ class Users extends Table
     protected bool $stickyHeader = true;
     protected bool $stickyPagination = true;
 
-    protected bool $fixed = true;
-
     public function columns(): array
     {
         return [

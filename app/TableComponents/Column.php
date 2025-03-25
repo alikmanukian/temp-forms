@@ -102,7 +102,7 @@ class Column
     /**
      * This function used when form sending in response data
      */
-    public function headerInfo(bool $tableFixed): array
+    public function headerInfo(): array
     {
         return [
             'name' => $this->getName(),
@@ -117,8 +117,8 @@ class Column
                 'wrap' => $this->wrap,
                 'truncate' => $this->truncate,
                 'visible' => $this->visible,
-                'stickable' => !$tableFixed && $this->stickable,
-                'sticked' => !$tableFixed && $this->sticked,
+                'stickable' => $this->stickable,
+                'sticked' => $this->sticked,
                 'headerClass' => $this->headerClass,
                 'cellClass' => $this->cellClass,
             ]

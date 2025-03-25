@@ -13,7 +13,7 @@ const sortArr1ByArr2 = (arr1: TableHeader[], arr2: TableHeader[]) => {
 export const useToggleColumns = (initialColumns: TableHeader[]) => {
     const columns = ref<TableHeader[]>(initialColumns)
     const localStorage = useLocalStorage<TableHeader[]>('table_columns:' + window.location.pathname, columns)
-    const filteredColumns = computed(() => localStorage.value.filter((column: TableHeader) => column.options.visible))
+    const filteredColumns = computed<TableHeader[]>(() => localStorage.value.filter((column: TableHeader) => column.options.visible))
 
     const toggleColumn = (columnName: string) => {
         const hiddenColumns = columns.value

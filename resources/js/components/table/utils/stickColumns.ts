@@ -1,12 +1,18 @@
-import type { TableHeader as TableHeaderType, TableHeader } from '@/components/table';
-import { computed, onMounted, ref, useTemplateRef, nextTick, ShallowRef } from 'vue';
+import  { type TableHeader } from '@/components/table';
+import { computed, ref, nextTick } from 'vue';
 import { useLocalStorage } from '@vueuse/core';
 
 export const useStickableColumns = (initialColumns: TableHeader[]) => {
     const columns = ref<TableHeader[]>(initialColumns)
     const localStorage = useLocalStorage<TableHeader[]>('table_columns:' + window.location.pathname, columns)
+
+    const container = ref<HTMLElement|null>()
     const columnsPositions = ref<Record<string, {left: number, width: number}>>({});
     const scrollPosition = ref(0);
+    const containerWidth = ref(0)
+    const tableWidth = ref(0)
+
+    const tableNeedsScroll = computed(() => tableWidth.value > containerWidth.value)
 
     const stickableColumns = computed(() => columns.value
         .filter((column: TableHeader) => column.options.stickable)
@@ -22,7 +28,7 @@ export const useStickableColumns = (initialColumns: TableHeader[]) => {
         return columns.value.filter((column) => column.options.stickable).pop();
     });
 
-    const stickColumn = (columnName: string, container: HTMLElement|null) => {
+    const stickColumn = (columnName: string) => {
         localStorage.value = columns.value.map((column: TableHeader) => {
             if (column.name === columnName) {
                 // unstick
@@ -50,17 +56,17 @@ export const useStickableColumns = (initialColumns: TableHeader[]) => {
         })
 
         // save column positions
-        nextTick(() => saveColumnsPositions(container))
+        nextTick(() => saveColumnsPositions()).then(() => {})
     }
 
-    const saveColumnsPositions = (container: HTMLElement|null) => {
-        const table = container?.tagName == 'TABLE' ? container : container?.querySelector("table");
+    const saveColumnsPositions = () => {
+        const table = container.value?.tagName == 'TABLE' ? container.value : container.value?.querySelector("table");
         if (!table) return;
 
-        const tableLeft = table.getBoundingClientRect().left;
+        const tableLeft = table.getBoundingClientRect().left + (table.parentElement?.scrollLeft ?? 0);
 
         table.querySelectorAll('thead th')
-            .forEach((th) => {
+            ?.forEach((th: Element) => {
                 const thElement = th as HTMLElement; // ✅ Type assertion
                 const name = thElement.dataset.name as string
                 columnsPositions.value[name] = {
@@ -70,9 +76,13 @@ export const useStickableColumns = (initialColumns: TableHeader[]) => {
             });
 
         localStorage.value.forEach((column: TableHeader) => {
-            column.left = columnsPositions.value[column.name].left;
-            column.width = columnsPositions.value[column.name].width + 'px';
+            if (columnsPositions.value[column.name] !== undefined) {
+                column.left = columnsPositions.value[column.name].left;
+                column.width = columnsPositions.value[column.name].width + 'px';
+            }
         })
+
+        tableWidth.value = calculateTableWidth();
     }
 
     const updateScrollPosition = (e: Event) => {
@@ -87,12 +97,31 @@ export const useStickableColumns = (initialColumns: TableHeader[]) => {
         }
     }
 
+    const calculateTableWidth = (): number => {
+        let total = 0
+
+        container.value?.querySelectorAll('table thead th')
+            ?.forEach((th: Element) => {
+                total = total + th.getBoundingClientRect().width
+            })
+
+        return total
+    }
+
+    const setContainer = (element: HTMLElement|null) => {
+        container.value = element
+        containerWidth.value = container.value?.getBoundingClientRect().width ?? 0
+        tableWidth.value = calculateTableWidth()
+    }
+
     return {
         lastStickableColumn,
         columnsPositions,
         scrollPosition,
+        tableNeedsScroll,
         stickColumn,
         updateScrollPosition,
-        saveColumnsPositions
+        saveColumnsPositions,
+        setContainer,
     };
 }

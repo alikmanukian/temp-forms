@@ -72,7 +72,7 @@ const changePage = (page: number) => {
 <template>
     <div class="flex gap-6 py-4 mt-4 justify-end border-t border-input items-center"
         :class="{
-            'sticky bottom-0 bg-white/75 backdrop-blur backdrop-filter dark:bg-black/25': stickyPagination,
+            'sticky bottom-0 bg-white/75 backdrop-blur backdrop-filter dark:bg-black/25 z-10': stickyPagination,
         }"
     >
         <div class="font-medium text-sm whitespace-nowrap">Page <span class="font-bold">{{ meta.currentPage }}</span> of <span class="font-bold">{{ meta.lastPage }}</span></div>

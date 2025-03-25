@@ -38,5 +38,4 @@ export interface Paginated<T> {
     headers: TableHeader[]
     stickyHeader: boolean
     stickyPagination: boolean
-    fixed: boolean
 }

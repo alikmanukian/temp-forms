@@ -31,8 +31,6 @@ abstract class Table implements JsonSerializable
     protected static bool $defaultStickyHeader = false;
     protected static bool $defaultStickyPagination = false;
 
-    protected bool $fixed = false;
-
     /**
      * @return list<Column>
      */
@@ -80,7 +78,6 @@ abstract class Table implements JsonSerializable
             'data' => $paginator->items(),
             'stickyHeader' => $this->getStickyHeader(),
             'stickyPagination' => $this->getStickyPagination(),
-            'fixed' => $fixed = $this->getFixed(),
             'meta' => [
                 'currentPage' => $paginator->currentPage(),
                 'perPage' => $paginator->perPage(),
@@ -88,7 +85,7 @@ abstract class Table implements JsonSerializable
                 'lastPage' => $paginator->lastPage(),
                 'perPageOptions' => $this->getPerPageOptions(),
             ],
-            'headers' => collect($this->columns())->map(fn (Column $column) => $column->headerInfo($fixed))
+            'headers' => collect($this->columns())->map(fn (Column $column) => $column->headerInfo())
         ];
     }
 
@@ -124,17 +121,12 @@ abstract class Table implements JsonSerializable
 
     private function getStickyHeader(): bool
     {
-        return $this->fixed && property_exists($this, 'stickyHeader') ? $this->stickyHeader : static::$defaultStickyHeader;
+        return property_exists($this, 'stickyHeader') ? $this->stickyHeader : static::$defaultStickyHeader;
     }
 
     private function getStickyPagination(): bool
     {
         return property_exists($this, 'stickyPagination') ? $this->stickyPagination : static::$defaultStickyPagination;
-    }
-
-    private function getFixed(): bool
-    {
-        return $this->fixed;
     }
 
     /**

@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import DraggableList from '@/components/table/components/DraggableList.vue';
 import { Button } from '@/components/ui/button';
-import { computed, useTemplateRef } from 'vue';
+import { computed } from 'vue';
 import { cn } from '@/lib/utils';
 import { useToggleColumns } from '@/components/table/utils/toggleColumns';
 import { useStickableColumns } from '@/components/table/utils/stickColumns';
@@ -92,7 +92,7 @@ const list = computed(() => {
                 title: 'Unstick',
                 icon: 'Unlock',
                 handler: () => {
-                    stickColumn(props.column.name, button.value?.closest('table') as HTMLElement)
+                    stickColumn(props.column.name)
                 }
             })
         } else {
@@ -102,7 +102,7 @@ const list = computed(() => {
                 title: 'Stick',
                 icon: 'Lock',
                 handler: () => {
-                    stickColumn(props.column.name, button.value?.closest('table') as HTMLElement)
+                    stickColumn(props.column.name)
                 }
             });
         }
@@ -111,11 +111,10 @@ const list = computed(() => {
 })
 
 const hasButton = computed(() => list.value.length > 0)
-const button = useTemplateRef<HTMLElement>('headerButton')
 </script>
 <template>
-    <div ref="headerButton" class="flex items-center h-full" :class="column.options.headerAlignment">
-        <div class="truncate h-full flex items-center"
+    <div ref="headerButton" data-name="header-button-container" class="flex items-center h-full relative" :class="column.options.headerAlignment">
+        <div data-name="header-button" class="h-full flex items-center"
              :class="cn([column.options.headerClass, hasButton ? 'px-2' : 'px-4'])"
         >
             <template v-if="!hasButton">{{ column.header }}</template>
