@@ -12,7 +12,9 @@ export const useStickableColumns = (initialColumns: TableHeader[]) => {
     const containerWidth = ref(0)
     const tableWidth = ref(0)
 
-    const tableNeedsScroll = computed(() => tableWidth.value > containerWidth.value)
+    const scrollable = computed(() => tableWidth.value > containerWidth.value)
+    const scrollSize = ref(0);
+    const showScrollButton = ref(true);
 
     const stickableColumns = computed(() => columns.value
         .filter((column: TableHeader) => column.options.stickable)
@@ -87,14 +89,8 @@ export const useStickableColumns = (initialColumns: TableHeader[]) => {
 
     const updateScrollPosition = (e: Event) => {
         const target = e.target as HTMLElement;
-
-        if (target.scrollLeft === 0) {
-            scrollPosition.value = 0;
-        }
-
-        if (target?.scrollLeft > 0 && scrollPosition.value === 0) {
-            scrollPosition.value = target.scrollLeft;
-        }
+        scrollPosition.value = target.scrollLeft;
+        showScrollButton.value = Math.ceil(target.scrollLeft) < Math.floor(tableWidth.value - containerWidth.value)
     }
 
     const calculateTableWidth = (): number => {
@@ -108,20 +104,34 @@ export const useStickableColumns = (initialColumns: TableHeader[]) => {
         return total
     }
 
+    const scrollToRight = () => {
+        const el = container.value?.querySelector('table')?.closest('div');
+        if (el && scrollSize.value) {
+            el.scrollTo({ left: scrollSize.value, behavior: "smooth" });
+        }
+    };
+
     const setContainer = (element: HTMLElement|null) => {
         container.value = element
         containerWidth.value = container.value?.getBoundingClientRect().width ?? 0
         tableWidth.value = calculateTableWidth()
+
+        const el = container.value?.querySelector('table')?.closest('div');
+        if (el && scrollable.value) {
+            scrollSize.value = container.value?.scrollWidth || 0;
+        }
     }
 
     return {
         lastStickableColumn,
         columnsPositions,
         scrollPosition,
-        tableNeedsScroll,
+        scrollable,
+        showScrollButton,
         stickColumn,
         updateScrollPosition,
         saveColumnsPositions,
         setContainer,
+        scrollToRight,
     };
 }

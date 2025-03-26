@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import HeaderButton from '@/components/table/components/HeaderButton.vue';
 import { useToggleColumns } from '@/components/table/utils/toggleColumns';
 import { useStickableColumns } from '@/components/table/utils/stickColumns';
+import Icon from '@/components/Icon.vue';
 
 interface Props {
     resource: Paginated<any>;
@@ -31,7 +32,7 @@ const props = withDefaults(defineProps<Props>(), {
 const noResults = computed(() => props.resource.data.length === 0);
 
 const { filteredColumns } = useToggleColumns(props.resource.headers)
-const { lastStickableColumn, scrollPosition, tableNeedsScroll, updateScrollPosition, saveColumnsPositions, setContainer } = useStickableColumns(props.resource.headers, 'container')
+const { lastStickableColumn, scrollPosition, scrollable, showScrollButton, updateScrollPosition, saveColumnsPositions, setContainer, scrollToRight } = useStickableColumns(props.resource.headers, 'container')
 
 const container = useTemplateRef<HTMLElement>('container')
 const resizable = computed(() => props.resizable);
@@ -83,11 +84,11 @@ onMounted(() => {
             :class="{ 'px-4': expanded }"
         />
 
-        <div v-if="!noResults" :class="{ 'border-b border-t': expanded, 'rounded-lg border': !expanded }">
+        <div v-if="!noResults" class="relative" :class="{ 'border-b border-t': expanded, 'rounded-lg border': !expanded }">
             <Table
                 v-resizable="resizable"
                 @resize:end="saveColumnsPositions"
-                :style="{ overflow: tableNeedsScroll ? 'auto' : 'visible'}"
+                :style="{ overflow: scrollable ? 'auto' : 'visible'}"
                 @scroll="updateScrollPosition"
                 :class="{ 'table-fixed': true, 'scrolled': scrollPosition > 0 }"
             >
@@ -135,6 +136,12 @@ onMounted(() => {
                     </TableRow>
                 </TableBody>
             </Table>
+
+            <button v-if="scrollable && showScrollButton"
+                    @click="scrollToRight"
+                    class="absolute top-0 right-0 w-8 h-12 z-10 bg-gray-200 hover:shadow-inner hover:bg-gray-300 flex items-center justify-center">
+                <Icon name="ChevronsRight" class="w-4 h-4 text-gray-900" />
+            </button>
         </div>
 
         <EmptyState v-else />

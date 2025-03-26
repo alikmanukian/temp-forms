@@ -13,6 +13,7 @@ import Icon from '@/components/Icon.vue';
 import type { TableHeader } from '../index';
 import DraggableList from '@/components/table/components/DraggableList.vue';
 import { useToggleColumns } from '@/components/table/utils/toggleColumns';
+import {computed} from 'vue';
 
 interface Props {
     columns: TableHeader[]
@@ -28,8 +29,12 @@ const { toggleColumn, updateLocalStorage, columns } = useToggleColumns(props.col
 const getGhostParent = () => document.body
 
 const onDropColumn = (items: TableHeader[]) => {
-    updateLocalStorage(items);
+    updateLocalStorage([...nonDraggableColumns.value, ...items]);
 }
+
+const draggableColumns = computed(() => columns.value.filter((column: TableHeader) => !column.options.stickable))
+const nonDraggableColumns = computed(() => columns.value.filter((column: TableHeader) => column.options.stickable))
+
 </script>
 
 <template>
@@ -44,8 +49,20 @@ const onDropColumn = (items: TableHeader[]) => {
             <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
             <DropdownMenuSeparator class="bg-gray-300" />
 
+            <DropdownMenuCheckboxItem v-for="item in nonDraggableColumns"
+                                      :key="item.name"
+                                      :checked="item.options.visible"
+                                      @click="toggleColumn(item.name)"
+                                      :disabled="fixedColumns.includes(item.name)"
+            >
+                {{item.header}}
+            </DropdownMenuCheckboxItem>
+
+            <DropdownMenuSeparator class="bg-gray-300" v-if="nonDraggableColumns.length > 0" />
+
+
             <DraggableList #default="{ item }: { item: TableHeader }"
-                           :list="columns"
+                           :list="draggableColumns"
                            class="space-y-1"
                            :get-ghost-parent="getGhostParent"
                            @updated="onDropColumn"
