@@ -12,28 +12,37 @@ import { Button } from '@/components/ui/button';
 import Icon from '@/components/Icon.vue';
 import type { TableHeader } from '../index';
 import DraggableList from '@/components/table/components/DraggableList.vue';
-import { useToggleColumns } from '@/components/table/utils/toggleColumns';
-import {computed} from 'vue';
+import { useToggleColumns } from '@/components/table/utils/toggleable';
+import { computed, inject } from 'vue';
+import { useComponents } from '@/components/table/utils/components';
 
 interface Props {
-    columns: TableHeader[]
     fixedColumns: string[]
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
     fixedColumns: () => []
 });
 
-const { toggleColumn, updateLocalStorage, columns } = useToggleColumns(props.columns)
+const { columns } = useComponents()
+const pageName = inject('pageName') as string
+const { toggleColumn, saveColumnsOrdering } = useToggleColumns(pageName)
+
 
 const getGhostParent = () => document.body
 
 const onDropColumn = (items: TableHeader[]) => {
-    updateLocalStorage([...nonDraggableColumns.value, ...items]);
+    saveColumnsOrdering([...nonDraggableColumns.value, ...items]);
 }
 
-const draggableColumns = computed(() => columns.value.filter((column: TableHeader) => !column.options.stickable))
-const nonDraggableColumns = computed(() => columns.value.filter((column: TableHeader) => column.options.stickable))
+const draggableColumns = computed(() => {
+    const cols = columns(pageName) as TableHeader[]
+    return cols.filter((column: TableHeader) => !column.options.stickable)
+})
+const nonDraggableColumns = computed(() => {
+    const cols = columns(pageName) as TableHeader[]
+    return cols.filter((column: TableHeader) => column.options.stickable)
+})
 
 </script>
 

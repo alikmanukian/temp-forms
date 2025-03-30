@@ -17,10 +17,10 @@ import {
 import type { PaginatedMeta } from '../index';
 import { router } from '@inertiajs/vue3';
 import { type VisitOptions } from '@inertiajs/core';
+import { inject } from 'vue';
 
 interface Props {
     meta: PaginatedMeta
-    pageName: string
     reloadOnly?: boolean|string[]
     includeQueryString?: boolean
     stickyPagination?: boolean
@@ -36,12 +36,14 @@ const props = withDefaults(defineProps<Props>(), {
     hideArrows: false,
 });
 
+const pageName = inject('pageName') as string
+
 const getQueryParams = (except: string[]|null = null): Record<string, any> => {
     const queryParams = new URLSearchParams(window.location.search);
 
     if (except) {
         return Object.fromEntries(
-            [...queryParams].filter(([key]) => key !== props.pageName)
+            [...queryParams].filter(([key]) => key !== pageName)
         );
     }
     return Object.fromEntries([...queryParams]);
@@ -49,7 +51,7 @@ const getQueryParams = (except: string[]|null = null): Record<string, any> => {
 
 const changePage = (page: number) => {
     const params: VisitOptions = {
-        data: {page: page},
+        data: {[pageName]: page},
     }
 
     // set reload only param
@@ -59,7 +61,7 @@ const changePage = (page: number) => {
 
     // add query string
     if (props.includeQueryString) {
-        params.data = { ...params.data, ...getQueryParams([props.pageName]) }
+        params.data = { ...params.data, ...getQueryParams([pageName]) }
     }
 
     router.reload(params)

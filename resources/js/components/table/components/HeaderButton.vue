@@ -10,10 +10,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import DraggableList from '@/components/table/components/DraggableList.vue';
 import { Button } from '@/components/ui/button';
-import { computed } from 'vue';
+import { computed, inject } from 'vue';
 import { cn } from '@/lib/utils';
-import { useToggleColumns } from '@/components/table/utils/toggleColumns';
-import { useStickableColumns } from '@/components/table/utils/stickColumns';
+import { useStickableColumns } from '@/components/table/utils/stickable';
 
 interface Props {
     column: TableHeader
@@ -32,12 +31,11 @@ interface ListItem {
 }
 
 const props = defineProps<Props>()
+const pageName = inject('pageName')
 
-const { toggleColumn } = useToggleColumns([])
-const { stickColumn } = useStickableColumns([])
+const { stickColumn } = useStickableColumns([], pageName)
 
 const hideColumn = () => {
-    toggleColumn(props.column.name)
 }
 
 const list = computed(() => {

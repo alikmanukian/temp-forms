@@ -7,12 +7,12 @@ use App\TableComponents\Table;
 use App\TableComponents\Columns;
 use App\TableComponents\Filters;
 
-class Users extends Table
+class Employees extends Table
 {
     /** @var class-string $resource */
     protected ?string $resource = User::class;
 
-    protected ?string $pageName = 'uPage';
+    protected ?string $pageName = 'ePage';
 
     protected string $defaultSort = 'name';
 

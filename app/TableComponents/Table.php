@@ -23,6 +23,8 @@ abstract class Table implements JsonSerializable
     /** @var class-string $resource */
     protected ?string $resource = null;
 
+    protected ?string $pageName = 'page';
+
     /**
      * @var int[]|null
      */
@@ -74,7 +76,7 @@ abstract class Table implements JsonSerializable
         $paginator = $this->getPaginated();
 
         return [
-            'pageName' => 'page', // change this to value of pageName in the future
+            'pageName' => $this->pageName,
             'data' => $paginator->items(),
             'stickyHeader' => $this->getStickyHeader(),
             'stickyPagination' => $this->getStickyPagination(),
@@ -95,7 +97,7 @@ abstract class Table implements JsonSerializable
             /*->where('id', '<', 0)*/
             ->paginate(
                 perPage: $this->getPerPage(),
-            /*pageName: Str::of(get_class($this))->afterLast('\\')->lower()->toString()*/
+                pageName: $this->pageName
             );
     }
 

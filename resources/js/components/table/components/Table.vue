@@ -2,15 +2,15 @@
 import type { Paginated, TableHeader as TableHeaderType } from '../index';
 import Pagination from '@/components/table/components/Pagination.vue';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { computed, onMounted, ref, useTemplateRef, watch } from 'vue';
+import { computed, onMounted, provide, useTemplateRef } from 'vue';
 import vResizable from '../utils/resizable';
 import EmptyState from '@/components/table/components/EmptyState.vue';
 import ToolsRow from '@/components/table/components/ToolsRow.vue';
 import { cn } from '@/lib/utils';
 import HeaderButton from '@/components/table/components/HeaderButton.vue';
-import { useToggleColumns } from '@/components/table/utils/toggleColumns';
-import { useStickableColumns } from '@/components/table/utils/stickColumns';
+import { useStickableColumns } from '@/components/table/utils/stickable';
 import Icon from '@/components/Icon.vue';
+import { init, useComponents } from '@/components/table/utils/components';
 
 interface Props {
     resource: Paginated<any>;
@@ -31,8 +31,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const noResults = computed(() => props.resource.data.length === 0);
 
-const { filteredColumns } = useToggleColumns(props.resource.headers)
-const { lastStickableColumn, scrollPosition, scrollable, showScrollButton, updateScrollPosition, saveColumnsPositions, setContainer, scrollToRight } = useStickableColumns(props.resource.headers, 'container')
+const { filteredColumns } = useComponents()
+const { scrollPosition, scrollable, showScrollButton, updateScrollPosition, saveColumnsPositions, setContainer, scrollToRight } = useStickableColumns(props.resource.headers, 'container')
 
 const container = useTemplateRef<HTMLElement>('container')
 const resizable = computed(() => props.resizable);
@@ -68,8 +68,12 @@ const cellClass = (column: TableHeaderType) => {
 
 onMounted(() => {
     setContainer(container.value);
+    init(props.resource.headers, props.resource.pageName)
     saveColumnsPositions();
 });
+
+const pageName = props.resource.pageName
+provide('pageName', pageName)
 
 </script>
 
@@ -91,9 +95,10 @@ onMounted(() => {
                 :style="{ overflow: scrollable ? 'auto' : 'visible'}"
                 @scroll="updateScrollPosition"
                 :class="{ 'table-fixed': true, 'scrolled': scrollPosition > 0 }"
+                data-name="scroll-container"
             >
                 <colgroup v-if="!resizable">
-                    <col :style="{ width: column.width }" v-for="column in filteredColumns" :key="column.name" />
+                    <col :style="{ width: column.width }" v-for="column in filteredColumns(pageName)" :key="column.name" />
                 </colgroup>
 
                 <TableHeader
@@ -102,14 +107,13 @@ onMounted(() => {
                 >
                     <TableRow>
                         <TableHead
-                            v-for="column in filteredColumns"
+                            v-for="column in filteredColumns(pageName)"
                             :style="{ width: column.width, left: column.options.sticked ? column.left + 'px' : ''}"
                             :key="column.name"
                             :data-name="column.name"
                             class="px-0"
                             :class="{
                                 'sticky z-10 bg-gray-50/90 dark:bg-background/80': column.options.sticked,
-                                'sticky-last': column.options.sticked && column.name == lastStickableColumn?.name
                             }"
                         >
                             <HeaderButton :column />
@@ -119,12 +123,11 @@ onMounted(() => {
 
                 <TableBody>
                     <TableRow v-for="(row, index) in resource.data" :key="index">
-                        <TableCell v-for="column in filteredColumns"
+                        <TableCell v-for="column in filteredColumns(pageName)"
                                    :key="column.name"
                                    :style="{ width: column.width, left: column.options.sticked ? column.left + 'px' : '' }"
                                    :class="{
                                        'sticky bg-white/90 dark:bg-background/80 hover:bg-muted/50': column.options.sticked,
-                                       'sticky-last': column.options.sticked && column.name == lastStickableColumn?.name
                                    }"
                         >
                             <div class="flex items-center" :class="column.options.alignment">
@@ -148,7 +151,6 @@ onMounted(() => {
 
         <Pagination
             :meta="resource.meta"
-            :pageName="resource.pageName"
             :reloadOnly
             :stickyPagination
             :includeQueryString

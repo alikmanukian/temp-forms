@@ -1,10 +1,11 @@
 import  { type TableHeader } from '@/components/table';
 import { computed, ref, nextTick } from 'vue';
 import { useLocalStorage } from '@vueuse/core';
+import { getLocalStorageKey } from './components';
 
-export const useStickableColumns = (initialColumns: TableHeader[]) => {
+export const useStickableColumns = (initialColumns: TableHeader[], pageName: string) => {
     const columns = ref<TableHeader[]>(initialColumns)
-    const localStorage = useLocalStorage<TableHeader[]>('table_columns:' + window.location.pathname, columns)
+    const localStorage = useLocalStorage<TableHeader[]>(getLocalStorageKey(pageName), columns)
 
     const container = ref<HTMLElement|null>()
     const columnsPositions = ref<Record<string, {left: number, width: number}>>({});
@@ -25,10 +26,6 @@ export const useStickableColumns = (initialColumns: TableHeader[]) => {
         .filter((column: TableHeader) => column.options.sticked)
         .map((column: TableHeader) => column.name)
     )
-
-    const lastStickableColumn = computed(() => {
-        return columns.value.filter((column) => column.options.stickable).pop();
-    });
 
     const stickColumn = (columnName: string) => {
         localStorage.value = columns.value.map((column: TableHeader) => {
@@ -123,7 +120,6 @@ export const useStickableColumns = (initialColumns: TableHeader[]) => {
     }
 
     return {
-        lastStickableColumn,
         columnsPositions,
         scrollPosition,
         scrollable,

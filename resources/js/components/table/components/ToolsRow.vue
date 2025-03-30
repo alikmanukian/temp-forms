@@ -32,7 +32,7 @@ const fixedColumns = props.headers.filter((column: TableHeader) => !column.optio
         <div class="ml-auto flex flex-col gap-4 @sm:flex-row @sm:items-center items-end">
             <RowsPerPage :meta="meta" :reloadOnly includeQueryString :pageName="pageName" v-if="meta.perPageOptions" />
 
-            <ColumnsVisibility :columns="headers" :fixedColumns />
+            <ColumnsVisibility :fixedColumns />
         </div>
     </div>
 </template>
