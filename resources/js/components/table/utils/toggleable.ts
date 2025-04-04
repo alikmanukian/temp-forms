@@ -1,9 +1,11 @@
 import type { TableHeader } from '@/components/table';
-import { getColumns, updateColumns } from './components';
+import { useComponents } from './components';
 
 export const useToggleColumns = (pageName: string) => {
+    const { getColumns, updateColumns } = useComponents(pageName);
+
     const toggleColumn = (columnName: string) => {
-        const columns = getColumns(pageName) as TableHeader[];
+        const columns = getColumns();
 
         columns.forEach((column: TableHeader) => {
             if (column.name === columnName) {

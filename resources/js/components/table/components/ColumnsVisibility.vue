@@ -24,8 +24,8 @@ withDefaults(defineProps<Props>(), {
     fixedColumns: () => []
 });
 
-const { columns } = useComponents()
 const pageName = inject('pageName') as string
+const { getColumns } = useComponents(pageName)
 const { toggleColumn, saveColumnsOrdering } = useToggleColumns(pageName)
 
 
@@ -36,11 +36,11 @@ const onDropColumn = (items: TableHeader[]) => {
 }
 
 const draggableColumns = computed(() => {
-    const cols = columns(pageName) as TableHeader[]
+    const cols = getColumns() as TableHeader[]
     return cols.filter((column: TableHeader) => !column.options.stickable)
 })
 const nonDraggableColumns = computed(() => {
-    const cols = columns(pageName) as TableHeader[]
+    const cols = getColumns() as TableHeader[]
     return cols.filter((column: TableHeader) => column.options.stickable)
 })
 

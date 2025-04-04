@@ -9,8 +9,9 @@ import ToolsRow from '@/components/table/components/ToolsRow.vue';
 import { cn } from '@/lib/utils';
 import HeaderButton from '@/components/table/components/HeaderButton.vue';
 import { useStickableColumns } from '@/components/table/utils/stickable';
-import Icon from '@/components/Icon.vue';
 import { init, useComponents } from '@/components/table/utils/components';
+import ScrollTableButton from '@/components/table/components/ScrollTableButton.vue';
+import { useScrollable } from '@/components/table/utils/scrollable';
 
 interface Props {
     resource: Paginated<any>;
@@ -30,9 +31,11 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const noResults = computed(() => props.resource.data.length === 0);
+const pageName = props.resource.pageName
 
-const { filteredColumns } = useComponents()
-const { scrollPosition, scrollable, showScrollButton, updateScrollPosition, saveColumnsPositions, setContainer, scrollToRight } = useStickableColumns(props.resource.headers, 'container')
+const { getFilteredColumns } = useComponents(pageName)
+const { saveColumnsPositions, setContainer } = useStickableColumns(pageName)
+const { scrollPosition, scrollable, updateScrollPosition } = useScrollable(pageName)
 
 const container = useTemplateRef<HTMLElement>('container')
 const resizable = computed(() => props.resizable);
@@ -67,12 +70,16 @@ const cellClass = (column: TableHeaderType) => {
 };
 
 onMounted(() => {
+    init({
+        pageName: pageName,
+        columns: props.resource.headers,
+        container: container.value,
+    })
     setContainer(container.value);
-    init(props.resource.headers, props.resource.pageName)
+
     saveColumnsPositions();
 });
 
-const pageName = props.resource.pageName
 provide('pageName', pageName)
 
 </script>
@@ -98,7 +105,7 @@ provide('pageName', pageName)
                 data-name="scroll-container"
             >
                 <colgroup v-if="!resizable">
-                    <col :style="{ width: column.width }" v-for="column in filteredColumns(pageName)" :key="column.name" />
+                    <col :style="{ width: column.width }" v-for="column in getFilteredColumns" :key="column.name" />
                 </colgroup>
 
                 <TableHeader
@@ -107,7 +114,7 @@ provide('pageName', pageName)
                 >
                     <TableRow>
                         <TableHead
-                            v-for="column in filteredColumns(pageName)"
+                            v-for="column in getFilteredColumns"
                             :style="{ width: column.width, left: column.options.sticked ? column.left + 'px' : ''}"
                             :key="column.name"
                             :data-name="column.name"
@@ -123,7 +130,7 @@ provide('pageName', pageName)
 
                 <TableBody>
                     <TableRow v-for="(row, index) in resource.data" :key="index">
-                        <TableCell v-for="column in filteredColumns(pageName)"
+                        <TableCell v-for="column in getFilteredColumns"
                                    :key="column.name"
                                    :style="{ width: column.width, left: column.options.sticked ? column.left + 'px' : '' }"
                                    :class="{
@@ -140,11 +147,7 @@ provide('pageName', pageName)
                 </TableBody>
             </Table>
 
-            <button v-if="scrollable && showScrollButton"
-                    @click="scrollToRight"
-                    class="absolute top-0 right-0 w-8 h-12 z-10 bg-gray-200 hover:shadow-inner hover:bg-gray-300 flex items-center justify-center">
-                <Icon name="ChevronsRight" class="w-4 h-4 text-gray-900" />
-            </button>
+            <ScrollTableButton />
         </div>
 
         <EmptyState v-else />
@@ -161,10 +164,6 @@ provide('pageName', pageName)
 </template>
 
 <style scoped>
-table.scrolled tr td.sticky.sticky-last,
-table.scrolled tr th.sticky.sticky-last {
-    box-shadow: 1px 0 1px hsl(var(--border))
-}
 table.scrolled tr:hover td.sticky {
     background-color: hsl(var(--muted) / 0.9)
 }
