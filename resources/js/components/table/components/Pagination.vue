@@ -36,7 +36,7 @@ const props = withDefaults(defineProps<Props>(), {
     hideArrows: false,
 });
 
-const pageName = inject('pageName') as string
+const pageName = inject<string>('pageName') ?? 'page'
 
 const getQueryParams = (except: string[]|null = null): Record<string, any> => {
     const queryParams = new URLSearchParams(window.location.search);

@@ -24,7 +24,7 @@ withDefaults(defineProps<Props>(), {
     fixedColumns: () => []
 });
 
-const pageName = inject('pageName') as string
+const pageName = inject<string>('pageName') ?? 'page'
 const { getColumns } = useComponents(pageName)
 const { toggleColumn, saveColumnsOrdering } = useToggleColumns(pageName)
 

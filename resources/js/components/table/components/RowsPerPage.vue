@@ -12,14 +12,16 @@ import type { VisitOptions } from '@inertiajs/core';
 import { router } from '@inertiajs/vue3';
 import { useCookies } from '@vueuse/integrations/useCookies';
 import type { PaginatedMeta } from '../index';
+import { inject } from 'vue';
 
 const cookies = useCookies();
+
+const pageName = inject<string>('pageName') ?? 'page'
 
 interface Props {
     meta: PaginatedMeta
     reloadOnly: boolean|string[]
     includeQueryString: boolean
-    pageName: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -32,14 +34,14 @@ const getQueryParams = (except: string[]|null = null): Record<string, any> => {
 
     if (except) {
         return Object.fromEntries(
-            [...queryParams].filter(([key]) => key !== props.pageName)
+            [...queryParams].filter(([key]) => key !== pageName)
         );
     }
     return Object.fromEntries([...queryParams]);
 }
 
 const setPerPage = (value: number) => {
-    cookies.set('perPage', value, {path: window.location.pathname, sameSite: 'lax'});
+    cookies.set('perPage_' + pageName, value, {path: window.location.pathname, sameSite: 'lax'});
 
     const params: VisitOptions = {
         data: {page: 1},
@@ -52,7 +54,7 @@ const setPerPage = (value: number) => {
 
     // add query string
     if (props.includeQueryString) {
-        params.data = { ...params.data, ...getQueryParams([props.pageName]) }
+        params.data = { ...params.data, ...getQueryParams([pageName]) }
     }
 
     router.reload(params)

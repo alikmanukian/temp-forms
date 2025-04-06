@@ -5,11 +5,9 @@ namespace App\TableComponents;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cookie;
-use Illuminate\Support\Str;
-use Illuminate\View\View;
 use JsonSerializable;
+use ReflectionClass;
 use RuntimeException;
 
 abstract class Table implements JsonSerializable
@@ -58,6 +56,31 @@ abstract class Table implements JsonSerializable
         }*/
 
         return $table;
+    }
+
+    public static function dontEncryptCookies(): array
+    {
+        $appClasses = glob(app_path('**/*.php'));
+        $classMap = require base_path('vendor/composer/autoload_classmap.php');
+
+        return collect(array_intersect($classMap, $appClasses))
+            ->keys()
+            ->filter(fn (string $class) => class_exists($class) && is_subclass_of($class, self::class))
+            ->values()
+            ->map(function (string $class) {
+                $reflection = new ReflectionClass($class);
+                $defaults = $reflection->getDefaultProperties();
+
+                if ($defaults['pageName']) {
+                    return "perPage_" . $defaults['pageName'];
+                };
+
+                return null;
+            })
+            ->filter()
+            ->unique()
+            ->values()
+            ->toArray();
     }
 
     /**
@@ -112,8 +135,9 @@ abstract class Table implements JsonSerializable
     private function getPerPage(): int
     {
         $perPageOptions = $this->getPerPageOptions() ?? [10];
-        $perPage = (int) Cookie::get('perPage', $perPageOptions[0]);
+        $perPage = (int)Cookie::get('perPage_' . $this->pageName, $perPageOptions[0]);
 
+//        dd(request()->cookies);
         if (! in_array($perPage, $perPageOptions)) {
             $perPage = $perPageOptions[0];
         }

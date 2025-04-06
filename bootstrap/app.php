@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\HandleInertiaRequests;
+use App\TableComponents\Table;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -20,7 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
             HandlePrecognitiveRequests::class
         ]);
 
-        $middleware->encryptCookies(except: ['perPage']); // this cookie set from js
+        $middleware->encryptCookies(except: Table::dontEncryptCookies()); // this cookie set from js
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

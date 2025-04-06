@@ -3,7 +3,7 @@ import Icon from '@/components/Icon.vue';
 import { inject } from 'vue';
 import { useScrollable } from '../utils/scrollable';
 
-const pageName = inject('pageName') as string;
+const pageName = inject<string>('pageName') ?? 'page'
 
 const { scrollToRight, showScrollButton, scrollable } = useScrollable(pageName);
 </script>
