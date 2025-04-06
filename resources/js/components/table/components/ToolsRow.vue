@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import ColumnsVisibility from '@/components/table/components/ColumnsVisibility.vue';
-import RowsPerPage from '@/components/table/components/RowsPerPage.vue';
+import ColumnsVisibility from '../components/ColumnsVisibility.vue';
+import RowsPerPage from '../components/RowsPerPage.vue';
 import type { PaginatedMeta, TableHeader } from '../index';
 import { computed } from 'vue';
 

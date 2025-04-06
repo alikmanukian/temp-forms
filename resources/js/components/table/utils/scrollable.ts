@@ -1,27 +1,20 @@
 import { useComponents } from './components';
 import { computed, ref } from 'vue';
-import { TableHeader } from '@/components/table';
+import { TableHeader } from '../index';
 
-const columnsPositions = ref<Record<string, { left: number; width: number }>>({});
-const scrollSize = ref(0);
-const showScrollButton = ref(true);
-const scrollPosition = ref(0);
-const containerWidth = ref(0);
 
 export const useScrollable = (pageName: string) => {
-    const { getScrollContainer, getContainerWidth, getTable, updateColumns, getColumns, getContainer } = useComponents(pageName);
+    const { getScrollContainer, getProperty, getTable, update, getColumns, getContainer } = useComponents(pageName);
 
     const updateScrollSize = () => {
         const scrollContainer = getScrollContainer();
         if (scrollContainer) {
-            scrollSize.value = scrollContainer.scrollWidth || 0;
-            console.log('scrollSize', scrollSize.value);
+            update('scrollSize', scrollContainer.scrollWidth || 0)
         }
     }
 
     const updateContainerWidth = () => {
-        getContainerWidth().value = getContainer()?.clientWidth || 0
-        console.log('containerWidth', getContainerWidth().value);
+        update('containerWidth', getContainer()?.clientWidth || 0)
     }
 
     /*const updateTableWidth = (): void => {
@@ -38,16 +31,17 @@ export const useScrollable = (pageName: string) => {
 
     const scrollToRight = () => {
         const scrollContainer = getScrollContainer();
+        const scrollSize = getProperty('scrollSize', 0);
 
-        if (scrollContainer && scrollSize.value) {
-            scrollContainer.scrollTo({ left: scrollSize.value, behavior: 'smooth' });
+        if (scrollContainer && scrollSize) {
+            scrollContainer.scrollTo({ left: scrollSize, behavior: 'smooth' });
         }
     };
 
     const updateScrollPosition = (e: Event) => {
         const target = e.target as HTMLElement;
-        scrollPosition.value = target.scrollLeft;
-        showScrollButton.value = Math.ceil(target.scrollLeft) < Math.floor(scrollSize.value - getContainerWidth().value);
+        update('scrollPosition', target.scrollLeft)
+        update('showScrollButton', Math.ceil(target.scrollLeft) < Math.floor(getProperty('scrollSize', 0) - getProperty('containerWidth', 0)))
     };
 
     const saveColumnsPositions = () => {
@@ -56,10 +50,12 @@ export const useScrollable = (pageName: string) => {
 
         const tableLeft = table.getBoundingClientRect().left + (table.parentElement?.scrollLeft ?? 0);
 
+        const positions = ref<Record<string, { left: number; width: number }>>({});
+
         table.querySelectorAll('thead th')?.forEach((th: Element) => {
             const thElement = th as HTMLElement; // ✅ Type assertion
             const name = thElement.dataset.name as string;
-            columnsPositions.value[name] = {
+            positions.value[name] = {
                 left: th.getBoundingClientRect().left - tableLeft,
                 width: th.getBoundingClientRect().width,
             };
@@ -68,25 +64,27 @@ export const useScrollable = (pageName: string) => {
         const columns = getColumns();
 
         columns.forEach((column: TableHeader) => {
-            if (columnsPositions.value[column.name] !== undefined) {
-                column.left = columnsPositions.value[column.name].left;
-                column.width = columnsPositions.value[column.name].width + 'px';
+            if (positions.value[column.name] !== undefined) {
+                column.left = positions.value[column.name].left;
+                column.width = positions.value[column.name].width + 'px';
             }
         });
 
-        updateColumns(columns); // save columns positions to localstorage
+        update('columns', columns); // save columns positions to localstorage
         updateScrollSize();
     };
 
     const scrollable = computed(() => {
-        return scrollSize.value > getContainerWidth().value
+        return getProperty('scrollSize', 0) > getProperty('containerWidth', 0)
     });
+
+    const showScrollButton = computed(() => getProperty('showScrollButton', false))
+    const scrollPosition = computed(() => getProperty('scrollPosition', 0))
 
     return {
         scrollPosition,
         showScrollButton,
         scrollable,
-        columnsPositions,
         scrollToRight,
         updateScrollSize,
         updateScrollPosition,

@@ -5,7 +5,7 @@ import { useScrollable } from '../utils/scrollable';
 
 const pageName = inject('pageName') as string;
 
-const { scrollToRight, showScrollButton } = useScrollable(pageName);
+const { scrollToRight, showScrollButton, scrollable } = useScrollable(pageName);
 </script>
 
 <template>

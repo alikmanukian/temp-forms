@@ -1,8 +1,8 @@
-import type { TableHeader } from '@/components/table';
+import type { TableHeader } from '../index';
 import { useComponents } from './components';
 
 export const useToggleColumns = (pageName: string) => {
-    const { getColumns, updateColumns } = useComponents(pageName);
+    const { getColumns, update } = useComponents(pageName);
 
     const toggleColumn = (columnName: string) => {
         const columns = getColumns();
@@ -12,10 +12,12 @@ export const useToggleColumns = (pageName: string) => {
                 column.options.visible = !column.options.visible
             }
         })
+
+        update('columns', columns)
     }
 
     const saveColumnsOrdering = (updatedColumns: TableHeader[]) => {
-        updateColumns(updatedColumns)
+        update('columns', updatedColumns)
     }
 
     return {

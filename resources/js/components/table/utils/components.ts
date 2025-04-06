@@ -1,84 +1,72 @@
-import { ref, computed, Ref } from 'vue';
+import { computed, reactive } from 'vue';
 import type { TableHeader } from '@/components/table';
 import { useLocalStorage } from '@vueuse/core';
-import { useScrollable } from './scrollable'
-
-interface ColumnPosition {
-    left: number
-    width: number
-}
 
 interface Table {
     name: string
     columns: TableHeader[]
-    container: HTMLElement|null
-    columnsPositions: Ref<Record<string, ColumnPosition>>
-    containerWidth: Ref<number, number>
-    scrollSize: Ref<number, number>
-    scrollPosition: Ref<number, number>
-    showScrollButton: Ref<boolean, boolean>
+    containerWidth: number
+    scrollSize: number
+    scrollPosition: number
+    showScrollButton: boolean
 }
 
-const tables = ref<Record<string, Table>>({});
+const tables = reactive<Record<string, Table>>({});
 
 // private function s
 const localStorageKey = (name: string): string => 'table_columns:' + window.location.pathname + ':' + name;
 
-const localStorage = (pageName: string): Table => tables.value[localStorageKey(pageName)]
+const fromLocalStorage = (pageName: string): Table|null => {
+    return tables[localStorageKey(pageName)]
+}
 
 // public exposed functions
-export const init = ({ pageName, columns, container }: {
+export const init = ({ pageName, columns }: {
     pageName: string,
     columns: TableHeader[],
-    container: HTMLElement | null,
 }) => {
-    console.log('init');
     const key = localStorageKey(pageName);
-    const columnsRef = useLocalStorage<TableHeader[]>(key, columns)
 
-    tables.value[key] = {
+    const tableData: Table = {
         name: pageName,
-        container: container,
-        columns: columnsRef.value,
-        columnsPositions: ref<Record<string, ColumnPosition>>({}),
-        containerWidth: ref(0),
-        scrollSize: ref(0),
-        scrollPosition: ref(0),
-        showScrollButton: ref(true),
+        columns: columns,
+        containerWidth: 0,
+        scrollSize: 0,
+        scrollPosition: 0,
+        showScrollButton: true,
     };
 
-    const {updateScrollSize, saveColumnsPositions, updateContainerWidth} = useScrollable(pageName)
-
-    setTimeout(() => {
-        updateContainerWidth();
-        updateScrollSize();
-        saveColumnsPositions();
-    }, 0)
+    tables[key] = useLocalStorage<Table>(key, tableData).value;
 };
 
 export const useComponents = (pageName: string) => {
-    const getColumns = (): TableHeader[] => localStorage(pageName)?.columns || [];
+    const getColumns = (): TableHeader[] => fromLocalStorage(pageName)?.columns || [];
 
     const getFilteredColumns = computed<TableHeader[]>(() => {
         const columns = getColumns();
         return columns.filter((column: TableHeader) => column.options.visible);
     });
 
-    const updateColumns = (updatedColumns: TableHeader[]): void => {
-        const key = localStorageKey(pageName);
-        const table = localStorage(pageName);
+    const update = (property: keyof Table, data: any): void => {
+        const table = fromLocalStorage(pageName);
 
         if (table) {
-            const columns = useLocalStorage<TableHeader[]>(key, table.columns);
-            columns.value = updatedColumns;
-            table.columns = columns.value;
+            const storage = useLocalStorage<Table>(localStorageKey(pageName), table)
+            storage.value = {...table, [property]: data}
+            table[property] = data as never
         }
     };
 
-    const getContainer = (): HTMLElement|null => localStorage(pageName)?.container ?? null
+    const getContainer = (): HTMLElement|null => document.querySelector(`[data-name="table-container-${pageName}"]`) ?? null
     const getTable = (): HTMLElement|null => getContainer()?.querySelector('table') || null
     const getScrollContainer = (): HTMLElement|null => getTable()?.closest('[data-name="scroll-container"]') || null
-    const getContainerWidth = (): Ref<number, number> => localStorage(pageName)?.containerWidth || ref(0)
+    const getProperty = (property: keyof Table, defaultValue: any|null = null): any => {
+        const storage = fromLocalStorage(pageName);
+        if (!storage) {
+            return null;
+        }
+        return storage[property] || defaultValue;
+    }
 
     return {
         getColumns,
@@ -86,7 +74,7 @@ export const useComponents = (pageName: string) => {
         getContainer,
         getTable,
         getScrollContainer,
-        getContainerWidth,
-        updateColumns,
+        getProperty,
+        update,
     };
 };

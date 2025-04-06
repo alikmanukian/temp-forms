@@ -1,14 +1,13 @@
-import { type TableHeader } from '@/components/table';
+import { type TableHeader } from '../index';
 import { computed, nextTick } from 'vue';
 import { useComponents } from './components';
-import { useScrollable } from '@/components/table/utils/scrollable';
+import { useScrollable } from '../utils/scrollable';
 
 export const useStickableColumns = (pageName: string) => {
-    const { getColumns, updateColumns } = useComponents(pageName);
+    const { getColumns, update } = useComponents(pageName);
     const { saveColumnsPositions } = useScrollable(pageName);
 
     const columns = getColumns();
-    // const localStorage = useLocalStorage<TableHeader[]>(getLocalStorageKey(pageName), columns)
 
     const stickableColumns = computed(() =>
         columns.filter((column: TableHeader) => column.options.stickable).map((column: TableHeader) => column.name),
@@ -19,7 +18,8 @@ export const useStickableColumns = (pageName: string) => {
     );
 
     const stickColumn = (columnName: string) => {
-        updateColumns(
+        update(
+            'columns',
             columns.map((column: TableHeader) => {
                 if (column.name === columnName) {
                     // unstick

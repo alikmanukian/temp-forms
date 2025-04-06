@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type { TableHeader } from '@/components/table';
 import Icon from '@/components/Icon.vue';
 import {
     DropdownMenu,
@@ -8,11 +7,12 @@ import {
     DropdownMenuTrigger,
     DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
-import DraggableList from '@/components/table/components/DraggableList.vue';
+import DraggableList from '../components/DraggableList.vue';
 import { Button } from '@/components/ui/button';
 import { computed, inject } from 'vue';
 import { cn } from '@/lib/utils';
-import { useStickableColumns } from '@/components/table/utils/stickable';
+import { useStickableColumns } from '../utils/stickable';
+import type { TableHeader } from '../index';
 
 interface Props {
     column: TableHeader

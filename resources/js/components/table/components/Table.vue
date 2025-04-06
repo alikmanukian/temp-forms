@@ -1,17 +1,16 @@
 <script lang="ts" setup>
 import type { Paginated, TableHeader as TableHeaderType } from '../index';
-import Pagination from '@/components/table/components/Pagination.vue';
+import Pagination from '../components/Pagination.vue';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { computed, nextTick, onMounted, provide, useTemplateRef } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, provide, useTemplateRef } from 'vue';
 import vResizable from '../utils/resizable';
-import EmptyState from '@/components/table/components/EmptyState.vue';
-import ToolsRow from '@/components/table/components/ToolsRow.vue';
+import EmptyState from '../components/EmptyState.vue';
+import ToolsRow from '../components/ToolsRow.vue';
 import { cn } from '@/lib/utils';
-import HeaderButton from '@/components/table/components/HeaderButton.vue';
-import { useStickableColumns } from '@/components/table/utils/stickable';
-import { init, useComponents } from '@/components/table/utils/components';
-import ScrollTableButton from '@/components/table/components/ScrollTableButton.vue';
-import { useScrollable } from '@/components/table/utils/scrollable';
+import HeaderButton from '../components/HeaderButton.vue';
+import { init, useComponents } from '../utils/components';
+import ScrollTableButton from '../components/ScrollTableButton.vue';
+import { useScrollable } from '../utils/scrollable';
 
 interface Props {
     resource: Paginated<any>;
@@ -34,7 +33,7 @@ const noResults = computed(() => props.resource.data.length === 0);
 const pageName = props.resource.pageName
 
 const { getFilteredColumns } = useComponents(pageName)
-const { scrollPosition, scrollable, updateScrollPosition, saveColumnsPositions } = useScrollable(pageName)
+const { scrollPosition, scrollable, updateScrollPosition, updateScrollSize, updateContainerWidth, saveColumnsPositions } = useScrollable(pageName)
 
 const container = useTemplateRef<HTMLElement>('container')
 const resizable = computed(() => props.resizable);
@@ -68,22 +67,42 @@ const cellClass = (column: TableHeaderType) => {
     return cn([columnWrappingMethod(column), column.options.cellClass]);
 };
 
+const resizeObserver = new ResizeObserver(() => {
+        updateContainerWidth();
+        updateScrollSize();
+        saveColumnsPositions();
+});
+
 onMounted(() => {
     init({
         pageName: pageName,
         columns: props.resource.headers,
-        container: container.value,
     })
 
-    setTimeout(() => console.log('scrollable', scrollable.value), 200);
+    nextTick(() => {
+        updateContainerWidth();
+        updateScrollSize();
+        saveColumnsPositions();
+    })
+
+    if (container.value) {
+        resizeObserver.observe(container.value);
+    }
 });
+
+onUnmounted(() => {
+    if (container.value) {
+        resizeObserver.unobserve(container.value);
+        resizeObserver.disconnect();
+    }
+})
 
 provide('pageName', pageName)
 
 </script>
 
 <template>
-    <div class="@container" :class="{ '-mx-4': expanded }" ref="container">
+    <div class="@container" :class="{ '-mx-4': expanded }" ref="container" :data-name="`table-container-${pageName}`">
         <ToolsRow
             v-if="!noResults"
             :meta="resource.meta"

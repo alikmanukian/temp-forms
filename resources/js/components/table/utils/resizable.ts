@@ -1,5 +1,3 @@
-import { nextTick } from 'vue';
-
 const init = (el: HTMLElement) => {
     const ths = el.querySelectorAll("th");
 

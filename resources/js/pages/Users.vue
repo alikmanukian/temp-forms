@@ -34,7 +34,6 @@ defineProps<{
                    :reloadOnly="['employees']"
                    hidePageNumbers
                    resizable
-                   expanded
             />
         </div>
     </AppLayout>

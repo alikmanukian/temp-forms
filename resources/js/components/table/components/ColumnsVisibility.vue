@@ -11,10 +11,10 @@ import {
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/Icon.vue';
 import type { TableHeader } from '../index';
-import DraggableList from '@/components/table/components/DraggableList.vue';
-import { useToggleColumns } from '@/components/table/utils/toggleable';
+import DraggableList from '../components/DraggableList.vue';
+import { useToggleColumns } from '../utils/toggleable';
+import { useComponents } from '../utils/components';
 import { computed, inject } from 'vue';
-import { useComponents } from '@/components/table/utils/components';
 
 interface Props {
     fixedColumns: string[]
