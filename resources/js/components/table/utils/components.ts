@@ -1,24 +1,30 @@
-import { ref, computed } from 'vue';
+import { ref, computed, Ref } from 'vue';
 import type { TableHeader } from '@/components/table';
 import { useLocalStorage } from '@vueuse/core';
 import { useScrollable } from './scrollable'
 
-interface Props {
+interface ColumnPosition {
+    left: number
+    width: number
+}
+
+interface Table {
     name: string
     columns: TableHeader[]
     container: HTMLElement|null
-    scrollContainer: HTMLElement|null
-    table: HTMLElement|null
-    containerWidth: number
-    scrollSize: number
+    columnsPositions: Ref<Record<string, ColumnPosition>>
+    containerWidth: Ref<number, number>
+    scrollSize: Ref<number, number>
+    scrollPosition: Ref<number, number>
+    showScrollButton: Ref<boolean, boolean>
 }
 
-const tables = ref<Record<string, Props>>({});
+const tables = ref<Record<string, Table>>({});
 
 // private function s
 const localStorageKey = (name: string): string => 'table_columns:' + window.location.pathname + ':' + name;
 
-const localStorage = (pageName: string): Props => tables.value[localStorageKey(pageName)]
+const localStorage = (pageName: string): Table => tables.value[localStorageKey(pageName)]
 
 // public exposed functions
 export const init = ({ pageName, columns, container }: {
@@ -26,35 +32,39 @@ export const init = ({ pageName, columns, container }: {
     columns: TableHeader[],
     container: HTMLElement | null,
 }) => {
+    console.log('init');
     const key = localStorageKey(pageName);
-    const tableElement = container?.querySelector('table') || null
     const columnsRef = useLocalStorage<TableHeader[]>(key, columns)
 
     tables.value[key] = {
         name: pageName,
         container: container,
-        table: tableElement,
-        scrollContainer: tableElement?.closest('[data-name="scroll-container"]') || null,
-        containerWidth: container?.getBoundingClientRect().width || 0,
         columns: columnsRef.value,
-        scrollSize: container?.scrollWidth || 0
+        columnsPositions: ref<Record<string, ColumnPosition>>({}),
+        containerWidth: ref(0),
+        scrollSize: ref(0),
+        scrollPosition: ref(0),
+        showScrollButton: ref(true),
     };
 
-    const {calculateScrollSize} = useScrollable(pageName)
+    const {updateScrollSize, saveColumnsPositions, updateContainerWidth} = useScrollable(pageName)
 
-    calculateScrollSize();
+    setTimeout(() => {
+        updateContainerWidth();
+        updateScrollSize();
+        saveColumnsPositions();
+    }, 0)
 };
 
 export const useComponents = (pageName: string) => {
     const getColumns = (): TableHeader[] => localStorage(pageName)?.columns || [];
 
     const getFilteredColumns = computed<TableHeader[]>(() => {
-        console.log('getFilteredColumns');
         const columns = getColumns();
         return columns.filter((column: TableHeader) => column.options.visible);
     });
 
-    const updateColumns = (pageName: string, updatedColumns: TableHeader[]): void => {
+    const updateColumns = (updatedColumns: TableHeader[]): void => {
         const key = localStorageKey(pageName);
         const table = localStorage(pageName);
 
@@ -65,9 +75,10 @@ export const useComponents = (pageName: string) => {
         }
     };
 
-    const getContainer = (pageName: string): HTMLElement|null => localStorage(pageName)?.container ?? null
-    const getTable = (pageName: string): HTMLElement|null => localStorage(pageName)?.table ?? null
-    const getScrollContainer = (pageName: string): HTMLElement|null => localStorage(pageName)?.scrollContainer ?? null
+    const getContainer = (): HTMLElement|null => localStorage(pageName)?.container ?? null
+    const getTable = (): HTMLElement|null => getContainer()?.querySelector('table') || null
+    const getScrollContainer = (): HTMLElement|null => getTable()?.closest('[data-name="scroll-container"]') || null
+    const getContainerWidth = (): Ref<number, number> => localStorage(pageName)?.containerWidth || ref(0)
 
     return {
         getColumns,
@@ -75,6 +86,7 @@ export const useComponents = (pageName: string) => {
         getContainer,
         getTable,
         getScrollContainer,
+        getContainerWidth,
         updateColumns,
     };
 };

@@ -2,7 +2,7 @@
 import type { Paginated, TableHeader as TableHeaderType } from '../index';
 import Pagination from '@/components/table/components/Pagination.vue';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { computed, onMounted, provide, useTemplateRef } from 'vue';
+import { computed, nextTick, onMounted, provide, useTemplateRef } from 'vue';
 import vResizable from '../utils/resizable';
 import EmptyState from '@/components/table/components/EmptyState.vue';
 import ToolsRow from '@/components/table/components/ToolsRow.vue';
@@ -34,8 +34,7 @@ const noResults = computed(() => props.resource.data.length === 0);
 const pageName = props.resource.pageName
 
 const { getFilteredColumns } = useComponents(pageName)
-const { saveColumnsPositions, setContainer } = useStickableColumns(pageName)
-const { scrollPosition, scrollable, updateScrollPosition } = useScrollable(pageName)
+const { scrollPosition, scrollable, updateScrollPosition, saveColumnsPositions } = useScrollable(pageName)
 
 const container = useTemplateRef<HTMLElement>('container')
 const resizable = computed(() => props.resizable);
@@ -75,9 +74,8 @@ onMounted(() => {
         columns: props.resource.headers,
         container: container.value,
     })
-    setContainer(container.value);
 
-    saveColumnsPositions();
+    setTimeout(() => console.log('scrollable', scrollable.value), 200);
 });
 
 provide('pageName', pageName)
@@ -153,12 +151,12 @@ provide('pageName', pageName)
         <EmptyState v-else />
 
         <Pagination
+            :class="{ 'px-4': expanded }"
             :meta="resource.meta"
             :reloadOnly
             :stickyPagination
             :includeQueryString
             :hidePageNumbers
-            :class="{ 'px-4': expanded }"
         ></Pagination>
     </div>
 </template>

@@ -63,7 +63,7 @@ const vResizable = {
         // Skip if condition is provided and evaluates to false
         if (! binding.value) return;
 
-        nextTick(() => init(el))
+        setTimeout(() => init(el), 100)
     },
 };
 

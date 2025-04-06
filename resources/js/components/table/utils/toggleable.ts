@@ -15,7 +15,7 @@ export const useToggleColumns = (pageName: string) => {
     }
 
     const saveColumnsOrdering = (updatedColumns: TableHeader[]) => {
-        updateColumns(pageName, updatedColumns)
+        updateColumns(updatedColumns)
     }
 
     return {

@@ -31,9 +31,9 @@ interface ListItem {
 }
 
 const props = defineProps<Props>()
-const pageName = inject('pageName')
+const pageName = inject('pageName') as string;
 
-const { stickColumn } = useStickableColumns([], pageName)
+const { stickColumn } = useStickableColumns(pageName)
 
 const hideColumn = () => {
 }
