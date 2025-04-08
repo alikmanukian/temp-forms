@@ -6,8 +6,6 @@ use App\TableComponents\Column;
 use App\TableComponents\Enums\Variant;
 use Illuminate\Database\Eloquent\Model;
 
-use function Pest\Laravel\instance;
-
 class BadgeColumn extends Column
 {
     public mixed $variantMapping = null;
@@ -25,22 +23,23 @@ class BadgeColumn extends Column
 
     public function useVariants(Model $model): void
     {
+        $value = $model->{$this->name};
+
         if (is_callable($this->variantMapping)) {
-            $value = call_user_func($this->variantMapping, $model->{$this->name}, $model);
             $model->_params = array_merge_recursive(
                 $model->_params ?? [],
                 [
                     'BadgeColumn' => [
                         $this->name => [
-                            'variant' => $value,
+                            'variant' => call_user_func($this->variantMapping, $value, $model),
                         ]
                     ]
                 ]
             );
         }
 
-        if (is_array($this->variantMapping) && array_key_exists($model->{$this->name}, $this->variantMapping)) {
-            $value = $this->variantMapping[$model->{$this->name}];
+        if (is_array($this->variantMapping) && array_key_exists($value, $this->variantMapping)) {
+            $value = $this->variantMapping[$value];
             $model->_params = array_merge_recursive(
                 $model->_params ?? [],
                 [
@@ -68,29 +67,28 @@ class BadgeColumn extends Column
 
     public function useIcon(Model $model): void
     {
+        $value = $model->{$this->name};
+
         if (is_callable($this->iconMapping)) {
-            $value = call_user_func($this->iconMapping, $model->{$this->name}, $model);
             $model->_params = array_merge_recursive(
                 $model->_params ?? [],
                 [
                     'BadgeColumn' => [
                         $this->name => [
-                            'icon' => $value,
+                            'icon' => call_user_func($this->iconMapping, $value, $model),
                         ]
                     ]
                 ]
             );
         }
 
-        if (is_array($this->iconMapping) && array_key_exists($model->{$this->name}, $this->iconMapping)) {
-            $value = $this->iconMapping[$model->{$this->name}];
-
+        if (is_array($this->iconMapping) && array_key_exists($value, $this->iconMapping)) {
             $model->_params = array_merge_recursive(
                 $model->_params ?? [],
                 [
                     'BadgeColumn' => [
                         $this->name => [
-                            'icon' => $value,
+                            'icon' => $this->iconMapping[$value],
                         ]
                     ]
                 ]
@@ -105,10 +103,13 @@ class BadgeColumn extends Column
 
     public function useMapping(Model $model): void
     {
+        parent::useMapping($model);
+
         $this->useVariants($model);
         $this->useIcon($model);
 
-        parent::useMapping($model);
-
+        if ($this->appends) {
+            $model->append(array_unique($this->appends));
+        }
     }
 }

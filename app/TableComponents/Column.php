@@ -174,14 +174,12 @@ class Column
 
     public function useMapping(Model $model): void
     {
-        if (is_callable($this->mapping)) {
-            $value = call_user_func($this->mapping, $model->{$this->name}, $model);
-            $model->{$this->name} = $value;
-        }
+        $value = $model->{$this->name};
 
-        if (is_array($this->mapping) && array_key_exists($model->{$this->name}, $this->mapping)) {
-            $value = $this->mapping[$model->{$this->name}];
-            $model->{$this->name} = $value;
+        if (is_callable($this->mapping)) {
+            $model->{$this->name} = call_user_func($this->mapping, $value, $model);
+        } else if (is_array($this->mapping) && array_key_exists($value, $this->mapping)) {
+            $model->{$this->name} = $this->mapping[$value];
         }
 
         // if the column is mutated, we need to append it to the model
@@ -191,7 +189,11 @@ class Column
 
         if ($this->appends) {
             $model->append(array_unique($this->appends));
-            $this->appends = [];
         }
+    }
+
+    public function value(Model $model): mixed
+    {
+        return $model->{$this->name};
     }
 }

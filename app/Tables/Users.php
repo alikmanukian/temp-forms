@@ -7,6 +7,7 @@ use App\TableComponents\Enums\Variant;
 use App\TableComponents\Table;
 use App\TableComponents\Columns;
 use App\TableComponents\Filters;
+use Illuminate\Database\Eloquent\Model;
 
 class Users extends Table
 {
@@ -41,6 +42,13 @@ class Users extends Table
                     'active' => 'airplay',
                     'inactive' => 'angry'
                 ]),
+            Columns\BooleanColumn::make('is_verified', 'IsVerified')
+                ->mapAs(function (mixed $value, Model $model) {
+                    return (bool) $model->email_verified_at;
+                })
+//                ->trueLabel('Yes')
+//                ->falseLabel('Oh no')
+                ->trueIcon('check'),
             Columns\TextColumn::make('email')->notSortable(),
             Columns\TextColumn::make('bio')->truncate(2),
             Columns\TextColumn::make('email_verified_at'),

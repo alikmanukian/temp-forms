@@ -147,7 +147,11 @@ abstract class Table implements JsonSerializable
     private function useMappings(Model $model): Model
     {
         collect($this->columns())
-            ->each(fn (Column $column) => $column->useMapping($model));
+            ->each(function (Column $column) use ($model) {
+                $column->useMapping($model);
+
+                $model->{$column->getName()} = $column->value($model);
+            });
 
         return $model;
     }
