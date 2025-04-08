@@ -4,7 +4,7 @@ namespace App\TableComponents\Enums;
 
 enum ColumnAlignment: string
 {
-    case LEFT = 'justify-start';
-    case CENTER = 'justify-center';
-    case RIGHT = 'justify-end';
+    case Left = 'justify-start';
+    case Center = 'justify-center';
+    case Right = 'justify-end';
 }

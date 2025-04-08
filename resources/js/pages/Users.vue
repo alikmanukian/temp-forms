@@ -14,7 +14,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 defineProps<{
     users: Paginated<User>;
-    employees: Paginated<User>;
+    // employees: Paginated<User>;
 }>();
 </script>
 
@@ -30,11 +30,11 @@ defineProps<{
                    expanded
             />
 
-            <Table :resource="employees"
-                   :reloadOnly="['employees']"
-                   hidePageNumbers
-                   resizable
-            />
+<!--            <Table :resource="employees"-->
+<!--                   :reloadOnly="['employees']"-->
+<!--                   hidePageNumbers-->
+<!--                   resizable-->
+<!--            />-->
         </div>
     </AppLayout>
 </template>

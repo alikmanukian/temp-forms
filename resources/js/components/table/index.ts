@@ -23,12 +23,14 @@ export interface TableHeaderOptions {
 
 export interface TableHeader {
     name: string
+    type: string
     header: string
     width: string
     left: number
     visible?: boolean
     sticked?: boolean
     options: TableHeaderOptions
+    _params: Record<string, number|string|boolean>
 }
 
 export interface Paginated<T> {
@@ -40,3 +42,4 @@ export interface Paginated<T> {
     stickyHeader: boolean
     stickyPagination: boolean
 }
+

@@ -4,19 +4,28 @@ namespace App\TableComponents;
 
 use App\TableComponents\Enums\ColumnAlignment;
 use BadMethodCallException;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use JsonSerializable;
 use ReflectionProperty;
 
 /**
- * @method sortable(?boolean $value)
- * @method searchable(?boolean $value)
- * @method toggleable(?boolean $value)
+ * @method sortable()
+ * @method notSortable()
+ * @method searchable()
+ * @method notSearchable()
+ * @method toggleable()
+ * @method notToggleable()
+ * @method stickable()
+ * @method notStickable()
  * @method headerAlignment(ColumnAlignment $value)
  * @method alignment(ColumnAlignment $value)
  */
 class Column
 {
+    public mixed $mapping = null;
+    protected array $appends = [];
+
     private function __construct(
         protected string $name,
         protected ?string $header = null,
@@ -24,14 +33,20 @@ class Column
         protected bool $searchable = false, // todo
         protected bool $toggleable = true, // allow/disallow in columns visibility
         protected bool $stickable = false,
-        protected ColumnAlignment $headerAlignment = ColumnAlignment::LEFT,
-        protected ColumnAlignment $alignment = ColumnAlignment::LEFT,
+        protected ColumnAlignment $headerAlignment = ColumnAlignment::Left,
+        protected ColumnAlignment $alignment = ColumnAlignment::Left,
         protected bool $wrap = false,
         protected int $truncate = 1, // number of lines for line-clamp
         protected string $width = 'auto',
         protected string $headerClass = '',
         protected string $cellClass = '',
+        mixed $mapAs = null,
     ) {
+        if (is_null($mapAs) || is_callable($mapAs) || is_array($mapAs)) {
+            $this->mapping = $mapAs;
+        } else {
+            throw new BadMethodCallException('mapAs must be callable or array');
+        }
     }
 
     public static function make(...$arguments): static
@@ -75,18 +90,30 @@ class Column
 
     /**
      * This allows to set properties dynamically
-     * for example $column->sortable()
+     * for example $column->sortable() // set as true
+     * for example $column->notSortable() // set as false
      * or $column->sortable(false|true)
+     * @throws \ReflectionException
      */
     public function __call(string $name, array $arguments): static
     {
+        $defaultBoolValue = true;
+
+        if (Str::startsWith($name, 'not')) {
+            $defaultBoolValue = false;
+            $name = Str::of($name)
+                ->replaceFirst('not', '')
+                ->lcfirst()
+                ->toString();
+        }
+
         if (property_exists($this, $name)) {
             $reflection = new ReflectionProperty($this, $name);
             $type = $reflection->getType();
 
             if ($type?->getName() === 'bool') {
-                $this->$name = $arguments[0] ?? true;
-            } elseif (!empty($arguments)) {
+                $this->$name = $defaultBoolValue;
+            } elseif (! empty($arguments)) {
                 $this->$name = $arguments[0];
             }
 
@@ -105,6 +132,7 @@ class Column
             'name' => $this->getName(),
             'header' => $this->getHeader(),
             'width' => $this->getWidth(),
+            'type' => Str::afterLast(get_class($this), '\\'),
             'options' => [
                 'sortable' => $this->sortable,
                 'searchable' => $this->searchable,
@@ -118,5 +146,52 @@ class Column
                 'cellClass' => $this->cellClass,
             ]
         ];
+    }
+
+    /**
+     * Usage:
+     * TextColumn::make()->mapAs(fn(string $value, Model $model) => '#'.$value)
+     * TextColumn::make()->mapAs(fn(string $value, Model $model) => '#'.$model->isAdmin() ? $value : 'N/A')
+     *
+     * If the column only has a limited set of values,
+     * you can use an array to map the values.
+     * The array should have the original value as the key
+     * and the mapped value as the value.
+     *
+     * TextColumn::make()->mapAs([
+     *      'is_approved' => __('Approved'),
+     *      'is_pending' => __('Waiting'),
+     *      'is_rejected' => __('Rejected'),
+     * ])
+     *
+     */
+    public function mapAs(callable|array $callback): static
+    {
+        $this->mapping = $callback;
+
+        return $this;
+    }
+
+    public function useMapping(Model $model): void
+    {
+        if (is_callable($this->mapping)) {
+            $value = call_user_func($this->mapping, $model->{$this->name}, $model);
+            $model->{$this->name} = $value;
+        }
+
+        if (is_array($this->mapping) && array_key_exists($model->{$this->name}, $this->mapping)) {
+            $value = $this->mapping[$model->{$this->name}];
+            $model->{$this->name} = $value;
+        }
+
+        // if the column is mutated, we need to append it to the model
+        if (in_array($this->name, $model->getMutatedAttributes(), true)) {
+            $this->appends[] = $this->name;
+        }
+
+        if ($this->appends) {
+            $model->append(array_unique($this->appends));
+            $this->appends = [];
+        }
     }
 }

@@ -11,6 +11,7 @@ import HeaderButton from '../components/HeaderButton.vue';
 import { init, useComponents } from '../utils/components';
 import ScrollTableButton from '../components/ScrollTableButton.vue';
 import { useScrollable } from '../utils/scrollable';
+import * as Columns from './columns';
 
 interface Props {
     resource: Paginated<any>;
@@ -64,7 +65,7 @@ const columnWrappingMethod = (column: TableHeaderType) => {
 };
 
 const cellClass = (column: TableHeaderType) => {
-    return cn([columnWrappingMethod(column), column.options.cellClass]);
+    return cn(['w-full', columnWrappingMethod(column), column.options.cellClass]);
 };
 
 const resizeObserver = new ResizeObserver(() => {
@@ -95,6 +96,8 @@ onUnmounted(() => {
 })
 
 provide('pageName', pageName)
+
+type ColumnTypes = keyof typeof Columns
 
 </script>
 
@@ -153,7 +156,10 @@ provide('pageName', pageName)
                         >
                             <div class="flex items-center" :class="column.options.alignment">
                                 <div :class="cellClass(column)">
-                                    {{ row[column.name] }}
+                                    <component :is="Columns[column.type as string as ColumnTypes]"
+                                               :params="row._params"
+                                               :name="column.name"
+                                    >{{ row[column.name] }}</component>
                                 </div>
                             </div>
                         </TableCell>

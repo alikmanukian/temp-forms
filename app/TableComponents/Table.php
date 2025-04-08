@@ -112,7 +112,7 @@ abstract class Table implements JsonSerializable
                 'lastPage' => $paginator->lastPage(),
                 'perPageOptions' => $this->getPerPageOptions(),
             ],
-            'headers' => collect($this->columns())->map(fn (Column $column) => $column->headerInfo())
+            'headers' => collect($this->columns())->map(fn (Column $column) => $column->headerInfo())->toArray()
         ];
 
         $data['hash'] = $this->hash($data);
@@ -132,14 +132,25 @@ abstract class Table implements JsonSerializable
 
     private function getPaginated(): LengthAwarePaginator
     {
+
         return $this->builder
             /*->where('id', '<', 0)*/
             ->paginate(
                 perPage: $this->getPerPage(),
                 pageName: $this->pageName
-            );
+            )
+            ->through(function ($model) {
+                return $this->useMappings($model);
+            });
     }
 
+    private function useMappings(Model $model): Model
+    {
+        collect($this->columns())
+            ->each(fn (Column $column) => $column->useMapping($model));
+
+        return $model;
+    }
     /**
      * @return int[]|null
      */
@@ -153,7 +164,6 @@ abstract class Table implements JsonSerializable
         $perPageOptions = $this->getPerPageOptions() ?? [10];
         $perPage = (int)Cookie::get('perPage_' . $this->pageName, $perPageOptions[0]);
 
-//        dd(request()->cookies);
         if (! in_array($perPage, $perPageOptions)) {
             $perPage = $perPageOptions[0];
         }

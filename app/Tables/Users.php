@@ -3,6 +3,7 @@
 namespace App\Tables;
 
 use App\Models\User;
+use App\TableComponents\Enums\Variant;
 use App\TableComponents\Table;
 use App\TableComponents\Columns;
 use App\TableComponents\Filters;
@@ -25,13 +26,22 @@ class Users extends Table
     {
         return [
             Columns\TextColumn::make('id', 'ID')
-                ->toggleable(false)
+                ->notToggleable()
                 ->sortable()
                 ->stickable()
                 ->width('75px'),
             Columns\TextColumn::make('name', 'Full Name')
                 ->stickable(),
-            Columns\TextColumn::make('email'),
+            Columns\BadgeColumn::make('status')
+                ->variant([
+                    'active' => Variant::Green,
+                    'inactive' => Variant::Red
+                ])
+                ->icon([
+                    'active' => 'airplay',
+                    'inactive' => 'angry'
+                ]),
+            Columns\TextColumn::make('email')->notSortable(),
             Columns\TextColumn::make('bio')->truncate(2),
             Columns\TextColumn::make('email_verified_at'),
             Columns\TextColumn::make('created_at'),
