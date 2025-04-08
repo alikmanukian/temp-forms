@@ -14,7 +14,7 @@ export const useStickableColumns = (pageName: string) => {
     );
 
     const stickedColumns = computed(() =>
-        columns.filter((column: TableHeader) => column.options.sticked).map((column: TableHeader) => column.name),
+        columns.filter((column: TableHeader) => column.sticked).map((column: TableHeader) => column.name),
     );
 
     const stickColumn = (columnName: string) => {
@@ -23,14 +23,14 @@ export const useStickableColumns = (pageName: string) => {
             columns.map((column: TableHeader) => {
                 if (column.name === columnName) {
                     // unstick
-                    if (column.options.sticked) {
+                    if (column.sticked) {
                         // unstick also all other columns after the column
                         const index = stickedColumns.value.indexOf(columnName);
 
-                        column.options.sticked = false;
+                        column.sticked = false;
                         columns.forEach((column: TableHeader) => {
                             if (stickableColumns.value.indexOf(column.name) > index) {
-                                column.options.sticked = false;
+                                column.sticked = false;
                             }
                         });
                     }
@@ -38,7 +38,7 @@ export const useStickableColumns = (pageName: string) => {
                     else {
                         // stick only the column is last stickable column
                         if (stickedColumns.value.length === stickableColumns.value.indexOf(column.name)) {
-                            column.options.sticked = true;
+                            column.sticked = true;
                         }
                     }
                 }

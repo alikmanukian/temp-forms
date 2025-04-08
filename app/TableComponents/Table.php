@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cookie;
+use JsonException;
 use JsonSerializable;
 use ReflectionClass;
 use RuntimeException;
@@ -73,7 +74,7 @@ abstract class Table implements JsonSerializable
 
                 if ($defaults['pageName']) {
                     return "perPage_" . $defaults['pageName'];
-                };
+                }
 
                 return null;
             })
@@ -93,12 +94,13 @@ abstract class Table implements JsonSerializable
 
     /**
      * This function used when form sending in response data
+     * @throws JsonException
      */
     public function resolve(): array
     {
         $paginator = $this->getPaginated();
 
-        return [
+        $data = [
             'pageName' => $this->pageName,
             'data' => $paginator->items(),
             'stickyHeader' => $this->getStickyHeader(),
@@ -112,6 +114,20 @@ abstract class Table implements JsonSerializable
             ],
             'headers' => collect($this->columns())->map(fn (Column $column) => $column->headerInfo())
         ];
+
+        $data['hash'] = $this->hash($data);
+
+        return $data;
+    }
+
+    /**
+     * @throws JsonException
+     */
+    private function hash(array $data): string
+    {
+        // Sort array by keys to ensure consistent order
+        ksort($data);
+        return hash('sha256', json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
     }
 
     private function getPaginated(): LengthAwarePaginator

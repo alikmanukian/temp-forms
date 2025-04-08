@@ -12,13 +12,11 @@ export interface TableHeaderOptions {
     sortable: boolean
     searchable: boolean
     toggleable: boolean
+    stickable: boolean
     headerAlignment: 'justify-start'|'justify-center'|'justify-end'
     alignment: 'justify-start'|'justify-center'|'justify-end'
     wrap: boolean
     truncate: number
-    visible: boolean
-    stickable: boolean
-    sticked: boolean
     headerClass: string
     cellClass: string
 }
@@ -28,6 +26,8 @@ export interface TableHeader {
     header: string
     width: string
     left: number
+    visible?: boolean
+    sticked?: boolean
     options: TableHeaderOptions
 }
 
@@ -36,6 +36,7 @@ export interface Paginated<T> {
     data: T[]
     meta: PaginatedMeta
     headers: TableHeader[]
+    hash: string
     stickyHeader: boolean
     stickyPagination: boolean
 }

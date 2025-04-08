@@ -83,7 +83,7 @@ const list = computed(() => {
             })
         }
 
-        if (props.column.options.sticked) {
+        if (props.column.sticked) {
             items.push({
                 type: 'action',
                 name: 'unstick',
@@ -120,7 +120,7 @@ const hasButton = computed(() => list.value.length > 0)
                 <DropdownMenu class="relative">
                     <DropdownMenuTrigger as-child>
                         <Button variant="outline" class="flex items-center px-2 py-1 shadow-none border-none bg-inherit text-muted-foreground hover:text-muted-foreground hover:bg-background">
-                            <Icon name="Lock" class="!w-3.5 !h-3.5" v-if="column.options.sticked" />
+                            <Icon name="Lock" class="!w-3.5 !h-3.5" v-if="column.sticked" />
                             <span class="text-sm">{{ column.header }}</span>
                             <Icon name="ChevronsUpDown" class="w-4 h-4" />
                         </Button>

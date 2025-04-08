@@ -14,7 +14,6 @@ use ReflectionProperty;
  * @method toggleable(?boolean $value)
  * @method headerAlignment(ColumnAlignment $value)
  * @method alignment(ColumnAlignment $value)
- * @method visible(?boolean $value)
  */
 class Column
 {
@@ -24,13 +23,11 @@ class Column
         protected bool $sortable = false, // todo
         protected bool $searchable = false, // todo
         protected bool $toggleable = true, // allow/disallow in columns visibility
+        protected bool $stickable = false,
         protected ColumnAlignment $headerAlignment = ColumnAlignment::LEFT,
         protected ColumnAlignment $alignment = ColumnAlignment::LEFT,
         protected bool $wrap = false,
         protected int $truncate = 1, // number of lines for line-clamp
-        protected bool $visible = true,
-        protected bool $stickable = false,
-        protected bool $sticked = false,
         protected string $width = 'auto',
         protected string $headerClass = '',
         protected string $cellClass = '',
@@ -116,9 +113,7 @@ class Column
                 'alignment' => $this->alignment->value,
                 'wrap' => $this->wrap,
                 'truncate' => $this->truncate,
-                'visible' => $this->visible,
                 'stickable' => $this->stickable,
-                'sticked' => $this->sticked,
                 'headerClass' => $this->headerClass,
                 'cellClass' => $this->cellClass,
             ]

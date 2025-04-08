@@ -9,7 +9,11 @@ export const useToggleColumns = (pageName: string) => {
 
         columns.forEach((column: TableHeader) => {
             if (column.name === columnName) {
-                column.options.visible = !column.options.visible
+                if (column.visible === undefined) {
+                    column.visible = false
+                } else {
+                    column.visible = !column.visible
+                }
             }
         })
 

@@ -60,7 +60,7 @@ const nonDraggableColumns = computed(() => {
 
             <DropdownMenuCheckboxItem v-for="item in nonDraggableColumns"
                                       :key="item.name"
-                                      :checked="item.options.visible"
+                                      :checked="item.visible === undefined || item.visible"
                                       @click="toggleColumn(item.name)"
                                       :disabled="fixedColumns.includes(item.name)"
             >
@@ -77,7 +77,7 @@ const nonDraggableColumns = computed(() => {
                            @updated="onDropColumn"
             >
                 <DropdownMenuCheckboxItem :key="item.name"
-                                          :checked="item.options.visible"
+                                          :checked="item.visible === undefined || item.visible"
                                           @click="toggleColumn(item.name)"
                                           :disabled="fixedColumns.includes(item.name)"
                 >

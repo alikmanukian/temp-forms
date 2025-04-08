@@ -74,10 +74,7 @@ const resizeObserver = new ResizeObserver(() => {
 });
 
 onMounted(() => {
-    init({
-        pageName: pageName,
-        columns: props.resource.headers,
-    })
+    init(props.resource)
 
     nextTick(() => {
         updateContainerWidth();
@@ -132,12 +129,12 @@ provide('pageName', pageName)
                     <TableRow>
                         <TableHead
                             v-for="column in getFilteredColumns"
-                            :style="{ width: column.width, left: column.options.sticked ? column.left + 'px' : ''}"
+                            :style="{ width: column.width, left: column.sticked ? column.left + 'px' : ''}"
                             :key="column.name"
                             :data-name="column.name"
                             class="px-0"
                             :class="{
-                                'sticky z-10 bg-gray-50/90 dark:bg-background/80': column.options.sticked,
+                                'sticky z-10 bg-gray-50/90 dark:bg-background/80': column.sticked,
                             }"
                         >
                             <HeaderButton :column />
@@ -149,9 +146,9 @@ provide('pageName', pageName)
                     <TableRow v-for="(row, index) in resource.data" :key="index">
                         <TableCell v-for="column in getFilteredColumns"
                                    :key="column.name"
-                                   :style="{ width: column.width, left: column.options.sticked ? column.left + 'px' : '' }"
+                                   :style="{ width: column.width, left: column.sticked ? column.left + 'px' : '' }"
                                    :class="{
-                                       'sticky bg-white/90 dark:bg-background/80 hover:bg-muted/50': column.options.sticked,
+                                       'sticky bg-white/90 dark:bg-background/80 hover:bg-muted/50': column.sticked,
                                    }"
                         >
                             <div class="flex items-center" :class="column.options.alignment">

@@ -1,10 +1,11 @@
 import { computed, reactive } from 'vue';
-import type { TableHeader } from '@/components/table';
+import type { Paginated, TableHeader } from '@/components/table';
 import { useLocalStorage } from '@vueuse/core';
 
 interface Table {
     name: string
     columns: TableHeader[]
+    hash: string
     containerWidth: number
     scrollSize: number
     scrollPosition: number
@@ -21,22 +22,26 @@ const fromLocalStorage = (pageName: string): Table|null => {
 }
 
 // public exposed functions
-export const init = ({ pageName, columns }: {
-    pageName: string,
-    columns: TableHeader[],
-}) => {
-    const key = localStorageKey(pageName);
+export const init = (props: Paginated<any>) => {
+    const key = localStorageKey(props.pageName);
 
     const tableData: Table = {
-        name: pageName,
-        columns: columns,
+        name: props.pageName,
+        columns: props.headers,
+        hash: props.hash,
         containerWidth: 0,
         scrollSize: 0,
         scrollPosition: 0,
         showScrollButton: true,
     };
 
-    tables[key] = useLocalStorage<Table>(key, tableData).value;
+    const localStorageData = useLocalStorage<Table>(key, tableData)
+
+    if (localStorageData.value.hash !== props.hash) {
+        localStorageData.value = tableData;
+    }
+
+    tables[key] = localStorageData.value;
 };
 
 export const useComponents = (pageName: string) => {
@@ -44,7 +49,9 @@ export const useComponents = (pageName: string) => {
 
     const getFilteredColumns = computed<TableHeader[]>(() => {
         const columns = getColumns();
-        return columns.filter((column: TableHeader) => column.options.visible);
+        return columns.filter((column: TableHeader) => {
+            return column.visible === undefined || column.visible
+        });
     });
 
     const update = (property: keyof Table, data: any): void => {
