@@ -2,10 +2,13 @@
 import { cn } from '@/lib/utils';
 import { computed } from 'vue';
 import Icon from '@/components/Icon.vue';
+import { type IconOrImage } from '../columns';
+
+
 
 interface Props {
     name: string
-    params: Record<string, Record<string, Record<'icon'|'variant', string>>>
+    params: Record<string, Record<string, Record<'icon'|'variant', IconOrImage|string>>>
 }
 
 const props = defineProps<Props>()
@@ -31,13 +34,19 @@ const variant = computed(() => {
 });
 
 const icon = computed(() => {
-    return  props.params.BadgeColumn?.[props.name]?.icon ?? '';
+    return  props.params.BadgeColumn?.[props.name]?.icon as IconOrImage ?? null;
 });
 
 </script>
 
 <template>
     <span :class="cn(defaultClasses, variant)">
-        <Icon v-if="icon" :name="icon"/><span><slot /></span>
+        <Icon v-if="icon && icon.name && icon.position === 'start'"
+              :name="icon.name as string"
+              v-bind="icon" />
+        <span><slot /></span>
+        <Icon v-if="icon && icon.name && icon.position === 'end'"
+              :name="icon.name as string"
+              v-bind="icon" />
     </span>
 </template>

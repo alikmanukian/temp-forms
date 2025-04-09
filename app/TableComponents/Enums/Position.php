@@ -2,7 +2,7 @@
 
 namespace App\TableComponents\Enums;
 
-enum ImagePosition: string
+enum Position: string
 {
     case Start = 'start';
     case End = 'end';

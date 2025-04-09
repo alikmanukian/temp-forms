@@ -3,8 +3,11 @@
 namespace App\TableComponents;
 
 use App\TableComponents\Enums\ColumnAlignment;
+use App\TableComponents\Traits\HasIcon;
+use App\TableComponents\Traits\HasImage;
 use BadMethodCallException;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use JsonSerializable;
 use ReflectionProperty;
@@ -121,7 +124,6 @@ class Column
      * for example $column->sortable() // set as true
      * for example $column->notSortable() // set as false
      * or $column->sortable(false|true)
-     * @throws \ReflectionException
      */
     public function __call(string $name, array $arguments): static
     {
@@ -221,20 +223,28 @@ class Column
      */
     public function transform(Model $model): void
     {
-        //
+        if (in_array(HasIcon::class, class_uses(static::class), true)) {
+            /** @var HasIcon $this */
+            $this->setIcon($model);
+        }
+
+        if (in_array(HasImage::class, class_uses(static::class), true)) {
+            /** @var HasImage $this */
+            $this->setImage($model);
+        }
     }
 
-    public function setColumnParamToModel(Model $model, string $paramName, mixed $paramValue): void
+    protected function setColumnParamToModel(Model $model, string $paramName, mixed $paramValue): void
     {
-        $model->_params = array_merge_recursive(
-            $model->_params ?? [],
-            [
-                Str::afterLast(get_class($this), '\\') => [
-                    $this->name => [
-                        $paramName => $paramValue,
-                    ]
-                ]
-            ]
-        );
+        $key = Str::afterLast(get_class($this), '\\') . '.' . $this->name . '.' . $paramName;
+        if (is_null($model->_params)) {
+            $model->_params = [];
+        }
+
+        $params = $model->_params;
+
+        Arr::set($params, $key, $paramValue);
+
+        $model->_params = $params;
     }
 }

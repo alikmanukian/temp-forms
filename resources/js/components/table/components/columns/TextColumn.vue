@@ -1,19 +1,11 @@
 <script lang="ts" setup>
 import Icon from '@/components/Icon.vue';
 import { computed } from 'vue';
-
-interface Image {
-    src?: string
-    class?: string
-    style?: string
-    alt?: string
-    title?: string
-    position?: string
-}
+import { type IconOrImage } from '../columns';
 
 interface Props {
     name: string
-    params: Record<string, Record<string, Record<'image', Image>>>
+    params: Record<string, Record<string, Record<'image'|'icon', IconOrImage>>>
 }
 
 const props = defineProps<Props>()
@@ -21,12 +13,25 @@ const props = defineProps<Props>()
 const image = computed(() => {
     return  props.params.TextColumn?.[props.name]?.image ?? null;
 });
+
+const icon = computed(() => {
+    return  props.params.TextColumn?.[props.name]?.icon ?? null;
+});
+
 </script>
 
 <template>
     <div class="flex items-center space-x-2">
-        <img v-if="image && image.src && image.position === 'start'" v-bind="image"/>
+        <Icon v-if="icon && icon.name && icon.position === 'start'"
+              :name="icon.name as string"
+              v-bind="icon" />
+        <img v-if="image && image.src && image.position === 'start'"
+             v-bind="image"/>
         <span><slot /></span>
-        <img v-if="image && image.src && image.position === 'end'" v-bind="image"/>
+        <Icon v-if="icon && icon.name && icon.position === 'end'"
+              :name="icon.name as string"
+              v-bind="icon" />
+        <img v-if="image && image.src && image.position === 'end'"
+             v-bind="image"/>
     </div>
 </template>

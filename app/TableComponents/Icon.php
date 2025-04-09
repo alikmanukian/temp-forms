@@ -2,32 +2,24 @@
 
 namespace App\TableComponents;
 
+use App\TableComponents\Enums\IconSize;
 use App\TableComponents\Enums\Position;
-use App\TableComponents\Enums\ImageSize;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
-class Image
+class Icon
 {
     protected array $style = [];
     protected array $class = [];
-    protected string $alt = 'Image';
+    protected string $alt = 'Icon';
     protected string $title = '';
 
     protected Position $position = Position::Start;
 
-    protected ?string $url = null;
+    protected ?string $icon = null;
 
     public function __construct()
     {
-        $this->size(ImageSize::Medium);
-    }
-
-    public function rounded(): static
-    {
-        $this->class[] = 'rounded-full';
-        return $this;
+        $this->size(IconSize::Medium);
     }
 
     public function width(int $width): static
@@ -49,7 +41,7 @@ class Image
         return $this;
     }
 
-    public function size(ImageSize $imageSize): static
+    public function size(IconSize $imageSize): static
     {
         $this->class = array_filter($this->class, static fn($value) => ! Str::startsWith($value, 'size-'));
         $this->class[] = $imageSize->value;
@@ -58,25 +50,25 @@ class Image
 
     public function small(): static
     {
-        $this->size(ImageSize::Small);
+        $this->size(IconSize::Small);
         return $this;
     }
 
     public function medium(): static
     {
-        $this->size(ImageSize::Medium);
+        $this->size(IconSize::Medium);
         return $this;
     }
 
     public function large(): static
     {
-        $this->size(ImageSize::Large);
+        $this->size(IconSize::Large);
         return $this;
     }
 
     public function extraLarge(): static
     {
-        $this->size(ImageSize::ExtraLarge);
+        $this->size(IconSize::ExtraLarge);
         return $this;
     }
 
@@ -116,35 +108,9 @@ class Image
         return $this;
     }
 
-    public function url(string $url): static
+    public function icon(string $name): static
     {
-        $this->url = $url;
-        return $this;
-    }
-
-    /**
-     * Alias of url() method.
-     */
-    public function to(string $url): static
-    {
-        return $this->url($url);
-    }
-
-    public function route(string $route, array ...$parameters): static
-    {
-        $this->url = route($route, ...$parameters);
-        return $this;
-    }
-
-    public function signedRoute(string $route, array ...$parameters): static
-    {
-        $this->url = URL::signedRoute($route, ...$parameters);
-        return $this;
-    }
-
-    public function temporarySignedRoute(string $route, Carbon $time, array ...$parameters): static
-    {
-        $this->url = URL::temporarySignedRoute($route, $time, ...$parameters);
+        $this->icon = $name;
         return $this;
     }
 
@@ -171,8 +137,8 @@ class Image
             $data['title'] = $this->title;
         }
 
-        if ($this->url) {
-            $data['src'] = $this->url;
+        if ($this->icon) {
+            $data['name'] = $this->icon;
         }
 
         $data['position'] = $this->position->value;

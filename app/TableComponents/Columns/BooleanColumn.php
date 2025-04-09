@@ -3,10 +3,14 @@
 namespace App\TableComponents\Columns;
 
 use App\TableComponents\Column;
+use App\TableComponents\Icon;
+use App\TableComponents\Traits\HasIcon;
 use Illuminate\Database\Eloquent\Model;
 
 class BooleanColumn extends Column
 {
+    use HasIcon;
+
     private static ?string $defaultTrueLabel = '';
     private static ?string $defaultFalseLabel = '';
     private static ?string $defaultTrueIcon = null;
@@ -17,8 +21,20 @@ class BooleanColumn extends Column
     private ?string $trueIcon = null;
     private ?string $falseIcon = null;
 
-    public mixed $iconMapping = null;
-    protected string $icon = '';
+    public static function make(...$arguments): static
+    {
+        $object = parent::make(...$arguments);
+
+        if (static::$defaultTrueIcon) {
+            $object->iconCallback[true] = static::$defaultTrueIcon;
+        }
+
+        if (static::$defaultFalseIcon) {
+            $object->iconCallback[false] = static::$defaultFalseIcon;
+        }
+
+        return $object;
+    }
 
     public function trueLabel(string $label): static
     {
@@ -34,13 +50,23 @@ class BooleanColumn extends Column
 
     public function trueIcon(string $icon): static
     {
-        $this->trueIcon = $icon;
+        if (!$this->icon) {
+            $this->icon = new Icon();
+        }
+
+        $this->iconCallback[true] = $icon;
+
         return $this;
     }
 
     public function falseIcon(string $icon): static
     {
-        $this->falseIcon = $icon;
+        if (!$this->icon) {
+            $this->icon = new Icon();
+        }
+
+        $this->iconCallback[false] = $icon;
+
         return $this;
     }
 
@@ -66,35 +92,12 @@ class BooleanColumn extends Column
 
     public function transform(Model $model): void
     {
-        $this->setIcon($model);
+        parent::transform($model);
 
         // rewrite model value for the boolean column
         $model->{$this->name} = match((bool) $model->{$this->name}) {
             true => $this->trueLabel ?? static::$defaultTrueLabel,
             false => $this->falseLabel ?? static::$defaultFalseLabel,
         };
-    }
-
-    private function setIcon(Model $model): void
-    {
-        if (!$this->trueIcon && !static::$defaultTrueIcon && !$this->falseIcon && !static::$defaultFalseIcon) {
-            return;
-        }
-
-        $this->iconMapping = [
-            true => $this->trueIcon ?? static::$defaultTrueIcon,
-            false => $this->falseIcon ?? static::$defaultFalseIcon,
-        ];
-
-        $value = $model->{$this->name};
-
-        if (array_key_exists($value, $this->iconMapping)) {
-            $this->setColumnParamToModel($model, 'icon', $this->iconMapping[$value]);
-        }
-
-        // if the column is mutated, we need to append it to the model
-        if (in_array($this->name, $model->getMutatedAttributes(), true)) {
-            $this->appends[] = '_params';
-        }
     }
 }

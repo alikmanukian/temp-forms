@@ -4,8 +4,8 @@ namespace App\TableComponents\Enums;
 
 enum ImageSize:string
 {
-    case SMALL = 'size-6';
-    case MEDIUM = 'size-8';
-    case LARGE = 'size-10';
-    case EXTRA_LARGE = 'size-12';
+    case Small = 'size-6';
+    case Medium = 'size-8';
+    case Large = 'size-10';
+    case ExtraLarge = 'size-12';
 }

@@ -3,8 +3,10 @@
 namespace App\Tables;
 
 use App\Models\User;
+use App\TableComponents\Enums\IconSize;
 use App\TableComponents\Enums\ImageSize;
 use App\TableComponents\Enums\Variant;
+use App\TableComponents\Icon;
 use App\TableComponents\Image;
 use App\TableComponents\Table;
 use App\TableComponents\Columns;
