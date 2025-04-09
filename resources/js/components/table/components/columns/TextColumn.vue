@@ -6,6 +6,7 @@ import { type IconOrImage } from '../columns';
 interface Props {
     name: string
     params: Record<string, Record<string, Record<'image'|'icon', IconOrImage>>>
+    class: string
 }
 
 const props = defineProps<Props>()
@@ -27,7 +28,7 @@ const icon = computed(() => {
               v-bind="icon" />
         <img v-if="image && image.src && image.position === 'start'"
              v-bind="image"/>
-        <span><slot /></span>
+        <span :class="props.class"><slot /></span>
         <Icon v-if="icon && icon.name && icon.position === 'end'"
               :name="icon.name as string"
               v-bind="icon" />

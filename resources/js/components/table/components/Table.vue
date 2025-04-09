@@ -159,6 +159,7 @@ type ColumnTypes = keyof typeof Columns
                                     <component :is="Columns[column.type as string as ColumnTypes]"
                                                :params="row._params"
                                                :name="column.name"
+                                               :class="cellClass(column)"
                                     >{{ row[column.name] }}</component>
                                 </div>
                             </div>

@@ -56,7 +56,9 @@ class Users extends Table
                     return (bool) $model->email_verified_at;
                 })
                 ->trueIcon('check'),
+            Columns\TextColumn::make('bio')->truncate(2),
             Columns\TextColumn::make('email')->notSortable(),
+
 //            Columns\NumericColumn::make('visit_count', sortable: true),
 //            Columns\DateColumn::make('email_verified_at'),
 //            Columns\ActionColumn::new(),
