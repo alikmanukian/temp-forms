@@ -13,6 +13,7 @@ import { computed, inject } from 'vue';
 import { cn } from '@/lib/utils';
 import { useStickableColumns } from '../utils/stickable';
 import type { TableHeader } from '../index';
+import { useToggleColumns } from '@/components/table/utils/toggleable';
 
 interface Props {
     column: TableHeader
@@ -34,9 +35,7 @@ const props = defineProps<Props>()
 const pageName = inject<string>('pageName') ?? 'page'
 
 const { stickColumn } = useStickableColumns(pageName)
-
-const hideColumn = () => {
-}
+const { toggleColumn } = useToggleColumns(pageName)
 
 const list = computed(() => {
     const items : ListItem[] = [];
@@ -72,7 +71,7 @@ const list = computed(() => {
             name: 'hide',
             title: 'Hide',
             icon: 'EyeOff',
-            handler: hideColumn
+            handler: () => toggleColumn(props.column.name)
         });
     }
 
@@ -89,9 +88,7 @@ const list = computed(() => {
                 name: 'unstick',
                 title: 'Unstick',
                 icon: 'Unlock',
-                handler: () => {
-                    stickColumn(props.column.name)
-                }
+                handler: () => stickColumn(props.column.name)
             })
         } else {
             items.push({
@@ -99,9 +96,7 @@ const list = computed(() => {
                 name: 'stick',
                 title: 'Stick',
                 icon: 'Lock',
-                handler: () => {
-                    stickColumn(props.column.name)
-                }
+                handler: () => stickColumn(props.column.name)
             });
         }
     }
