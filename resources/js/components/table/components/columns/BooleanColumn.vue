@@ -12,8 +12,6 @@ const props = defineProps<Props>()
 const icon = computed(() => {
     return  props.params.BooleanColumn?.[props.name]?.icon ?? '';
 });
-
-console.log(icon.value);
 </script>
 
 <template>

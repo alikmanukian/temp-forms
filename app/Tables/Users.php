@@ -3,7 +3,9 @@
 namespace App\Tables;
 
 use App\Models\User;
+use App\TableComponents\Enums\ImageSize;
 use App\TableComponents\Enums\Variant;
+use App\TableComponents\Image;
 use App\TableComponents\Table;
 use App\TableComponents\Columns;
 use App\TableComponents\Filters;
@@ -32,7 +34,12 @@ class Users extends Table
                 ->stickable()
                 ->width('75px'),
             Columns\TextColumn::make('name', 'Full Name')
-                ->stickable(),
+                ->stickable()
+                ->image('avatar', function (Model $model, Image $image) {
+                    return $image
+                        ->alt($model->name)
+                        ->class('rounded-lg');
+                }),
             Columns\BadgeColumn::make('status')
                 ->variant([
                     'active' => Variant::Green,
@@ -46,14 +53,8 @@ class Users extends Table
                 ->mapAs(function (mixed $value, Model $model) {
                     return (bool) $model->email_verified_at;
                 })
-//                ->trueLabel('Yes')
-//                ->falseLabel('Oh no')
                 ->trueIcon('check'),
             Columns\TextColumn::make('email')->notSortable(),
-            Columns\TextColumn::make('bio')->truncate(2),
-            Columns\TextColumn::make('email_verified_at'),
-            Columns\TextColumn::make('created_at'),
-            Columns\TextColumn::make('updated_at'),
 //            Columns\NumericColumn::make('visit_count', sortable: true),
 //            Columns\DateColumn::make('email_verified_at'),
 //            Columns\ActionColumn::new(),

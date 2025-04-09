@@ -46,4 +46,11 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function avatar(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => 'https://www.gravatar.com/avatar/' . md5(strtolower(trim($this->email))) . '?d=mp',
+        );
+    }
 }

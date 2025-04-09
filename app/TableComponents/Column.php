@@ -24,7 +24,7 @@ use ReflectionProperty;
 class Column
 {
     public mixed $mapping = null;
-    protected array $appends = [];
+    public array $appends = []; // for mutated attributes
 
     private function __construct(
         protected string $name,
@@ -76,6 +76,34 @@ class Column
     {
         $this->truncate = $lines;
         $this->wrap = false;
+
+        return $this;
+    }
+
+    public function align(ColumnAlignment $alignment): static
+    {
+        $this->alignment = $alignment;
+
+        return $this;
+    }
+
+    public function leftAligned(): static
+    {
+        $this->alignment = ColumnAlignment::Left;
+
+        return $this;
+    }
+
+    public function rightAligned(): static
+    {
+        $this->alignment = ColumnAlignment::Right;
+
+        return $this;
+    }
+
+    public function centerAligned(): static
+    {
+        $this->alignment = ColumnAlignment::Center;
 
         return $this;
     }
@@ -172,7 +200,7 @@ class Column
         return $this;
     }
 
-    public function useMapping(Model $model): void
+    public function useMappings(Model $model): void
     {
         $value = $model->{$this->name};
 
@@ -186,14 +214,27 @@ class Column
         if (in_array($this->name, $model->getMutatedAttributes(), true)) {
             $this->appends[] = $this->name;
         }
-
-        if ($this->appends) {
-            $model->append(array_unique($this->appends));
-        }
     }
 
-    public function value(Model $model): mixed
+    /**
+     * Rewrite this function if you need to transform final value for column
+     */
+    public function transform(Model $model): void
     {
-        return $model->{$this->name};
+        //
+    }
+
+    public function setColumnParamToModel(Model $model, string $paramName, mixed $paramValue): void
+    {
+        $model->_params = array_merge_recursive(
+            $model->_params ?? [],
+            [
+                Str::afterLast(get_class($this), '\\') => [
+                    $this->name => [
+                        $paramName => $paramValue,
+                    ]
+                ]
+            ]
+        );
     }
 }

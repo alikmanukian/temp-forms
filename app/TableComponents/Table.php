@@ -2,6 +2,7 @@
 
 namespace App\TableComponents;
 
+use BadMethodCallException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -32,6 +33,8 @@ abstract class Table implements JsonSerializable
     protected static bool $defaultStickyHeader = false;
     protected static bool $defaultStickyPagination = false;
 
+    protected array $columns = [];
+
     /**
      * @return list<Column>
      */
@@ -51,6 +54,7 @@ abstract class Table implements JsonSerializable
     public static function make(): static
     {
         $table = (new static());
+        $table->columns = $table->columns();
 
         /*foreach ($table->columns() as $column) {
             $table->builder->addSelect($column->getName());
@@ -112,7 +116,7 @@ abstract class Table implements JsonSerializable
                 'lastPage' => $paginator->lastPage(),
                 'perPageOptions' => $this->getPerPageOptions(),
             ],
-            'headers' => collect($this->columns())->map(fn (Column $column) => $column->headerInfo())->toArray()
+            'headers' => collect($this->columns)->map(fn (Column $column) => $column->headerInfo())->toArray()
         ];
 
         $data['hash'] = $this->hash($data);
@@ -140,21 +144,29 @@ abstract class Table implements JsonSerializable
                 pageName: $this->pageName
             )
             ->through(function ($model) {
-                return $this->useMappings($model);
+                $this->applyMappings($model); // Apply mappings for each row
+                $this->transformValues($model); // Transform values for each row
+
+                return $model;
             });
     }
 
-    private function useMappings(Model $model): Model
+    private function applyMappings(Model $model): void
     {
-        collect($this->columns())
-            ->each(function (Column $column) use ($model) {
-                $column->useMapping($model);
-
-                $model->{$column->getName()} = $column->value($model);
-            });
-
-        return $model;
+        collect($this->columns)->each(fn (Column $column) => $column->useMappings($model));
     }
+
+    private function transformValues(Model $model): void
+    {
+        collect($this->columns)->each(function (Column $column) use ($model) {
+            $column->transform($model);
+
+            if ($column->appends) {
+                $model->append($column->appends);
+            }
+        });
+    }
+
     /**
      * @return int[]|null
      */

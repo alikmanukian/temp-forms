@@ -14,6 +14,28 @@ class BadgeColumn extends Column
     public mixed $iconMapping = null;
     protected string $icon = '';
 
+    public function transform(Model $model): void
+    {
+        $this->setVariant($model);
+        $this->setIcon($model);
+    }
+
+    /**
+     * Usage:
+     * BadgeColumn::make()->variant(fn(string $value, Model $model) => Variant::Green)
+     *
+     * If the column only has a limited set of values,
+     * you can use an array to map the values.
+     * The array should have the original value as the key
+     * and the mapped value as the value.
+     *
+     * BadgeColumn::make()->variant([
+     *      'is_approved' => Variant::Green,
+     *      'is_pending' => Variant::Yellow,
+     *      'is_rejected' => Variant::Red,
+     * ])
+     *
+     */
     public function variant(callable|array $callback): static
     {
         $this->variantMapping = $callback;
@@ -21,43 +43,22 @@ class BadgeColumn extends Column
         return $this;
     }
 
-    public function useVariants(Model $model): void
-    {
-        $value = $model->{$this->name};
-
-        if (is_callable($this->variantMapping)) {
-            $model->_params = array_merge_recursive(
-                $model->_params ?? [],
-                [
-                    'BadgeColumn' => [
-                        $this->name => [
-                            'variant' => call_user_func($this->variantMapping, $value, $model),
-                        ]
-                    ]
-                ]
-            );
-        }
-
-        if (is_array($this->variantMapping) && array_key_exists($value, $this->variantMapping)) {
-            $value = $this->variantMapping[$value];
-            $model->_params = array_merge_recursive(
-                $model->_params ?? [],
-                [
-                    'BadgeColumn' => [
-                        $this->name => [
-                            'variant' => $value instanceof Variant ? $value->value : $value,
-                        ]
-                    ]
-                ]
-            );
-        }
-
-        // if the column is mutated, we need to append it to the model
-        if (in_array($this->name, $model->getMutatedAttributes(), true)) {
-            $this->appends[] = '_params';
-        }
-    }
-
+    /**
+     * Usage:
+     * BadgeColumn::make()->icon(fn(string $value, Model $model) => 'CloseIcon')
+     *
+     * If the column only has a limited set of values,
+     * you can use an array to map the values.
+     * The array should have the original value as the key
+     * and the mapped value as the value.
+     *
+     * BadgeColumn::make()->icon([
+     *      'is_approved' => 'CheckIcon',
+     *      'is_pending' => 'ClockIcon',
+     *      'is_rejected' => 'ExclamationTriangleIcon',
+     * ])
+     *
+     */
     public function icon(callable|array $callback): static
     {
         $this->iconMapping = $callback;
@@ -65,34 +66,17 @@ class BadgeColumn extends Column
         return $this;
     }
 
-    public function useIcon(Model $model): void
+    private function setVariant(Model $model): void
     {
         $value = $model->{$this->name};
 
-        if (is_callable($this->iconMapping)) {
-            $model->_params = array_merge_recursive(
-                $model->_params ?? [],
-                [
-                    'BadgeColumn' => [
-                        $this->name => [
-                            'icon' => call_user_func($this->iconMapping, $value, $model),
-                        ]
-                    ]
-                ]
-            );
+        if (is_callable($this->variantMapping)) {
+            $this->setColumnParamToModel($model, 'variant', call_user_func($this->variantMapping, $value, $model));
         }
 
-        if (is_array($this->iconMapping) && array_key_exists($value, $this->iconMapping)) {
-            $model->_params = array_merge_recursive(
-                $model->_params ?? [],
-                [
-                    'BadgeColumn' => [
-                        $this->name => [
-                            'icon' => $this->iconMapping[$value],
-                        ]
-                    ]
-                ]
-            );
+        if (is_array($this->variantMapping) && array_key_exists($value, $this->variantMapping)) {
+            $value = $this->variantMapping[$value];
+            $this->setColumnParamToModel($model, 'variant', $value instanceof Variant ? $value->value : $value);
         }
 
         // if the column is mutated, we need to append it to the model
@@ -101,15 +85,21 @@ class BadgeColumn extends Column
         }
     }
 
-    public function useMapping(Model $model): void
+    private function setIcon(Model $model): void
     {
-        parent::useMapping($model);
+        $value = $model->{$this->name};
 
-        $this->useVariants($model);
-        $this->useIcon($model);
+        if (is_callable($this->iconMapping)) {
+            $this->setColumnParamToModel($model, 'icon', call_user_func($this->iconMapping, $value, $model));
+        }
 
-        if ($this->appends) {
-            $model->append(array_unique($this->appends));
+        if (is_array($this->iconMapping) && array_key_exists($value, $this->iconMapping)) {
+            $this->setColumnParamToModel($model, 'icon', $this->iconMapping[$value]);
+        }
+
+        // if the column is mutated, we need to append it to the model
+        if (in_array($this->name, $model->getMutatedAttributes(), true)) {
+            $this->appends[] = '_params';
         }
     }
 }

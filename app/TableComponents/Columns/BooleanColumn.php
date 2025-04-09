@@ -64,7 +64,18 @@ class BooleanColumn extends Column
         static::$defaultFalseIcon = $icon;
     }
 
-    public function useIcon(Model $model): void
+    public function transform(Model $model): void
+    {
+        $this->setIcon($model);
+
+        // rewrite model value for the boolean column
+        $model->{$this->name} = match((bool) $model->{$this->name}) {
+            true => $this->trueLabel ?? static::$defaultTrueLabel,
+            false => $this->falseLabel ?? static::$defaultFalseLabel,
+        };
+    }
+
+    private function setIcon(Model $model): void
     {
         if (!$this->trueIcon && !static::$defaultTrueIcon && !$this->falseIcon && !static::$defaultFalseIcon) {
             return;
@@ -78,40 +89,12 @@ class BooleanColumn extends Column
         $value = $model->{$this->name};
 
         if (array_key_exists($value, $this->iconMapping)) {
-            $model->_params = array_merge_recursive(
-                $model->_params ?? [],
-                [
-                    'BooleanColumn' => [
-                        $this->name => [
-                            'icon' => $this->iconMapping[$value],
-                        ]
-                    ]
-                ]
-            );
+            $this->setColumnParamToModel($model, 'icon', $this->iconMapping[$value]);
         }
 
         // if the column is mutated, we need to append it to the model
         if (in_array($this->name, $model->getMutatedAttributes(), true)) {
             $this->appends[] = '_params';
         }
-    }
-
-    public function useMapping(Model $model): void
-    {
-        parent::useMapping($model);
-
-        $this->useIcon($model);
-
-        if ($this->appends) {
-            $model->append(array_unique($this->appends));
-        }
-    }
-
-    public function value(Model $model): string
-    {
-        return match((bool) $model->{$this->name}) {
-            true => $this->trueLabel ?? static::$defaultTrueLabel,
-            false => $this->falseLabel ?? static::$defaultFalseLabel,
-        };
     }
 }
