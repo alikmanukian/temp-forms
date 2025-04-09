@@ -37,6 +37,7 @@ class Users extends Table
                 ->width('75px'),
             Columns\TextColumn::make('name', 'Full Name')
                 ->stickable()
+                ->linkTo('https://google.com')
                 ->image('avatar', function (Model $model, Image $image) {
                     return $image
                         ->alt($model->name)

@@ -2,13 +2,15 @@
 import { cn } from '@/lib/utils';
 import { computed } from 'vue';
 import Icon from '@/components/Icon.vue';
-import { type IconOrImage } from '../columns';
+import type { Image as TypeImage, Icon as TypeIcon } from '../columns';
 
-
+interface TypeVariant {
+    ['variant']: string
+}
 
 interface Props {
     name: string
-    params: Record<string, Record<string, Record<'icon'|'variant', IconOrImage|string>>>
+    params: Record<'BadgeColumn', Record<string, TypeImage|TypeIcon|TypeVariant>>
     class: string
 }
 
@@ -30,12 +32,14 @@ const badgeVariants = {
 type Variant = keyof typeof badgeVariants;
 
 const variant = computed(() => {
-    const key = (props.params.BadgeColumn?.[props.name]?.variant ?? 'default') as string;
+    const variantProps = props.params.BadgeColumn?.[props.name] as TypeVariant|null;
+    const key = (variantProps?.variant ?? 'default') as string;
     return  badgeVariants[key as Variant] ?? badgeVariants.default;
 });
 
 const icon = computed(() => {
-    return  props.params.BadgeColumn?.[props.name]?.icon as IconOrImage ?? null;
+    const iconProps = props.params.BadgeColumn?.[props.name] as TypeIcon|null;
+    return  iconProps?.icon ?? null;
 });
 
 </script>
@@ -43,11 +47,9 @@ const icon = computed(() => {
 <template>
     <span :class="cn(defaultClasses, variant)">
         <Icon v-if="icon && icon.name && icon.position === 'start'"
-              :name="icon.name as string"
               v-bind="icon" />
         <span :class="props.class"><slot /></span>
         <Icon v-if="icon && icon.name && icon.position === 'end'"
-              :name="icon.name as string"
               v-bind="icon" />
     </span>
 </template>

@@ -28,6 +28,7 @@ class Column
 {
     public mixed $mapping = null;
     public array $appends = []; // for mutated attributes
+    protected array $linkTo = [];
 
     private function __construct(
         protected string $name,
@@ -232,6 +233,20 @@ class Column
             /** @var HasImage $this */
             $this->setImage($model);
         }
+
+        if ($this->linkTo) {
+            $this->setColumnParamToModel($model, 'link', $this->linkTo);
+        }
+    }
+
+    public function linkTo(string $url, array $params = []): static
+    {
+        $this->linkTo = [
+            'url' => $url,
+            'params' => $params,
+        ];
+
+        return $this;
     }
 
     protected function setColumnParamToModel(Model $model, string $paramName, mixed $paramValue): void
