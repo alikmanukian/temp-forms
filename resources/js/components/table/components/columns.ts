@@ -9,20 +9,20 @@ interface HtmlObject {
     title?: string
 }
 
-export interface Image {
+export interface Image extends HtmlObject {
     url: string
     alt?: string
     position?: string
     hiddenImagesCount?: number
 }
 
-export interface Icon {
+export interface Icon extends HtmlObject {
     name: string
     alt?: string
     position?: string
 }
 
-export interface Link {
+export interface Link extends HtmlObject {
     href: string
     target?: string
 }

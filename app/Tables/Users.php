@@ -36,14 +36,21 @@ class Users extends Table
                 ->sortable()
                 ->stickable()
                 ->width('75px'),
+            
             Columns\TextColumn::make('name', 'Full Name')
                 ->stickable()
-                ->linkTo('https://google.com')
+                ->linkTo(function (Model $model) {
+                    return $model->id === 1 ? [
+                        'href' => 'https://google.com',
+                        'target' => '_blank',
+                    ] : route('dashboard');
+                })
                 ->image('avatar', function (Model $model, Image $image) {
                     return $image
                         ->alt($model->name)
                         ->class('rounded-md');
                 }),
+
             Columns\BadgeColumn::make('status')
                 ->variant([
                     'active' => Variant::Green,
@@ -53,15 +60,19 @@ class Users extends Table
                     'active' => 'airplay',
                     'inactive' => 'angry'
                 ]),
+
             Columns\ImageColumn::make('avatar')->image(function (Model $model, Image $image) {
                 return $image->url($model->friends->pluck('avatar'))->limit(2);
             }),
+
             Columns\BooleanColumn::make('is_verified', 'IsVerified')
                 ->mapAs(function (mixed $value, Model $model) {
                     return (bool) $model->email_verified_at;
                 })
                 ->trueIcon('check'),
+
             Columns\TextColumn::make('bio')->truncate(2),
+
             Columns\TextColumn::make('email')->notSortable(),
 
 //            Columns\NumericColumn::make('visit_count', sortable: true),

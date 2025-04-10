@@ -27,7 +27,7 @@ class Column
 {
     public mixed $mapping = null;
     public array $appends = []; // for mutated attributes
-    protected array $linkTo = [];
+    protected mixed $linkTo = null;
 
     private function __construct(
         protected string $name,
@@ -234,18 +234,32 @@ class Column
         }
 
         if ($this->linkTo) {
-            $this->setColumnParamToModel($model, 'link', $this->linkTo);
+            $link = call_user_func($this->linkTo, $model);
+
+            if (is_string($link)) {
+                $link = ['href' => $link];
+            }
+
+            $this->setColumnParamToModel($model, 'link', $link);
         }
     }
 
-    public function linkTo(string $url, array $params = []): static
+    public function linkTo(string|callable $url, array $params = []): static
     {
-        $this->linkTo = [
-            'url' => $url,
-            'params' => $params,
-        ];
+        if (is_string($url)) {
+            $this->linkTo = static fn () => array_merge(['href' => $url], $params);
+        }
+
+        if (is_callable($url)) {
+            $this->linkTo = $url;
+        }
 
         return $this;
+    }
+
+    public function setLink()
+    {
+
     }
 
     protected function setColumnParamToModel(Model $model, string $paramName, mixed $paramValue): void
