@@ -19,7 +19,7 @@ class Image
 
     protected Position $position = Position::Start;
 
-    protected string|array|null $url = null;
+    protected string|array|null|Collection $url = null;
 
     public function __construct()
     {
@@ -151,6 +151,25 @@ class Image
     public function temporarySignedRoute(string $route, Carbon $time, array ...$parameters): static
     {
         $this->url = URL::temporarySignedRoute($route, $time, ...$parameters);
+        return $this;
+    }
+
+    public function limit(int $count): static
+    {
+        if ($this->url instanceof Collection) {
+            if ($count === 1) {
+                $this->url = $this->url->first();
+            } else {
+                $this->url = $this->url->take($count);
+            }
+        } elseif (is_array($this->url)) {
+            if ($count === 1) {
+                $this->url = Arr::first($this->url);
+            } else {
+                $this->url = Arr::take($this->url, $count);
+            }
+        }
+
         return $this;
     }
 
