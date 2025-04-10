@@ -9,7 +9,6 @@ use BadMethodCallException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
-use JsonSerializable;
 use ReflectionProperty;
 
 /**
@@ -251,15 +250,15 @@ class Column
 
     protected function setColumnParamToModel(Model $model, string $paramName, mixed $paramValue): void
     {
-        $key = Str::afterLast(get_class($this), '\\') . '.' . $this->name . '.' . $paramName;
-        if (is_null($model->_params)) {
-            $model->_params = [];
+        $key = $this->name . '.' . $paramName;
+        if (is_null($model->_customColumnsParams)) {
+            $model->_customColumnsParams = [];
         }
 
-        $params = $model->_params;
+        $params = $model->_customColumnsParams;
 
         Arr::set($params, $key, $paramValue);
 
-        $model->_params = $params;
+        $model->_customColumnsParams = $params;
     }
 }

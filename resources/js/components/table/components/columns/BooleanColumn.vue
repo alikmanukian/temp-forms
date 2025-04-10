@@ -1,28 +1,28 @@
 <script lang="ts" setup>
-import Icon from '@/components/Icon.vue';
+import Icon from '../Icon.vue';
+import type { Icon as TypeIcon, IconRecord } from '../columns';
 import { computed } from 'vue';
-import type { Icon as TypeIcon } from '../columns';
 
 interface Props {
     name: string
-    params: Record<'BooleanColumn', Record<string, TypeIcon>>
+    params: Record<string, IconRecord>
     class: string
 }
 
 const props = defineProps<Props>()
 
-const icon = computed(() => {
-    const iconProps = props.params.BooleanColumn?.[props.name] as TypeIcon|null;
-    return  iconProps?.icon ?? null;
+const position = computed(() => {
+    const iconProps = props.params?.[props.name]?.icon as TypeIcon|null;
+    return  iconProps?.position ?? null;
 });
+
 </script>
 
 <template>
-    <div class="flex space-x-1 items-center justify-center">
-        <Icon v-if="icon && icon.name && icon.position === 'start'"
-              v-bind="icon" />
+    <div class="flex space-x-1 items-center justify-center" :class="{
+        'flex-row-reverse': position === 'end'
+    }">
+        <Icon :icon="params?.[name]?.icon as TypeIcon" />
         <span :class="props.class"><slot /></span>
-        <Icon v-if="icon && icon.name && icon.position === 'end'"
-              v-bind="icon" />
     </div>
 </template>

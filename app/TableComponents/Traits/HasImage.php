@@ -21,7 +21,9 @@ trait HasImage
      */
     public function image(string|callable $attribute, ?callable $callback = null): static
     {
-        $this->image = new Image();
+        if (! $this->image instanceof Image) {
+            $this->image = new Image();
+        }
 
         if (is_string($attribute)) {
             $this->imageAttribute = $attribute;
@@ -40,13 +42,19 @@ trait HasImage
     {
         $value = [];
 
-        if ($this->imageAttribute) {
-            $value['src'] = $model->{$this->imageAttribute};
-        }
-
         if ($this->imageCallback && is_callable($this->imageCallback)) {
             call_user_func($this->imageCallback, $model, $this->image);
-            $value = array_merge($value, $this->image->toArray());
+            $valueFromCallback = array_merge($value, $this->image->toArray());
+
+            if ($this->imageAttribute && isset($valueFromCallback['url']) && is_array($valueFromCallback['url'])) {
+                $this->imageAttribute = null; // use multiple images
+            }
+
+            $value = $valueFromCallback;
+        }
+
+        if ($this->imageAttribute) {
+            $value['url'] = $model->{$this->imageAttribute};
         }
 
         if ($value) {

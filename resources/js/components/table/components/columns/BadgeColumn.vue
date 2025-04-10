@@ -1,16 +1,16 @@
 <script lang="ts" setup>
 import { cn } from '@/lib/utils';
 import { computed } from 'vue';
-import Icon from '@/components/Icon.vue';
-import type { Image as TypeImage, Icon as TypeIcon } from '../columns';
+import type { Icon as TypeIcon, IconRecord } from '../columns';
+import Icon from '../Icon.vue';
 
-interface TypeVariant {
+interface VariantRecord {
     ['variant']: string
 }
 
 interface Props {
     name: string
-    params: Record<'BadgeColumn', Record<string, TypeImage|TypeIcon|TypeVariant>>
+    params: Record<string, IconRecord|VariantRecord>
     class: string
 }
 
@@ -32,24 +32,23 @@ const badgeVariants = {
 type Variant = keyof typeof badgeVariants;
 
 const variant = computed(() => {
-    const variantProps = props.params.BadgeColumn?.[props.name] as TypeVariant|null;
+    const variantProps = props.params?.[props.name] as VariantRecord|null;
     const key = (variantProps?.variant ?? 'default') as string;
     return  badgeVariants[key as Variant] ?? badgeVariants.default;
 });
 
-const icon = computed(() => {
-    const iconProps = props.params.BadgeColumn?.[props.name] as TypeIcon|null;
-    return  iconProps?.icon ?? null;
+const position = computed(() => {
+    const iconProps = props.params?.[props.name]?.icon as TypeIcon|null;
+    return  iconProps?.position ?? null;
 });
 
 </script>
 
 <template>
-    <span :class="cn(defaultClasses, variant)">
-        <Icon v-if="icon && icon.name && icon.position === 'start'"
-              v-bind="icon" />
+    <span :class="cn(defaultClasses, variant, {
+        'flex-row-reverse': position === 'end'
+    })">
+        <Icon :icon="params?.[name]?.icon as TypeIcon" />
         <span :class="props.class"><slot /></span>
-        <Icon v-if="icon && icon.name && icon.position === 'end'"
-              v-bind="icon" />
     </span>
 </template>

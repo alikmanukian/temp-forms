@@ -12,6 +12,7 @@ use App\TableComponents\Table;
 use App\TableComponents\Columns;
 use App\TableComponents\Filters;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Arr;
 
 class Users extends Table
 {
@@ -41,7 +42,7 @@ class Users extends Table
                 ->image('avatar', function (Model $model, Image $image) {
                     return $image
                         ->alt($model->name)
-                        ->class('rounded-lg');
+                        ->class('rounded-md');
                 }),
             Columns\BadgeColumn::make('status')
                 ->variant([
@@ -52,6 +53,9 @@ class Users extends Table
                     'active' => 'airplay',
                     'inactive' => 'angry'
                 ]),
+            Columns\ImageColumn::make('avatar')->image(function (Model $model, Image $image) {
+                return $image->url($model->friends->pluck('avatar'));
+            }),
             Columns\BooleanColumn::make('is_verified', 'IsVerified')
                 ->mapAs(function (mixed $value, Model $model) {
                     return (bool) $model->email_verified_at;

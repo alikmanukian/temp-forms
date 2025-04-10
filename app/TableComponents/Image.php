@@ -4,7 +4,9 @@ namespace App\TableComponents;
 
 use App\TableComponents\Enums\Position;
 use App\TableComponents\Enums\ImageSize;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
@@ -17,7 +19,7 @@ class Image
 
     protected Position $position = Position::Start;
 
-    protected ?string $url = null;
+    protected string|array|null $url = null;
 
     public function __construct()
     {
@@ -116,8 +118,12 @@ class Image
         return $this;
     }
 
-    public function url(string $url): static
+    public function url(string|array|Collection|null $url): static
     {
+        if ($url instanceof Collection) {
+            $url = $url->all();
+        }
+
         $this->url = $url;
         return $this;
     }
@@ -171,8 +177,8 @@ class Image
             $data['title'] = $this->title;
         }
 
-        if ($this->url) {
-            $data['src'] = $this->url;
+        if (!is_null($this->url)) {
+            $data['url'] = $this->url;
         }
 
         $data['position'] = $this->position->value;

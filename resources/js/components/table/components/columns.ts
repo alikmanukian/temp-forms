@@ -1,35 +1,39 @@
 export { default as TextColumn } from './columns/TextColumn.vue'
 export { default as BadgeColumn } from './columns/BadgeColumn.vue'
 export { default as BooleanColumn } from './columns/BooleanColumn.vue'
+export { default as ImageColumn } from './columns/ImageColumn.vue'
 
-export interface Icon {
-    ['icon']: {
-        name: string
-        class?: string
-        style?: string
-        alt?: string
-        title?: string
-        position?: string
-    }
+interface HtmlObject {
+    class?: string
+    style?: string
+    title?: string
 }
 
 export interface Image {
-    ['image']: {
-        src: string
-        class?: string
-        style?: string
-        alt?: string
-        title?: string
-        position?: string
-    }
+    url: string
+    alt?: string
+    position?: string
+}
+
+export interface Icon {
+    name: string
+    alt?: string
+    position?: string
 }
 
 export interface Link {
-    ['link']: {
-        href: string
-        class?: string
-        style?: string
-        target?: string
-        title?: string
-    }
+    href: string
+    target?: string
+}
+
+export interface IconRecord extends HtmlObject {
+    ['icon']: Icon
+}
+
+export interface ImageRecord extends HtmlObject {
+    ['image']: Image
+}
+
+export interface LinkRecord extends HtmlObject {
+    ['link']: Link
 }

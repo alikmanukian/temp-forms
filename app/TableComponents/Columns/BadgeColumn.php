@@ -59,7 +59,7 @@ class BadgeColumn extends Column
 
         // if the column is mutated, we need to append it to the model
         if (in_array($this->name, $model->getMutatedAttributes(), true)) {
-            $this->appends[] = '_params';
+            $this->appends[] = '_customColumnsParams';
         }
     }
 }

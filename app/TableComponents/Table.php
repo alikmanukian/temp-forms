@@ -63,6 +63,13 @@ abstract class Table implements JsonSerializable
         return $table;
     }
 
+    public function withQuery(Builder $builder): static
+    {
+        $this->builder = $builder;
+
+        return $this;
+    }
+
     public static function dontEncryptCookies(): array
     {
         $appClasses = glob(app_path('**/*.php'));

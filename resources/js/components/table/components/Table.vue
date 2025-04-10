@@ -157,7 +157,7 @@ type ColumnTypes = keyof typeof Columns
                             <div class="flex items-center" :class="column.options.alignment">
                                 <div :class="cellClass(column)">
                                     <component :is="Columns[column.type as string as ColumnTypes]"
-                                               :params="row._params"
+                                               :params="row._customColumnsParams"
                                                :name="column.name"
                                                :class="cellClass(column)"
                                     >{{ row[column.name] }}</component>

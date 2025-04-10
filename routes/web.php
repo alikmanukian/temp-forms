@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use App\Tables\Employees;
 use App\Tables\Users;
 use Illuminate\Support\Facades\Route;
@@ -20,7 +21,8 @@ Route::inertiaTable();
 
 Route::get('tables', function () {
     return Inertia::render('Users', [
-        'users' => fn() => Users::make(),
+        'users' => fn() => Users::make()
+            ->withQuery(User::query()->with('friends')),
 //        'employees' => fn() => Employees::make(),
     ]);
 })->middleware(['auth']);
