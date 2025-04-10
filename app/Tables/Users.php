@@ -54,7 +54,7 @@ class Users extends Table
                     'inactive' => 'angry'
                 ]),
             Columns\ImageColumn::make('avatar')->image(function (Model $model, Image $image) {
-                return $image->url($model->friends->pluck('avatar'));
+                return $image->url($model->friends->pluck('avatar'))->limit(2);
             }),
             Columns\BooleanColumn::make('is_verified', 'IsVerified')
                 ->mapAs(function (mixed $value, Model $model) {

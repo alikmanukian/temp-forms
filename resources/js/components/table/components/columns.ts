@@ -13,6 +13,7 @@ export interface Image {
     url: string
     alt?: string
     position?: string
+    hiddenImagesCount?: number
 }
 
 export interface Icon {

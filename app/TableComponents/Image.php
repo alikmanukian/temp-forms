@@ -18,6 +18,7 @@ class Image
     protected string $title = '';
 
     protected Position $position = Position::Start;
+    protected $hiddenImagesCount = 0;
 
     protected string|array|null|Collection $url = null;
 
@@ -160,12 +161,14 @@ class Image
             if ($count === 1) {
                 $this->url = $this->url->first();
             } else {
+                $this->hiddenImagesCount = max($this->url->count() - $count, 0);
                 $this->url = $this->url->take($count);
             }
         } elseif (is_array($this->url)) {
             if ($count === 1) {
                 $this->url = Arr::first($this->url);
             } else {
+                $this->hiddenImagesCount = max(count($this->url) - $count, 0);
                 $this->url = Arr::take($this->url, $count);
             }
         }
@@ -201,6 +204,10 @@ class Image
         }
 
         $data['position'] = $this->position->value;
+
+        if ($this->hiddenImagesCount > 0) {
+            $data['hiddenImagesCount'] = $this->hiddenImagesCount;
+        }
 
         return $data;
     }

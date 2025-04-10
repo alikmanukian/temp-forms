@@ -27,16 +27,29 @@ const images = computed(() => {
           })
         : [imageObject?.image];
 });
+
+const hiddenImagesCount = computed(() => {
+    const imageObject = props.params?.[props.name] as ImageRecord | null;
+    if (! imageObject) {
+        return null;
+    }
+
+    return imageObject?.image?.hiddenImagesCount ?? null;
+})
 </script>
 
 <template>
     <Image v-if="images.length === 1" :image="images[0] as Image" />
-    <div v-else class="flex -space-x-[0.6rem]">
-        <Image v-for="(image, index) in images"
-               class="size-8 ring-background rounded-full ring-2"
-               :image="image as Image"
-               :key="index"
-        />
+    <div v-else class="flex items-center space-x-2">
+        <div class="flex -space-x-[0.6rem]">
+            <Image v-for="(image, index) in images"
+                   class="size-8 ring-background rounded-full ring-2"
+                   :image="image as Image"
+                   :key="index"
+            />
+        </div>
+
+        <span v-if="hiddenImagesCount" class="text-sm text-muted-foreground font-bold">+{{ hiddenImagesCount }}</span>
     </div>
 
 </template>
