@@ -38,7 +38,7 @@ const variant = computed(() => {
 });
 
 const position = computed(() => {
-    const iconProps = props.params?.[props.name]?.icon as TypeIcon|null;
+    const iconProps = (props.params?.[props.name] as IconRecord)?.icon as TypeIcon|null;
     return  iconProps?.position ?? null;
 });
 
@@ -48,7 +48,7 @@ const position = computed(() => {
     <span :class="cn(defaultClasses, variant, {
         'flex-row-reverse': position === 'end'
     })">
-        <Icon :icon="params?.[name]?.icon as TypeIcon" />
+        <Icon :icon="(params?.[name] as IconRecord)?.icon as TypeIcon" />
         <span :class="props.class"><slot /></span>
     </span>
 </template>

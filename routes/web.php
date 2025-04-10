@@ -20,6 +20,7 @@ require __DIR__.'/auth.php';
 Route::inertiaTable();
 
 Route::get('tables', function () {
+//    dd(Users::make()->resolve()['data'][0]->toArray());
     return Inertia::render('Users', [
         'users' => fn() => Users::make()
             ->withQuery(User::query()->with('friends')),

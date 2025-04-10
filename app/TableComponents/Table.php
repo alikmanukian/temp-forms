@@ -4,6 +4,7 @@ namespace App\TableComponents;
 
 use BadMethodCallException;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cookie;
@@ -151,25 +152,38 @@ abstract class Table implements JsonSerializable
                 pageName: $this->pageName
             )
             ->through(function ($model) {
-                $this->applyMappings($model); // Apply mappings for each row
-                $this->transformValues($model); // Transform values for each row
+                $outputModel = $this->createOutputModel();
+                $this->applyMappings($model, $outputModel); // Apply mappings for each row
+                $this->transformValues($model, $outputModel); // Transform values for each row
 
-                return $model;
+                return $outputModel;
             });
     }
 
-    private function applyMappings(Model $model): void
+    private function createOutputModel(): Model
     {
-        collect($this->columns)->each(fn (Column $column) => $column->useMappings($model));
+        return new class extends Model {
+            public $timestamps = false;
+
+            /*public function getCreatedAtAttribute($value)
+            {
+                return \Carbon\Carbon::parse($value)->format('d/m/Y');
+            }*/
+        };
     }
 
-    private function transformValues(Model $model): void
+    private function applyMappings(Model $inputModel, Model $outputModel): void
     {
-        collect($this->columns)->each(function (Column $column) use ($model) {
-            $column->transform($model);
+        collect($this->columns)->each(fn (Column $column) => $column->useMappings($inputModel, $outputModel));
+    }
+
+    private function transformValues(Model $inputModel, Model $outputModel): void
+    {
+        collect($this->columns)->each(function (Column $column) use ($inputModel, $outputModel) {
+            $column->transform($inputModel, $outputModel);
 
             if ($column->appends) {
-                $model->append($column->appends);
+                $outputModel->append($column->appends);
             }
         });
     }

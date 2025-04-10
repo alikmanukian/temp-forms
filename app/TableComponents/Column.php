@@ -5,6 +5,7 @@ namespace App\TableComponents;
 use App\TableComponents\Enums\ColumnAlignment;
 use App\TableComponents\Traits\HasIcon;
 use App\TableComponents\Traits\HasImage;
+use App\TableComponents\Traits\HasLink;
 use BadMethodCallException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
@@ -27,7 +28,6 @@ class Column
 {
     public mixed $mapping = null;
     public array $appends = []; // for mutated attributes
-    protected mixed $linkTo = null;
 
     private function __construct(
         protected string $name,
@@ -180,8 +180,8 @@ class Column
 
     /**
      * Usage:
-     * TextColumn::make()->mapAs(fn(string $value, Model $model) => '#'.$value)
-     * TextColumn::make()->mapAs(fn(string $value, Model $model) => '#'.$model->isAdmin() ? $value : 'N/A')
+     * TextColumn::make()->mapAs(fn(Model $model, string $value) => '#'.$value)
+     * TextColumn::make()->mapAs(fn(Model $model, string $value) => '#'.$model->isAdmin() ? $value : 'N/A')
      *
      * If the column only has a limited set of values,
      * you can use an array to map the values.
@@ -202,18 +202,19 @@ class Column
         return $this;
     }
 
-    public function useMappings(Model $model): void
+    public function useMappings(Model $inputModel, Model $outputModel): void
     {
-        $value = $model->{$this->name};
+        $value = $inputModel->getRawOriginal($this->name);
+        $outputModel->{$this->name} = $value;
 
         if (is_callable($this->mapping)) {
-            $model->{$this->name} = call_user_func($this->mapping, $value, $model);
+            $outputModel->{$this->name} = call_user_func($this->mapping, $inputModel, $value);
         } else if (is_array($this->mapping) && array_key_exists($value, $this->mapping)) {
-            $model->{$this->name} = $this->mapping[$value];
+            $outputModel->{$this->name} = $this->mapping[$value];
         }
 
         // if the column is mutated, we need to append it to the model
-        if (in_array($this->name, $model->getMutatedAttributes(), true)) {
+        if (in_array($this->name, $inputModel->getMutatedAttributes(), true)) {
             $this->appends[] = $this->name;
         }
     }
@@ -221,45 +222,26 @@ class Column
     /**
      * Rewrite this function if you need to transform final value for column
      */
-    public function transform(Model $model): void
+    public function transform(Model $inputModel, Model $outputModel): void
     {
         if (in_array(HasIcon::class, class_uses(static::class), true)) {
             /** @var HasIcon $this */
-            $this->setIcon($model);
+            $this->setIcon($inputModel, $outputModel);
         }
 
         if (in_array(HasImage::class, class_uses(static::class), true)) {
             /** @var HasImage $this */
-            $this->setImage($model);
+            $this->setImage($inputModel, $outputModel);
         }
 
-        if ($this->linkTo) {
-            $link = call_user_func($this->linkTo, $model);
-
-            if (is_string($link)) {
-                $link = ['href' => $link];
-            }
-
-            $this->setColumnParamToModel($model, 'link', $link);
-        }
-    }
-
-    public function linkTo(string|callable $url, array $params = []): static
-    {
-        if (is_string($url)) {
-            $this->linkTo = static fn () => array_merge(['href' => $url], $params);
+        if (in_array(HasLink::class, class_uses(static::class), true)) {
+            /** @var HasLink $this */
+            $this->setLink($inputModel, $outputModel);
         }
 
-        if (is_callable($url)) {
-            $this->linkTo = $url;
-        }
-
-        return $this;
-    }
-
-    public function setLink()
-    {
-
+        /*if (! in_array('_customColumnsParams', $this->appends, true)) {
+            $this->appends[] = '_customColumnsParams';
+        }*/
     }
 
     protected function setColumnParamToModel(Model $model, string $paramName, mixed $paramValue): void

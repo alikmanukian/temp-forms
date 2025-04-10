@@ -36,7 +36,7 @@ class Users extends Table
                 ->sortable()
                 ->stickable()
                 ->width('75px'),
-            
+
             Columns\TextColumn::make('name', 'Full Name')
                 ->stickable()
                 ->linkTo(function (Model $model) {
@@ -61,12 +61,12 @@ class Users extends Table
                     'inactive' => 'angry'
                 ]),
 
-            Columns\ImageColumn::make('avatar')->image(function (Model $model, Image $image) {
+            /*Columns\ImageColumn::make('avatar')->image(function (Model $model, Image $image) {
                 return $image->url($model->friends->pluck('avatar'))->limit(2);
-            }),
+            }),*/
 
             Columns\BooleanColumn::make('is_verified', 'IsVerified')
-                ->mapAs(function (mixed $value, Model $model) {
+                ->mapAs(function (Model $model, mixed $value) {
                     return (bool) $model->email_verified_at;
                 })
                 ->trueIcon('check'),
@@ -74,6 +74,9 @@ class Users extends Table
             Columns\TextColumn::make('bio')->truncate(2),
 
             Columns\TextColumn::make('email')->notSortable(),
+
+            Columns\DateColumn::make('created_at')
+                ->format('Y, M d'),
 
 //            Columns\NumericColumn::make('visit_count', sortable: true),
 //            Columns\DateColumn::make('email_verified_at'),

@@ -2,6 +2,7 @@
 
 namespace App\TableComponents\Traits;
 
+use App\TableComponents\Columns\BooleanColumn;
 use App\TableComponents\Icon;
 use Illuminate\Database\Eloquent\Model;
 
@@ -42,22 +43,22 @@ trait HasIcon
     /**
      * @uses Column::setColumnParamToModel()
      */
-    public function setIcon(Model $model): void
+    protected function setIcon(Model $inputModel, Model $outputModel): void
     {
         $value = [];
 
         if ($this->iconCallback && is_callable($this->iconCallback)) {
-            call_user_func($this->iconCallback, $model, $this->icon);
+            call_user_func($this->iconCallback, $inputModel, $this->icon);
             $value = array_merge($value, $this->icon->toArray());
         }
 
-        if (is_array($this->iconCallback) && array_key_exists($model->{$this->name}, $this->iconCallback)) {
-            $iconValue = $this->iconCallback[$model->{$this->name}] ?? '';
+        if (is_array($this->iconCallback) && array_key_exists($inputModel->{$this->name}, $this->iconCallback)) {
+            $iconValue = $this->iconCallback[$inputModel->{$this->name}] ?? '';
             $value = array_merge($value, $this->icon->icon($iconValue)->toArray());
         }
 
         if ($value) {
-            $this->setColumnParamToModel($model, 'icon', $value);
+            $this->setColumnParamToModel($outputModel, 'icon', $value);
         }
     }
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ImageRecord } from '../columns';
+import type { ImageRecord, Image as TypeImage } from '../columns';
 import Image from '../Image.vue';
 import { computed } from 'vue';
 
@@ -11,7 +11,7 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const images = computed(() => {
+const images = computed<TypeImage[]>(() => {
     const imageObject = props.params?.[props.name] as ImageRecord | null;
 
     if (! imageObject) {
@@ -28,7 +28,7 @@ const images = computed(() => {
         : [imageObject?.image];
 });
 
-const hiddenImagesCount = computed(() => {
+const hiddenImagesCount = computed<number|null>(() => {
     const imageObject = props.params?.[props.name] as ImageRecord | null;
     if (! imageObject) {
         return null;
@@ -39,12 +39,12 @@ const hiddenImagesCount = computed(() => {
 </script>
 
 <template>
-    <Image v-if="images.length === 1" :image="images[0] as Image" />
+    <Image v-if="images.length === 1" :image="images[0] as TypeImage" />
     <div v-else class="flex items-center space-x-2">
         <div class="flex -space-x-[0.6rem]">
             <Image v-for="(image, index) in images"
                    class="size-8 ring-background rounded-full ring-2"
-                   :image="image as Image"
+                   :image="image as TypeImage"
                    :key="index"
             />
         </div>

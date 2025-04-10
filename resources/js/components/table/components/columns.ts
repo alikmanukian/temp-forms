@@ -2,7 +2,7 @@ export { default as TextColumn } from './columns/TextColumn.vue'
 export { default as BadgeColumn } from './columns/BadgeColumn.vue'
 export { default as BooleanColumn } from './columns/BooleanColumn.vue'
 export { default as ImageColumn } from './columns/ImageColumn.vue'
-
+export { default as DateColumn } from './columns/DateColumn.vue'
 interface HtmlObject {
     class?: string
     style?: string

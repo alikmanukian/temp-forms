@@ -90,14 +90,24 @@ class BooleanColumn extends Column
         static::$defaultFalseIcon = $icon;
     }
 
-    public function transform(Model $model): void
+    public function transform(Model $inputModel, Model $outputModel): void
     {
-        parent::transform($model);
+        parent::transform($inputModel, $outputModel);
+
+        if (is_array($this->iconCallback) && array_key_exists((bool) $outputModel->{$this->name}, $this->iconCallback)) {
+            $iconValue = $this->iconCallback[$outputModel->{$this->name}] ?? '';
+            $value = $this->icon->icon($iconValue)->toArray();
+
+            if ($value) {
+                $this->setColumnParamToModel($outputModel, 'icon', $value);
+            }
+        }
 
         // rewrite model value for the boolean column
-        $model->{$this->name} = match((bool) $model->{$this->name}) {
+        $outputModel->{$this->name} = match((bool) $inputModel->{$this->name}) {
             true => $this->trueLabel ?? static::$defaultTrueLabel,
             false => $this->falseLabel ?? static::$defaultFalseLabel,
         };
+
     }
 }

@@ -38,12 +38,12 @@ trait HasImage
         return $this;
     }
 
-    public function setImage(Model $model): void
+    protected function setImage(Model $inputModel, Model $outputModel): void
     {
         $value = [];
 
         if ($this->imageCallback && is_callable($this->imageCallback)) {
-            call_user_func($this->imageCallback, $model, $this->image);
+            call_user_func($this->imageCallback, $inputModel, $this->image);
             $valueFromCallback = array_merge($value, $this->image->toArray());
 
             if ($this->imageAttribute && isset($valueFromCallback['url']) && is_array($valueFromCallback['url'])) {
@@ -54,11 +54,11 @@ trait HasImage
         }
 
         if ($this->imageAttribute) {
-            $value['url'] = $model->{$this->imageAttribute};
+            $value['url'] = $inputModel->{$this->imageAttribute};
         }
 
         if ($value) {
-            $this->setColumnParamToModel($model, 'image', $value);
+            $this->setColumnParamToModel($outputModel, 'image', $value);
         }
     }
 }

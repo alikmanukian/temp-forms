@@ -14,11 +14,11 @@ class BadgeColumn extends Column
     public mixed $variantMapping = null;
     protected string $variant = 'default';
 
-    public function transform(Model $model): void
+    public function transform(Model $inputModel, Model $outputModel): void
     {
-        parent::transform($model);
+        parent::transform($inputModel, $outputModel);
 
-        $this->setVariant($model);
+        $this->setVariant($inputModel, $outputModel);
     }
 
     /**
@@ -44,22 +44,21 @@ class BadgeColumn extends Column
         return $this;
     }
 
-    private function setVariant(Model $model): void
+    private function setVariant(Model $inputModel, Model $outputModel): void
     {
-        $value = $model->{$this->name};
+        $value = $inputModel->{$this->name};
 
         if (is_callable($this->variantMapping)) {
-            $this->setColumnParamToModel($model, 'variant', call_user_func($this->variantMapping, $value, $model));
+            $this->setColumnParamToModel($outputModel, 'variant', call_user_func($this->variantMapping, $value, $inputModel));
         }
 
         if (is_array($this->variantMapping) && array_key_exists($value, $this->variantMapping)) {
             $value = $this->variantMapping[$value];
-            $this->setColumnParamToModel($model, 'variant', $value instanceof Variant ? $value->value : $value);
+            $this->setColumnParamToModel($outputModel, 'variant', $value instanceof Variant ? $value->value : $value);
         }
 
-        // if the column is mutated, we need to append it to the model
-        if (in_array($this->name, $model->getMutatedAttributes(), true)) {
+        /*if (! in_array('_customColumnsParams', $this->appends, true)) {
             $this->appends[] = '_customColumnsParams';
-        }
+        }*/
     }
 }
