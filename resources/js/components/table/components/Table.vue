@@ -12,6 +12,8 @@ import { init, useComponents } from '../utils/components';
 import ScrollTableButton from '../components/ScrollTableButton.vue';
 import { useScrollable } from '../utils/scrollable';
 import * as Columns from './columns';
+import Search from '../components/Search.vue';
+import { InertiaForm } from '@inertiajs/vue3';
 
 interface Props {
     resource: Paginated<any>;
@@ -99,10 +101,18 @@ provide('pageName', pageName)
 
 type ColumnTypes = keyof typeof Columns
 
+const onSearchStart = () => {
+    // console.log('start searching');
+}
+const onSearchEnd = () => {
+    // console.log('end searching');
+}
 </script>
 
 <template>
     <div class="@container" :class="{ '-mx-4': expanded }" ref="container" :data-name="`table-container-${pageName}`">
+        <Search token="name" @start="onSearchStart" @end="onSearchEnd" />
+
         <ToolsRow
             v-if="!noResults"
             :meta="resource.meta"

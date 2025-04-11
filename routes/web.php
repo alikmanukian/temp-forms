@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\TableController;
 use App\Models\User;
 use App\Tables\Employees;
 use App\Tables\Users;
@@ -17,13 +18,6 @@ Route::get('dashboard', function () {
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
 
-Route::inertiaTable();
+//Route::inertiaTable();
 
-Route::get('tables', function () {
-//    dd(Users::make()->resolve()['data'][0]->toArray());
-    return Inertia::render('Users', [
-        'users' => fn() => Users::make()
-            ->withQuery(User::query()->with('friends')),
-//        'employees' => fn() => Employees::make(),
-    ]);
-})->middleware(['auth']);
+Route::get('tables', TableController::class)->middleware(['auth']);

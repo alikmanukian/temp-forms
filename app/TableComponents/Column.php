@@ -162,7 +162,7 @@ class Column
             'name' => $this->getName(),
             'header' => $this->getHeader(),
             'width' => $this->getWidth(),
-            'type' => Str::afterLast(get_class($this), '\\'),
+            'type' => class_basename($this),
             'options' => [
                 'sortable' => $this->sortable,
                 'searchable' => $this->searchable,
