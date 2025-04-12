@@ -13,7 +13,6 @@ import ScrollTableButton from '../components/ScrollTableButton.vue';
 import { useScrollable } from '../utils/scrollable';
 import * as Columns from './columns';
 import Search from '../components/Search.vue';
-import { InertiaForm } from '@inertiajs/vue3';
 
 interface Props {
     resource: Paginated<any>;

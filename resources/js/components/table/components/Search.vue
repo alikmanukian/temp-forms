@@ -17,16 +17,17 @@ const page = usePage<{
     };
 }>();
 
-const initialSearch = page.props.query?.filter?.[props.token] || '';
+const query = page.props.query;
+
+const initialSearch = Object.hasOwn(query, 'filter')
+    ? (query.filter?.[props.token] || '')
+    : '';
+console.log(initialSearch);
 
 const form = useForm<{
-    filter: {
-        [props.token]: string;
-    };
+    filter: {[props.token]: string};
 }>({
-    filter: {
-        [props.token]: initialSearch,
-    },
+    filter: {[props.token]: initialSearch},
 });
 
 const emit = defineEmits<{
