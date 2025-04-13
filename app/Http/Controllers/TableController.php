@@ -34,6 +34,7 @@ class TableController extends Controller
 
         return Inertia::render('Users', [
             'users' => fn () => Users::make()
+                ->as('users')
                 ->withQuery($query),
 //        'employees' => fn() => Employees::make(),
         ]);

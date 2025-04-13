@@ -3,9 +3,9 @@ import { computed, nextTick } from 'vue';
 import { useComponents } from './components';
 import { useScrollable } from '../utils/scrollable';
 
-export const useStickableColumns = (pageName: string) => {
-    const { getColumns, update } = useComponents(pageName);
-    const { saveColumnsPositions } = useScrollable(pageName);
+export const useStickableColumns = (name: string) => {
+    const { getColumns, update } = useComponents(name);
+    const { saveColumnsPositions } = useScrollable(name);
 
     const columns = getColumns();
 

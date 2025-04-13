@@ -3,8 +3,8 @@ import { computed, ref } from 'vue';
 import { TableHeader } from '../index';
 
 
-export const useScrollable = (pageName: string) => {
-    const { getScrollContainer, getProperty, getTable, update, getColumns, getContainer } = useComponents(pageName);
+export const useScrollable = (name: string) => {
+    const { getScrollContainer, getProperty, getTable, update, getColumns, getContainer } = useComponents(name);
 
     const updateScrollSize = () => {
         const scrollContainer = getScrollContainer();

@@ -3,9 +3,9 @@ import Icon from '@/components/Icon.vue';
 import { inject } from 'vue';
 import { useScrollable } from '../utils/scrollable';
 
-const pageName = inject<string>('pageName') ?? 'page'
+const name = inject<string>('name') as string
 
-const { scrollToRight, showScrollButton, scrollable } = useScrollable(pageName);
+const { scrollToRight, showScrollButton, scrollable } = useScrollable(name);
 </script>
 
 <template>

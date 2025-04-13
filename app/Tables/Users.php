@@ -19,8 +19,6 @@ class Users extends Table
     /** @var class-string $resource */
     protected ?string $resource = User::class;
 
-    protected ?string $pageName = 'uPage';
-
     protected string $defaultSort = 'name';
 
     protected array $search = ['name', 'email'];
@@ -59,7 +57,8 @@ class Users extends Table
                 ->icon([
                     'active' => 'airplay',
                     'inactive' => 'angry'
-                ]),
+                ])
+            ->hidden(),
 
             /*Columns\ImageColumn::make('avatar')->image(function (Model $model, Image $image) {
                 return $image->url($model->friends->pluck('avatar'))->limit(2);
@@ -69,7 +68,8 @@ class Users extends Table
                 ->mapAs(function (Model $model, mixed $value) {
                     return (bool) $model->email_verified_at;
                 })
-                ->trueIcon('check'),
+                ->trueIcon('check')
+                ->hidden(),
 
             Columns\TextColumn::make('bio')->truncate(2),
 

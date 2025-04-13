@@ -33,10 +33,11 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const noResults = computed(() => props.resource.data.length === 0);
+const name = props.resource.name
 const pageName = props.resource.pageName
 
-const { getFilteredColumns } = useComponents(pageName)
-const { scrollPosition, scrollable, updateScrollPosition, updateScrollSize, updateContainerWidth, saveColumnsPositions } = useScrollable(pageName)
+const { getFilteredColumns } = useComponents(name)
+const { scrollPosition, scrollable, updateScrollPosition, updateScrollSize, updateContainerWidth, saveColumnsPositions } = useScrollable(name)
 
 const container = useTemplateRef<HTMLElement>('container')
 const resizable = computed(() => props.resizable);
@@ -97,6 +98,7 @@ onUnmounted(() => {
     }
 })
 
+provide('name', name)
 provide('pageName', pageName)
 
 type ColumnTypes = keyof typeof Columns
@@ -110,7 +112,7 @@ const onSearchEnd = () => {
 </script>
 
 <template>
-    <div class="@container" :class="{ '-mx-4': expanded }" ref="container" :data-name="`table-container-${pageName}`">
+    <div class="@container" :class="{ '-mx-4': expanded }" ref="container" :data-name="`table-container-${name}`">
         <div class="flex space-x-3 p-4">
             <Search token="search" @start="onSearchStart" @end="onSearchEnd" class="flex-1" />
             <FiltersButton />
@@ -119,7 +121,6 @@ const onSearchEnd = () => {
         <ToolsRow
             v-if="!noResults"
             :meta="resource.meta"
-            :pageName="resource.pageName"
             :headers="resource.headers"
             :reloadOnly
             :class="{ 'px-4': expanded }"

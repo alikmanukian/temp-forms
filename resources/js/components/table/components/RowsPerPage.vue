@@ -16,7 +16,8 @@ import { inject } from 'vue';
 
 const cookies = useCookies();
 
-const pageName = inject<string>('pageName') ?? 'page'
+const name = inject<string>('name') as string
+const pageName = inject<string>('pageName') as string
 
 interface Props {
     meta: PaginatedMeta
@@ -41,7 +42,7 @@ const getQueryParams = (except: string[]|null = null): Record<string, any> => {
 }
 
 const setPerPage = (value: number) => {
-    cookies.set('perPage_' + pageName, value, {path: window.location.pathname, sameSite: 'lax'});
+    cookies.set('perPage_' + name, value, {path: window.location.pathname, sameSite: 'lax'});
 
     const params: VisitOptions = {
         data: {page: 1},

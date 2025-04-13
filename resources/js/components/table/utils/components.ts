@@ -17,16 +17,16 @@ const tables = reactive<Record<string, Table>>({});
 // private function s
 const localStorageKey = (name: string): string => 'table_columns:' + window.location.pathname + ':' + name;
 
-const fromLocalStorage = (pageName: string): Table|null => {
-    return tables[localStorageKey(pageName)]
+const fromLocalStorage = (name: string): Table|null => {
+    return tables[localStorageKey(name)]
 }
 
 // public exposed functions
 export const init = (props: Paginated<any>) => {
-    const key = localStorageKey(props.pageName);
+    const key = localStorageKey(props.name);
 
     const tableData: Table = {
-        name: props.pageName,
+        name: props.name,
         columns: props.headers,
         hash: props.hash,
         containerWidth: 0,
@@ -44,8 +44,8 @@ export const init = (props: Paginated<any>) => {
     tables[key] = localStorageData.value;
 };
 
-export const useComponents = (pageName: string) => {
-    const getColumns = (): TableHeader[] => fromLocalStorage(pageName)?.columns || [];
+export const useComponents = (name: string) => {
+    const getColumns = (): TableHeader[] => fromLocalStorage(name)?.columns || [];
 
     const getFilteredColumns = computed<TableHeader[]>(() => {
         const columns = getColumns();
@@ -55,20 +55,20 @@ export const useComponents = (pageName: string) => {
     });
 
     const update = (property: keyof Table, data: any): void => {
-        const table = fromLocalStorage(pageName);
+        const table = fromLocalStorage(name);
 
         if (table) {
-            const storage = useLocalStorage<Table>(localStorageKey(pageName), table)
+            const storage = useLocalStorage<Table>(localStorageKey(name), table)
             storage.value = {...table, [property]: data}
             table[property] = data as never
         }
     };
 
-    const getContainer = (): HTMLElement|null => document.querySelector(`[data-name="table-container-${pageName}"]`) ?? null
+    const getContainer = (): HTMLElement|null => document.querySelector(`[data-name="table-container-${name}"]`) ?? null
     const getTable = (): HTMLElement|null => getContainer()?.querySelector('table') || null
     const getScrollContainer = (): HTMLElement|null => getTable()?.closest('[data-name="scroll-container"]') || null
     const getProperty = (property: keyof Table, defaultValue: any|null = null): any => {
-        const storage = fromLocalStorage(pageName);
+        const storage = fromLocalStorage(name);
         if (!storage) {
             return null;
         }

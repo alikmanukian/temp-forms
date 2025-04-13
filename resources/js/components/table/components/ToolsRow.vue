@@ -6,7 +6,6 @@ import { computed } from 'vue';
 
 interface Props {
     meta: PaginatedMeta;
-    pageName: string;
     headers: TableHeader[];
     reloadOnly?: boolean | string[];
 }

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Str;
 use JsonException;
 use JsonSerializable;
 use ReflectionClass;
@@ -24,7 +25,7 @@ abstract class Table implements JsonSerializable
     /** @var class-string $resource */
     protected ?string $resource = null;
 
-    protected ?string $pageName = 'page';
+    protected ?string $name = null;
 
     /**
      * @var int[]|null
@@ -71,6 +72,13 @@ abstract class Table implements JsonSerializable
         return $this;
     }
 
+    public function as(string $name): static
+    {
+        $this->name = $name;
+
+        return $this;
+    }
+
     public static function dontEncryptCookies(): array
     {
         $appClasses = glob(app_path('**/*.php'));
@@ -82,13 +90,10 @@ abstract class Table implements JsonSerializable
             ->values()
             ->map(function (string $class) {
                 $reflection = new ReflectionClass($class);
+
                 $defaults = $reflection->getDefaultProperties();
 
-                if ($defaults['pageName']) {
-                    return "perPage_" . $defaults['pageName'];
-                }
-
-                return null;
+                return "perPage_" . Str::lower($defaults['name'] ?? class_basename($class));
             })
             ->filter()
             ->unique()
@@ -98,6 +103,7 @@ abstract class Table implements JsonSerializable
 
     /**
      * This function used when form sending in response data
+     * @throws JsonException
      */
     public function jsonSerialize(): array
     {
@@ -113,7 +119,8 @@ abstract class Table implements JsonSerializable
         $paginator = $this->getPaginated();
 
         $data = [
-            'pageName' => $this->pageName,
+            'name' => $this->getName(),
+            'pageName' => $this->getPageName(),
             'data' => $paginator->items(),
             'stickyHeader' => $this->getStickyHeader(),
             'stickyPagination' => $this->getStickyPagination(),
@@ -130,6 +137,16 @@ abstract class Table implements JsonSerializable
         $data['hash'] = $this->hash($data);
 
         return $data;
+    }
+
+    private function getName(): string
+    {
+        return Str::lower($this->name ?? class_basename($this));
+    }
+
+    private function getPageName(): string
+    {
+        return Str::camel(($this->name ? $this->name . '_' : '') . 'page');
     }
 
     /**
@@ -149,7 +166,7 @@ abstract class Table implements JsonSerializable
             /*->where('id', '<', 0)*/
             ->paginate(
                 perPage: $this->getPerPage(),
-                pageName: $this->pageName
+                pageName: $this->getPageName()
             )
             ->through(function ($model) {
                 $outputModel = $this->createOutputModel();
@@ -199,7 +216,7 @@ abstract class Table implements JsonSerializable
     private function getPerPage(): int
     {
         $perPageOptions = $this->getPerPageOptions() ?? [10];
-        $perPage = (int)Cookie::get('perPage_' . $this->pageName, $perPageOptions[0]);
+        $perPage = (int)Cookie::get('perPage_' . $this->getName(), $perPageOptions[0]);
 
         if (! in_array($perPage, $perPageOptions)) {
             $perPage = $perPageOptions[0];

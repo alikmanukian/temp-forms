@@ -12,8 +12,6 @@ class Employees extends Table
     /** @var class-string $resource */
     protected ?string $resource = User::class;
 
-    protected ?string $pageName = 'ePage';
-
     protected string $defaultSort = 'name';
 
     protected array $search = ['name', 'email'];

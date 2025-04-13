@@ -34,6 +34,7 @@ export interface TableHeader {
 }
 
 export interface Paginated<T> {
+    name: string
     pageName: string
     data: T[]
     meta: PaginatedMeta

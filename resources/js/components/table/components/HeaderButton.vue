@@ -32,10 +32,10 @@ interface ListItem {
 }
 
 const props = defineProps<Props>()
-const pageName = inject<string>('pageName') ?? 'page'
+const name = inject<string>('name') as string
 
-const { stickColumn } = useStickableColumns(pageName)
-const { toggleColumn } = useToggleColumns(pageName)
+const { stickColumn } = useStickableColumns(name)
+const { toggleColumn } = useToggleColumns(name)
 
 const list = computed(() => {
     const items : ListItem[] = [];
