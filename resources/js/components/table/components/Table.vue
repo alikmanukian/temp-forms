@@ -13,6 +13,7 @@ import ScrollTableButton from '../components/ScrollTableButton.vue';
 import { useScrollable } from '../utils/scrollable';
 import * as Columns from './columns';
 import Search from '../components/Search.vue';
+import FiltersButton from '@/components/table/components/FiltersButton.vue';
 
 interface Props {
     resource: Paginated<any>;
@@ -110,7 +111,10 @@ const onSearchEnd = () => {
 
 <template>
     <div class="@container" :class="{ '-mx-4': expanded }" ref="container" :data-name="`table-container-${pageName}`">
-        <Search token="name" @start="onSearchStart" @end="onSearchEnd" />
+        <div class="flex space-x-3 p-4">
+            <Search token="search" @start="onSearchStart" @end="onSearchEnd" class="flex-1" />
+            <FiltersButton />
+        </div>
 
         <ToolsRow
             v-if="!noResults"

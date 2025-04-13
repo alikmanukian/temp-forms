@@ -22,7 +22,6 @@ const query = page.props.query;
 const initialSearch = Object.hasOwn(query, 'filter')
     ? (query.filter?.[props.token] || '')
     : '';
-console.log(initialSearch);
 
 const form = useForm<{
     filter: {[props.token]: string};
@@ -55,7 +54,5 @@ watch(
 </script>
 
 <template>
-    <div class="p-4">
-        <form @submit.prevent><Input v-model="form.filter[token]" /></form>
-    </div>
+    <form @submit.prevent><Input v-model="form.filter[token]" /></form>
 </template>
