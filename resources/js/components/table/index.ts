@@ -10,7 +10,6 @@ export interface PaginatedMeta {
 
 export interface TableHeaderOptions {
     sortable: boolean
-    searchable: boolean
     toggleable: boolean
     stickable: boolean
     headerAlignment: 'justify-start'|'justify-center'|'justify-end'

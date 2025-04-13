@@ -133,6 +133,11 @@ class Column
         return $this->visible(false);
     }
 
+    protected function isSearchable(): bool
+    {
+        return $this->searchable;
+    }
+
     /**
      * This allows to set properties dynamically
      * for example $column->sortable() // set as true
@@ -180,7 +185,6 @@ class Column
             'visible' => $this->visible,
             'options' => [
                 'sortable' => $this->sortable,
-                'searchable' => $this->searchable,
                 'toggleable' => $this->toggleable,
                 'headerAlignment' => $this->headerAlignment->value,
                 'alignment' => $this->alignment->value,

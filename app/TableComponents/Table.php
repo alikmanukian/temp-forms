@@ -2,6 +2,7 @@
 
 namespace App\TableComponents;
 
+use App\Models\User;
 use BadMethodCallException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -13,6 +14,8 @@ use JsonException;
 use JsonSerializable;
 use ReflectionClass;
 use RuntimeException;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 abstract class Table implements JsonSerializable
 {
@@ -110,6 +113,26 @@ abstract class Table implements JsonSerializable
         return $this->resolve();
     }
 
+    private function getBuilder(): Builder
+    {
+        $compoundSearch = AllowedFilter::callback('search', static function (Builder $query, string $value) {
+            $query->where(function (Builder $query) use ($value) {
+                $query
+                    ->orWhere('name', 'LIKE', "%{$value}%")
+                    ->orWhere('email', 'LIKE', "%{$value}%");
+            });
+        });
+
+        return QueryBuilder::for($this->builder)
+            ->allowedFilters([
+                AllowedFilter::partial('name'), // this will be a partial match without using LOWER('%name%')
+                $compoundSearch
+            ])
+//            ->allowedSorts(['name', 'email'])
+//            ->defaultSort('name')
+            ->getEloquentBuilder();
+    }
+
     /**
      * This function used when form sending in response data
      * @throws JsonException
@@ -161,9 +184,7 @@ abstract class Table implements JsonSerializable
 
     private function getPaginated(): LengthAwarePaginator
     {
-
-        return $this->builder
-            /*->where('id', '<', 0)*/
+        return $this->getBuilder()
             ->paginate(
                 perPage: $this->getPerPage(),
                 pageName: $this->getPageName()
