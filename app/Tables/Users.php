@@ -11,6 +11,7 @@ use App\TableComponents\Image;
 use App\TableComponents\Table;
 use App\TableComponents\Columns;
 use App\TableComponents\Filters;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 
@@ -21,7 +22,7 @@ class Users extends Table
 
     protected string $defaultSort = 'name';
 
-    protected array $search = ['name', 'email'];
+    protected array $search = [];
 
     protected bool $stickyHeader = true;
     protected bool $stickyPagination = true;
@@ -47,7 +48,8 @@ class Users extends Table
                     return $image
                         ->alt($model->name)
                         ->class('rounded-md');
-                }),
+                })
+                ->searchable(),
 
             Columns\BadgeColumn::make('status')
                 ->variant([
@@ -73,7 +75,7 @@ class Users extends Table
 
             Columns\TextColumn::make('bio')->truncate(2),
 
-            Columns\TextColumn::make('email')->notSortable(),
+            Columns\TextColumn::make('email')->notSortable()->searchable(),
 
             Columns\DateColumn::make('created_at')
                 ->format('Y, M d'),

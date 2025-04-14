@@ -2,7 +2,7 @@
 
 namespace App\TableComponents\Traits;
 
-use App\TableComponents\Columns\BooleanColumn;
+use App\TableComponents\Columns\Column;
 use App\TableComponents\Icon;
 use Illuminate\Database\Eloquent\Model;
 

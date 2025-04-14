@@ -1,6 +1,6 @@
 <?php
 
-namespace App\TableComponents;
+namespace App\TableComponents\Columns;
 
 use App\TableComponents\Enums\ColumnAlignment;
 use App\TableComponents\Traits\HasIcon;
@@ -133,7 +133,7 @@ class Column
         return $this->visible(false);
     }
 
-    protected function isSearchable(): bool
+    public function isSearchable(): bool
     {
         return $this->searchable;
     }

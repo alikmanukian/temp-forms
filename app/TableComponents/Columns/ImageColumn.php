@@ -2,7 +2,6 @@
 
 namespace App\TableComponents\Columns;
 
-use App\TableComponents\Column;
 use App\TableComponents\Enums\ImageSize;
 use App\TableComponents\Image;
 use App\TableComponents\Traits\HasImage;

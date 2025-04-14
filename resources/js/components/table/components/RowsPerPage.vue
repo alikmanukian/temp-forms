@@ -45,7 +45,7 @@ const setPerPage = (value: number) => {
     cookies.set('perPage_' + name, value, {path: window.location.pathname, sameSite: 'lax'});
 
     const params: VisitOptions = {
-        data: {page: 1},
+        data: {[pageName]: 1},
     }
 
     // set reload only param

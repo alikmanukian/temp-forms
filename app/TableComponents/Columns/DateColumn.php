@@ -2,9 +2,6 @@
 
 namespace App\TableComponents\Columns;
 
-use App\TableComponents\Column;
-use App\TableComponents\Enums\Variant;
-use App\TableComponents\Traits\HasIcon;
 use App\TableComponents\Traits\HasLink;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;

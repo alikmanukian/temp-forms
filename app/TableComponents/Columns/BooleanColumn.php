@@ -2,7 +2,6 @@
 
 namespace App\TableComponents\Columns;
 
-use App\TableComponents\Column;
 use App\TableComponents\Icon;
 use App\TableComponents\Traits\HasIcon;
 use Illuminate\Database\Eloquent\Model;

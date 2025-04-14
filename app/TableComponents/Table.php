@@ -2,10 +2,8 @@
 
 namespace App\TableComponents;
 
-use App\Models\User;
-use BadMethodCallException;
+use App\TableComponents\Columns\Column;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cookie;
@@ -17,6 +15,9 @@ use RuntimeException;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
+/**
+ * @method searchUsing(Builder $query, string $value)
+ */
 abstract class Table implements JsonSerializable
 {
     protected string $defaultSort = 'id';
@@ -61,6 +62,10 @@ abstract class Table implements JsonSerializable
         $table = (new static());
         $table->columns = $table->columns();
 
+        // set searchable
+        $table->setSearch();
+
+
         /*foreach ($table->columns() as $column) {
             $table->builder->addSelect($column->getName());
         }*/
@@ -80,6 +85,20 @@ abstract class Table implements JsonSerializable
         $this->name = $name;
 
         return $this;
+    }
+
+    public function setSearch(): void
+    {
+        $this->search = array_unique(
+            array_merge(
+                $this->search,
+                collect($this->columns)
+                    ->filter(fn (Column $column) => $column->isSearchable())
+                    ->map(fn(Column $column) => $column->getName())
+                    ->values()
+                    ->toArray()
+            )
+        );
     }
 
     public static function dontEncryptCookies(): array
@@ -113,24 +132,37 @@ abstract class Table implements JsonSerializable
         return $this->resolve();
     }
 
-    private function getBuilder(): Builder
+    private function getQueryBuilder(): Builder
     {
-        $compoundSearch = AllowedFilter::callback('search', static function (Builder $query, string $value) {
-            $query->where(function (Builder $query) use ($value) {
-                $query
-                    ->orWhere('name', 'LIKE', "%{$value}%")
-                    ->orWhere('email', 'LIKE', "%{$value}%");
-            });
-        });
+        $allowedFilters = collect([
+            AllowedFilter::partial('name'), // this will be a partial match without using LOWER('%name%')
+            $this->getCompoundSearch(),
+        ])->filter()->toArray();
 
         return QueryBuilder::for($this->builder)
-            ->allowedFilters([
-                AllowedFilter::partial('name'), // this will be a partial match without using LOWER('%name%')
-                $compoundSearch
-            ])
+            ->allowedFilters($allowedFilters)
 //            ->allowedSorts(['name', 'email'])
 //            ->defaultSort('name')
             ->getEloquentBuilder();
+    }
+
+    private function getCompoundSearch(): ?AllowedFilter
+    {
+        if (empty($this->search)) {
+            return null;
+        }
+
+        if (method_exists($this, 'searchUsing')) {
+            return AllowedFilter::callback('search', [$this, 'searchUsing']);
+        }
+
+        return AllowedFilter::callback('search', function (Builder $query, string $value) {
+            $query->where(function (Builder $query) use ($value) {
+                foreach($this->search as $field) {
+                    $query->orWhere($field, 'LIKE', "%{$value}%");
+                }
+            });
+        });
     }
 
     /**
@@ -184,7 +216,7 @@ abstract class Table implements JsonSerializable
 
     private function getPaginated(): LengthAwarePaginator
     {
-        return $this->getBuilder()
+        return $this->getQueryBuilder()
             ->paginate(
                 perPage: $this->getPerPage(),
                 pageName: $this->getPageName()
