@@ -140,11 +140,14 @@ abstract class Table implements JsonSerializable
     {
         $allowedFilters = collect([
             AllowedFilter::partial('name'), // this will be a partial match without using LOWER('%name%')
-            $this->getCompoundSearch(),
-        ])->filter()->toArray();
+        ]);
+
+        if (!empty($this->search)) {
+            $allowedFilters->push($this->getCompoundSearch());
+        }
 
         return QueryBuilder::for($this->builder)
-            ->allowedFilters($allowedFilters)
+            ->allowedFilters($allowedFilters->toArray())
 //            ->allowedSorts(['name', 'email'])
 //            ->defaultSort('name')
             ->getEloquentBuilder();
@@ -152,10 +155,6 @@ abstract class Table implements JsonSerializable
 
     private function getCompoundSearch(): ?AllowedFilter
     {
-        if (empty($this->search)) {
-            return null;
-        }
-
         if (method_exists($this, 'searchUsing')) {
             return AllowedFilter::callback('search', [$this, 'searchUsing']);
         }
@@ -183,6 +182,7 @@ abstract class Table implements JsonSerializable
             'data' => $paginator->items(),
             'stickyHeader' => $this->getStickyHeader(),
             'stickyPagination' => $this->getStickyPagination(),
+            'searchable' => !empty($this->search),
             'meta' => [
                 'currentPage' => $paginator->currentPage(),
                 'perPage' => $paginator->perPage(),

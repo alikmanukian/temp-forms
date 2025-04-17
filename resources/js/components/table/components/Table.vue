@@ -114,7 +114,7 @@ const onSearchEnd = () => {
 <template>
     <div class="@container" :class="{ '-mx-4': expanded }" ref="container" :data-name="`table-container-${name}`">
         <div class="flex space-x-3 p-4">
-            <Search token="search" @start="onSearchStart" @end="onSearchEnd" class="flex-1" />
+            <Search v-if="resource.searchable" token="search" @start="onSearchStart" @end="onSearchEnd" class="flex-1" />
             <FiltersButton />
         </div>
 

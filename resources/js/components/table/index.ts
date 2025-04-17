@@ -41,5 +41,6 @@ export interface Paginated<T> {
     hash: string
     stickyHeader: boolean
     stickyPagination: boolean
+    searchable: boolean
 }
 
