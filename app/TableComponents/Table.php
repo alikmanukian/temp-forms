@@ -84,6 +84,10 @@ abstract class Table implements JsonSerializable
     {
         $this->name = $name;
 
+        // in case of multiple tables on the same page instead of ?filter[search]=something
+        // we need to use ?filter[tableName][search]=something
+        config(['query-builder.parameters.filter' => "filter.{$name}"]);
+
         return $this;
     }
 
@@ -201,7 +205,7 @@ abstract class Table implements JsonSerializable
 
     private function getPageName(): string
     {
-        return Str::camel(($this->name ? $this->name . '_' : '') . 'page');
+        return 'page' . ($this->name ? '.' . $this->name : '');
     }
 
     /**

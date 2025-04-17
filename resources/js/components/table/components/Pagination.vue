@@ -18,6 +18,7 @@ import type { PaginatedMeta } from '../index';
 import { router } from '@inertiajs/vue3';
 import { type VisitOptions } from '@inertiajs/core';
 import { inject } from 'vue';
+import { getQueryParams, buildData, buildQueryKey } from '../utils/helpers';
 
 interface Props {
     meta: PaginatedMeta
@@ -38,20 +39,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 const pageName = inject<string>('pageName') ?? 'page'
 
-const getQueryParams = (except: string[]|null = null): Record<string, any> => {
-    const queryParams = new URLSearchParams(window.location.search);
-
-    if (except) {
-        return Object.fromEntries(
-            [...queryParams].filter(([key]) => key !== pageName)
-        );
-    }
-    return Object.fromEntries([...queryParams]);
-}
-
 const changePage = (page: number) => {
     const params: VisitOptions = {
-        data: {[pageName]: page},
+        data: buildData(pageName, page),
     }
 
     // set reload only param
@@ -59,9 +49,10 @@ const changePage = (page: number) => {
         params.only = props.reloadOnly as string[]
     }
 
+
     // add query string
     if (props.includeQueryString) {
-        params.data = { ...params.data, ...getQueryParams([pageName]) }
+        params.data = { ...params.data, ...getQueryParams(buildQueryKey(pageName)) }
     }
 
     router.reload(params)
