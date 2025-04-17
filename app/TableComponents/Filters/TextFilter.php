@@ -2,7 +2,9 @@
 
 namespace App\TableComponents\Filters;
 
-class TextFilter
-{
+use App\TableComponents\Enums\Clause;
 
+class TextFilter extends Filter
+{
+    protected ?Clause $defaultClause = Clause::Contains;
 }

@@ -157,6 +157,20 @@ const onSearchEnd = () => {
                             <HeaderButton :column />
                         </TableHead>
                     </TableRow>
+
+                    <TableRow>
+                        <TableHead
+                            v-for="column in getFilteredColumns"
+                            :style="{ width: column.width, left: column.sticked ? column.left + 'px' : ''}"
+                            :key="column.name"
+                            :data-name="column.name"
+                            :class="{
+                                'sticky z-10': column.sticked,
+                            }"
+                        >
+                            div
+                        </TableHead>
+                    </TableRow>
                 </TableHeader>
 
                 <TableBody>

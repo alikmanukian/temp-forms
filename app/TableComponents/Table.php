@@ -309,4 +309,9 @@ abstract class Table implements JsonSerializable
     {
         static::$defaultStickyPagination = $value;
     }
+
+    public function filters(): array
+    {
+        return [];
+    }
 }
