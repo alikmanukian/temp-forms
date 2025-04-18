@@ -53,12 +53,20 @@ watch(() => page.props.query, (value) => {
 
 }, { immediate: true });
 
+const emit = defineEmits<{
+    (e: 'update', name: string, value: string): void;
+}>();
+
+const clear = (name: string, value: string) => {
+    emit('update', name, value)
+}
+
 </script>
 
 <template>
     <div class="p-4">
         <div v-for="filter in appliedFilters" :key="filter.name">
-            {{ filter.name}}: {{filter.value}}
+            {{ filter.name}}: {{filter.value}} <button @click.prevent="clear(filter.name, '')">&times;</button>
         </div>
     </div>
 </template>

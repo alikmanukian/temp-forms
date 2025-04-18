@@ -133,6 +133,10 @@ const onPageChange = (page: number) => {
     reload(buildData(pageName, page));
 }
 
+const onClearFilter = (name: string, value: string) => {
+    reload(setSearchParams(name, value));
+}
+
 const reload = (data: any) => {
     const params: VisitOptions = {
         data,
@@ -160,7 +164,7 @@ const reload = (data: any) => {
             <FiltersButton />
         </div>
 
-        <FiltersRow :filters="resource.filters" />
+        <FiltersRow :filters="resource.filters" @update="onClearFilter" />
 
         <ToolsRow v-if="!noResults"
                   :meta="resource.meta"
