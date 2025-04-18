@@ -3,6 +3,7 @@
 namespace App\TableComponents;
 
 use App\TableComponents\Columns\Column;
+use App\TableComponents\Filters\Filter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -41,6 +42,8 @@ abstract class Table implements JsonSerializable
 
     protected array $columns = [];
 
+    protected array $filters = [];
+
     /**
      * @return list<Column>
      */
@@ -61,6 +64,7 @@ abstract class Table implements JsonSerializable
     {
         $table = (new static());
         $table->columns = $table->columns();
+        $table->filters = $table->filters();
 
         // set searchable
         $table->setSearch();
@@ -138,9 +142,9 @@ abstract class Table implements JsonSerializable
 
     private function getQueryBuilder(): Builder
     {
-        $allowedFilters = collect([
-            AllowedFilter::partial('name'), // this will be a partial match without using LOWER('%name%')
-        ]);
+        $allowedFilters = collect($this->filters)
+            ->filter()
+            ->map(fn (Filter $filter) => AllowedFilter::partial($filter->getName()));
 
         if (!empty($this->search)) {
             $allowedFilters->push($this->getCompoundSearch());
@@ -190,7 +194,12 @@ abstract class Table implements JsonSerializable
                 'lastPage' => $paginator->lastPage(),
                 'perPageOptions' => $this->getPerPageOptions(),
             ],
-            'headers' => collect($this->columns)->map(fn (Column $column) => $column->headerInfo())->toArray()
+            'headers' => collect($this->columns)
+                ->map(fn (Column $column) => $column->toArray())
+                ->toArray(),
+            'filters' => collect($this->filters)
+                ->map(fn (Filter $filter) => $filter->toArray())
+                ->toArray(),
         ];
 
         $data['hash'] = $this->hash($data);
@@ -310,6 +319,9 @@ abstract class Table implements JsonSerializable
         static::$defaultStickyPagination = $value;
     }
 
+    /**
+     * @return Filter[]
+     */
     public function filters(): array
     {
         return [];

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { Paginated, TableHeader as TableHeaderType } from '../index';
+import type { Filter, Paginated, TableHeader as TableHeaderType } from '../index';
 import Pagination from '../components/Pagination.vue';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { computed, nextTick, onMounted, onUnmounted, provide, useTemplateRef } from 'vue';
@@ -12,6 +12,7 @@ import { init, useComponents } from '../utils/components';
 import ScrollTableButton from '../components/ScrollTableButton.vue';
 import { useScrollable } from '../utils/scrollable';
 import * as Columns from './columns';
+import * as Filters from './filters';
 import Search from '../components/Search.vue';
 import FiltersButton from '@/components/table/components/FiltersButton.vue';
 
@@ -44,6 +45,20 @@ const resizable = computed(() => props.resizable);
 
 const stickyHeader = computed(() => props.resource.stickyHeader);
 const stickyPagination = computed(() => props.resource.stickyPagination);
+
+const filterComponent = (name: string) => {
+    const component = props.resource.filters.find((filter: Filter) => {
+        return filter.name === name && filter.showInHeader;
+    })?.component || 'NoFilter';
+
+    return Filters[component as keyof typeof Filters];
+};
+
+const showFiltersRowInHeader = computed(() => {
+    return props.resource.filters.some((filter: Filter) => {
+        return filter.showInHeader;
+    });
+});
 
 const columnWrappingMethod = (column: TableHeaderType) => {
     if (column.options.truncate == 1) {
@@ -140,10 +155,15 @@ const onSearchEnd = () => {
                 </colgroup>
 
                 <TableHeader
-                    class="dark:text-white bg-gray-50 dark:bg-black/25 text-left text-xs font-medium uppercase tracking-wide"
-                    :class="{ 'sticky top-0 z-10 bg-opacity-75 shadow-md shadow-gray-300/25 backdrop-blur backdrop-filter': stickyHeader }"
+                    :class="{ 'sticky top-0 z-10 shadow-md': stickyHeader }"
                 >
-                    <TableRow>
+                    <TableRow
+                        class="bg-gray-50 dark:text-white dark:bg-black/25 text-left text-xs font-medium uppercase tracking-wide"
+                        :class="{
+                            'bg-opacity-75 shadow-gray-300/25 backdrop-blur backdrop-filter': stickyHeader,
+                            '!border-b-0': showFiltersRowInHeader
+                        }"
+                    >
                         <TableHead
                             v-for="column in getFilteredColumns"
                             :style="{ width: column.width, left: column.sticked ? column.left + 'px' : ''}"
@@ -158,17 +178,24 @@ const onSearchEnd = () => {
                         </TableHead>
                     </TableRow>
 
-                    <TableRow>
+                    <TableRow v-if="showFiltersRowInHeader"
+                              class="bg-white/90 dark:bg-background/80"
+                    >
                         <TableHead
-                            v-for="column in getFilteredColumns"
+                            v-for="(column, index) in getFilteredColumns"
                             :style="{ width: column.width, left: column.sticked ? column.left + 'px' : ''}"
                             :key="column.name"
                             :data-name="column.name"
+                            class="py-2 px-1"
                             :class="{
                                 'sticky z-10': column.sticked,
+                                'pl-2': index === 0
                             }"
                         >
-                            div
+                            <component
+                                :is="filterComponent(column.name)"
+                                :filter="resource.filters.find((filter: Filter) => filter.name === column.name)"
+                            ></component>
                         </TableHead>
                     </TableRow>
                 </TableHeader>

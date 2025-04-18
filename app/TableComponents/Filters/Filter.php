@@ -5,6 +5,10 @@ namespace App\TableComponents\Filters;
 use App\TableComponents\Enums\Clause;
 use BadMethodCallException;
 
+/**
+ * @method title(string $title)
+ * @method showInHeader()
+ */
 class Filter
 {
     protected array $clauses = [];
@@ -12,7 +16,8 @@ class Filter
 
     private function __construct(
         protected string $name,
-        protected ?string $title = null
+        protected ?string $title = null,
+        protected bool $showInHeader = false,
     )
     {
 
@@ -35,5 +40,22 @@ class Filter
         }
 
         throw new BadMethodCallException("Method [$name] doesn't exists");
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'name' => $this->name,
+            'title' => $this->title,
+            'clauses' => array_map(fn($clause) => $clause->value, $this->clauses),
+            'defaultClause' => $this->defaultClause?->value,
+            'showInHeader' => $this->showInHeader,
+            'component' => class_basename(static::class),
+        ];
     }
 }

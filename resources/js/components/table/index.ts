@@ -32,12 +32,22 @@ export interface TableHeader {
     _params: Record<string, number|string|boolean>
 }
 
+export interface Filter {
+    name: string
+    title: string
+    clauses: string[]
+    defaultClause: string
+    showInHeader: boolean
+    component: string
+}
+
 export interface Paginated<T> {
     name: string
     pageName: string
     data: T[]
     meta: PaginatedMeta
     headers: TableHeader[]
+    filters: Filter[]
     hash: string
     stickyHeader: boolean
     stickyPagination: boolean

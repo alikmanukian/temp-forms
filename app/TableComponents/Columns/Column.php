@@ -175,7 +175,7 @@ class Column
     /**
      * This function used when form sending in response data
      */
-    public function headerInfo(): array
+    public function toArray(): array
     {
         return [
             'name' => $this->getName(),

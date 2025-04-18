@@ -62,5 +62,5 @@ watch(
 </script>
 
 <template>
-    <form @submit.prevent><Input v-model="form.search" /></form>
+    <Input v-model="form.search" />
 </template>

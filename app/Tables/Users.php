@@ -89,8 +89,10 @@ class Users extends Table
     public function filters(): array
     {
         return [
-            Filters\TextFilter::make('name', 'Full Name'),
-            Filters\TextFilter::make('email'),
+            Filters\TextFilter::make('id', 'ID')->showInHeader(),
+            Filters\TextFilter::make('name', 'Full Name')->showInHeader(),
+            Filters\TextFilter::make('bio')->showInHeader(),
+            Filters\TextFilter::make('email')->showInHeader(),
 //            Filters\NumericFilter::make('visit_count'),
 //            Filters\BooleanFilter::make('is_admin', 'Admin'),
 //            Filters\DateFilter::make('email_verified_at')->nullable(),
