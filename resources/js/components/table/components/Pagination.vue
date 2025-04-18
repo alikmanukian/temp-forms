@@ -15,51 +15,27 @@ import {
 } from '@/components/ui/pagination'
 
 import type { PaginatedMeta } from '../index';
-import { router } from '@inertiajs/vue3';
-import { type VisitOptions } from '@inertiajs/core';
-import { inject } from 'vue';
-import { getQueryParams, buildData, buildQueryKey } from '../utils/helpers';
 
 interface Props {
     meta: PaginatedMeta
-    reloadOnly?: boolean|string[]
-    includeQueryString?: boolean
     stickyPagination?: boolean
     hidePageNumbers?: boolean
     hideArrows?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
-    reloadOnly: false,
-    includeQueryString: true,
+withDefaults(defineProps<Props>(), {
     stickyPagination: false,
     hidePageNumbers: false,
     hideArrows: false,
 });
 
-const pageName = inject<string>('pageName') ?? 'page'
+const emit = defineEmits<{
+    (e: 'update', page: number): void;
+}>();
 
 const changePage = (page: number) => {
-    const params: VisitOptions = {
-        data: buildData(pageName, page),
-    }
-
-    // set reload only param
-    if (props.reloadOnly) {
-        params.only = props.reloadOnly as string[]
-    }
-
-
-    // add query string
-    if (props.includeQueryString) {
-        params.data = { ...params.data, ...getQueryParams(buildQueryKey(pageName)) }
-    }
-
-    router.reload(params)
+    emit('update', page)
 }
-
-
-
 </script>
 
 <template>

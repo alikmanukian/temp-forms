@@ -8,47 +8,28 @@ import {
 
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/Icon.vue';
-import type { VisitOptions } from '@inertiajs/core';
-import { router } from '@inertiajs/vue3';
 import { useCookies } from '@vueuse/integrations/useCookies';
 import type { PaginatedMeta } from '../index';
 import { inject } from 'vue';
-import { getQueryParams, buildData, buildQueryKey } from '../utils/helpers';
 
 const cookies = useCookies();
 
 const name = inject<string>('name') as string
-const pageName = inject<string>('pageName') as string
 
 interface Props {
     meta: PaginatedMeta
-    reloadOnly: boolean|string[]
-    includeQueryString: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
-    reloadOnly: false,
-    includeQueryString: true,
-});
+const props = defineProps<Props>();
+
+const emit = defineEmits<{
+    (e: 'update', page: number): void;
+}>();
 
 const setPerPage = (value: number) => {
     cookies.set('perPage_' + name, value, {path: window.location.pathname, sameSite: 'lax'});
 
-    const params: VisitOptions = {
-        data: buildData(pageName, 1),
-    }
-
-    // set reload only param
-    if (props.reloadOnly) {
-        params.only = props.reloadOnly as string[]
-    }
-
-    // add query string
-    if (props.includeQueryString) {
-        params.data = { ...params.data, ...getQueryParams(buildQueryKey(pageName)) }
-    }
-
-    router.reload(params)
+    emit('update', 1);
 };
 </script>
 

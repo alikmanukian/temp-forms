@@ -35,6 +35,5 @@ export const getQueryParams = (except: any): Record<string, any> => {
         return Object.fromEntries([...queryParams].filter(([key]) => key !== except));
     }
 
-
     return Object.fromEntries([...queryParams]);
 }

@@ -15,6 +15,11 @@ import * as Columns from './columns';
 import * as Filters from './filters';
 import Search from '../components/Search.vue';
 import FiltersButton from '@/components/table/components/FiltersButton.vue';
+import FiltersRow from '@/components/table/components/FiltersRow.vue';
+import { router } from '@inertiajs/vue3';
+import { useFilters } from '@/components/table/utils/filterable';
+import type { VisitOptions } from '@inertiajs/core';
+import { buildData } from '@/components/table/utils/helpers';
 
 interface Props {
     resource: Paginated<any>;
@@ -34,22 +39,24 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const noResults = computed(() => props.resource.data.length === 0);
-const name = props.resource.name
-const pageName = props.resource.pageName
+const name = props.resource.name;
+const pageName = props.resource.pageName;
 
-const { getFilteredColumns } = useComponents(name)
-const { scrollPosition, scrollable, updateScrollPosition, updateScrollSize, updateContainerWidth, saveColumnsPositions } = useScrollable(name)
+const { getFilteredColumns } = useComponents(name);
+const { scrollPosition, scrollable, updateScrollPosition, updateScrollSize, updateContainerWidth, saveColumnsPositions } = useScrollable(name);
+const { setSearchParams } = useFilters(pageName);
 
-const container = useTemplateRef<HTMLElement>('container')
+const container = useTemplateRef<HTMLElement>('container');
 const resizable = computed(() => props.resizable);
 
 const stickyHeader = computed(() => props.resource.stickyHeader);
 const stickyPagination = computed(() => props.resource.stickyPagination);
 
 const filterComponent = (name: string) => {
-    const component = props.resource.filters.find((filter: Filter) => {
-        return filter.name === name && filter.showInHeader;
-    })?.component || 'NoFilter';
+    const component =
+        props.resource.filters.find((filter: Filter) => {
+            return filter.name === name && filter.showInHeader;
+        })?.component || 'NoFilter';
 
     return Filters[component as keyof typeof Filters];
 };
@@ -87,19 +94,19 @@ const cellClass = (column: TableHeaderType) => {
 };
 
 const resizeObserver = new ResizeObserver(() => {
-        updateContainerWidth();
-        updateScrollSize();
-        saveColumnsPositions();
+    updateContainerWidth();
+    updateScrollSize();
+    saveColumnsPositions();
 });
 
 onMounted(() => {
-    init(props.resource)
+    init(props.resource);
 
     nextTick(() => {
         updateContainerWidth();
         updateScrollSize();
         saveColumnsPositions();
-    })
+    });
 
     if (container.value) {
         resizeObserver.observe(container.value);
@@ -111,62 +118,81 @@ onUnmounted(() => {
         resizeObserver.unobserve(container.value);
         resizeObserver.disconnect();
     }
-})
+});
 
-provide('name', name)
-provide('pageName', pageName)
+provide('name', name);
+provide('pageName', pageName);
 
-type ColumnTypes = keyof typeof Columns
+type ColumnTypes = keyof typeof Columns;
 
-const onSearchStart = () => {
-    // console.log('start searching');
+const onSearch = (name: string, value: string) => {
+    reload(setSearchParams(name, value));
 }
-const onSearchEnd = () => {
-    // console.log('end searching');
+
+const onPageChange = (page: number) => {
+    reload(buildData(pageName, page));
 }
+
+const reload = (data: any) => {
+    const params: VisitOptions = {
+        data,
+        only: ['query'],
+    };
+
+    // set reload only param
+    if (props.reloadOnly) {
+        params.only = [...(params.only as string[]), ...(props.reloadOnly as string[])]
+    }
+
+    // todo: clear empty filters, clear page=1
+
+    router.reload(params);
+};
 </script>
 
 <template>
     <div class="@container" :class="{ '-mx-4': expanded }" ref="container" :data-name="`table-container-${name}`">
         <div class="flex space-x-3 p-4">
-            <Search v-if="resource.searchable" token="search" @start="onSearchStart" @end="onSearchEnd" class="flex-1" />
+            <Search v-if="resource.searchable"
+                    token="search"
+                    @update="onSearch"
+                    class="flex-1" />
             <FiltersButton />
         </div>
 
-        <ToolsRow
-            v-if="!noResults"
-            :meta="resource.meta"
-            :headers="resource.headers"
-            :reloadOnly
-            :class="{ 'px-4': expanded }"
+        <FiltersRow :filters="resource.filters" />
+
+        <ToolsRow v-if="!noResults"
+                  :meta="resource.meta"
+                  :headers="resource.headers"
+                  :class="{ 'px-4': expanded }"
+                  @update="onPageChange"
         />
 
         <div v-if="!noResults" class="relative" :class="{ 'border-b border-t': expanded, 'rounded-lg border': !expanded }">
             <Table
                 v-resizable="resizable"
                 @resize:end="saveColumnsPositions"
-                :style="{ overflow: scrollable ? 'auto' : 'visible'}"
+                :style="{ overflow: scrollable ? 'auto' : 'visible' }"
                 @scroll="updateScrollPosition"
-                :class="{ 'table-fixed': true, 'scrolled': scrollPosition > 0 }"
+                :class="{ 'table-fixed': true, scrolled: scrollPosition > 0 }"
                 data-name="scroll-container"
             >
                 <colgroup v-if="!resizable">
                     <col :style="{ width: column.width }" v-for="column in getFilteredColumns" :key="column.name" />
                 </colgroup>
 
-                <TableHeader
-                    :class="{ 'sticky top-0 z-10 shadow-md': stickyHeader }"
-                >
+                <TableHeader :class="{ 'sticky top-0 z-10 shadow-sm shadow-gray-300/25': stickyHeader }">
                     <TableRow
-                        class="bg-gray-50 dark:text-white dark:bg-black/25 text-left text-xs font-medium uppercase tracking-wide"
+                        class="bg-gray-50 text-left text-xs font-medium uppercase tracking-wide dark:bg-black/25 dark:text-white"
                         :class="{
-                            'bg-opacity-75 shadow-gray-300/25 backdrop-blur backdrop-filter': stickyHeader,
-                            '!border-b-0': showFiltersRowInHeader
+                            'bg-opacity-75 backdrop-blur backdrop-filter': stickyHeader,
+                            '!border-b-0': showFiltersRowInHeader,
                         }"
                     >
                         <TableHead
                             v-for="column in getFilteredColumns"
-                            :style="{ width: column.width, left: column.sticked ? column.left + 'px' : ''}"
+                            :style="{ width: column.width, left: column.sticked ? column.left + 'px' : '' }"
                             :key="column.name"
                             :data-name="column.name"
                             class="px-0"
@@ -178,23 +204,22 @@ const onSearchEnd = () => {
                         </TableHead>
                     </TableRow>
 
-                    <TableRow v-if="showFiltersRowInHeader"
-                              class="bg-white/90 dark:bg-background/80"
-                    >
+                    <TableRow v-if="showFiltersRowInHeader" class="bg-white/90 dark:bg-background/80">
                         <TableHead
                             v-for="(column, index) in getFilteredColumns"
-                            :style="{ width: column.width, left: column.sticked ? column.left + 'px' : ''}"
+                            :style="{ width: column.width, left: column.sticked ? column.left + 'px' : '' }"
                             :key="column.name"
                             :data-name="column.name"
-                            class="py-2 px-1"
+                            class="px-1 py-2"
                             :class="{
                                 'sticky z-10': column.sticked,
-                                'pl-2': index === 0
+                                'pl-2': index === 0,
                             }"
                         >
                             <component
                                 :is="filterComponent(column.name)"
                                 :filter="resource.filters.find((filter: Filter) => filter.name === column.name)"
+                                @update="onSearch"
                             ></component>
                         </TableHead>
                     </TableRow>
@@ -202,20 +227,23 @@ const onSearchEnd = () => {
 
                 <TableBody>
                     <TableRow v-for="(row, index) in resource.data" :key="index">
-                        <TableCell v-for="column in getFilteredColumns"
-                                   :key="column.name"
-                                   :style="{ width: column.width, left: column.sticked ? column.left + 'px' : '' }"
-                                   :class="{
-                                       'sticky bg-white/90 dark:bg-background/80 hover:bg-muted/50': column.sticked,
-                                   }"
+                        <TableCell
+                            v-for="column in getFilteredColumns"
+                            :key="column.name"
+                            :style="{ width: column.width, left: column.sticked ? column.left + 'px' : '' }"
+                            :class="{
+                                'sticky bg-white/90 hover:bg-muted/50 dark:bg-background/80': column.sticked,
+                            }"
                         >
                             <div class="flex items-center" :class="column.options.alignment">
                                 <div :class="cellClass(column)">
-                                    <component :is="Columns[column.type as string as ColumnTypes]"
-                                               :params="row._customColumnsParams"
-                                               :name="column.name"
-                                               :class="cellClass(column)"
-                                    >{{ row[column.name] }}</component>
+                                    <component
+                                        :is="Columns[column.type as string as ColumnTypes]"
+                                        :params="row._customColumnsParams"
+                                        :name="column.name"
+                                        :class="cellClass(column)"
+                                        >{{ row[column.name] }}</component
+                                    >
                                 </div>
                             </div>
                         </TableCell>
@@ -231,19 +259,18 @@ const onSearchEnd = () => {
         <Pagination
             :class="{ 'px-4': expanded }"
             :meta="resource.meta"
-            :reloadOnly
             :stickyPagination
-            :includeQueryString
             :hidePageNumbers
+            @update="onPageChange"
         ></Pagination>
     </div>
 </template>
 
 <style scoped>
 table.scrolled tr:hover td.sticky {
-    background-color: hsl(var(--muted) / 0.9)
+    background-color: hsl(var(--muted) / 0.9);
 }
 table tr:hover td.sticky {
-    background-color: hsl(var(--muted) / 0.5)
+    background-color: hsl(var(--muted) / 0.5);
 }
 </style>

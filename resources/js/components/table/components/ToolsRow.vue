@@ -7,12 +7,13 @@ import { computed } from 'vue';
 interface Props {
     meta: PaginatedMeta;
     headers: TableHeader[];
-    reloadOnly?: boolean | string[];
 }
 
-const props = withDefaults(defineProps<Props>(), {
-    reloadOnly: false,
-});
+const props = defineProps<Props>();
+
+const emit = defineEmits<{
+    (e: 'update', page: number): void;
+}>();
 
 const from = computed(() => (props.meta.currentPage - 1) * props.meta.perPage + 1);
 const to = computed(() => Math.min(props.meta.currentPage * props.meta.perPage, props.meta.total));
@@ -29,7 +30,7 @@ const fixedColumns = props.headers.filter((column: TableHeader) => !column.optio
         </div>
 
         <div class="ml-auto flex flex-col gap-4 @sm:flex-row @sm:items-center items-end">
-            <RowsPerPage :meta="meta" :reloadOnly includeQueryString v-if="meta.perPageOptions" />
+            <RowsPerPage :meta="meta" @update="(page) => emit('update', page)" />
 
             <ColumnsVisibility :fixedColumns />
         </div>
