@@ -52,5 +52,6 @@ export interface Paginated<T> {
     stickyHeader: boolean
     stickyPagination: boolean
     searchable: boolean
+    resizable: boolean
 }
 

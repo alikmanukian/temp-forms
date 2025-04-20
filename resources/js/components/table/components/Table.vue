@@ -2,7 +2,7 @@
 import type { Filter, Paginated, TableHeader as TableHeaderType } from '../index';
 import Pagination from '../components/Pagination.vue';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { computed, nextTick, onMounted, onUnmounted, provide, useTemplateRef } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, provide, ref, useTemplateRef } from 'vue';
 import vResizable from '../utils/resizable';
 import EmptyState from '../components/EmptyState.vue';
 import ToolsRow from '../components/ToolsRow.vue';
@@ -20,20 +20,16 @@ import { router } from '@inertiajs/vue3';
 import { useFilters } from '@/components/table/utils/filterable';
 import type { VisitOptions } from '@inertiajs/core';
 import { buildData } from '@/components/table/utils/helpers';
+import Loader from './Loader.vue';
+import { useRequest } from '@/components/table/utils/request';
 
 interface Props {
     resource: Paginated<any>;
-    reloadOnly?: boolean | string[];
-    includeQueryString?: boolean;
-    resizable?: boolean;
     expanded?: boolean;
     hidePageNumbers?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    reloadOnly: false,
-    includeQueryString: true,
-    resizable: false,
     expanded: false,
     hidePageNumbers: false,
 });
@@ -47,7 +43,6 @@ const { scrollPosition, scrollable, updateScrollPosition, updateScrollSize, upda
 const { setSearchParams } = useFilters(pageName);
 
 const container = useTemplateRef<HTMLElement>('container');
-const resizable = computed(() => props.resizable);
 
 const stickyHeader = computed(() => props.resource.stickyHeader);
 const stickyPagination = computed(() => props.resource.stickyPagination);
@@ -127,62 +122,40 @@ type ColumnTypes = keyof typeof Columns;
 
 const onSearch = (name: string, value: string) => {
     reload(setSearchParams(name, value));
-}
+};
 
 const onPageChange = (page: number) => {
     reload(buildData(pageName, page));
-}
+};
 
 const onClearFilter = (name: string, value: string) => {
     reload(setSearchParams(name, value));
-}
-
-const reload = (data: any) => {
-    const params: VisitOptions = {
-        data,
-        only: ['query'],
-    };
-
-    // set reload only param
-    if (props.reloadOnly) {
-        params.only = [...(params.only as string[]), ...(props.reloadOnly as string[])]
-    }
-
-    // todo: clear empty filters, clear page=1
-
-    router.reload(params);
 };
+
+const { reload, loading } = useRequest(props.resource.name);
 </script>
 
 <template>
     <div class="@container" :class="{ '-mx-4': expanded }" ref="container" :data-name="`table-container-${name}`">
         <div class="flex space-x-3 p-4">
-            <Search v-if="resource.searchable"
-                    token="search"
-                    @update="onSearch"
-                    class="flex-1" />
+            <Search v-if="resource.searchable" token="search" @update="onSearch" class="flex-1" />
             <FiltersButton />
         </div>
 
         <FiltersRow :filters="resource.filters" @update="onClearFilter" />
 
-        <ToolsRow v-if="!noResults"
-                  :meta="resource.meta"
-                  :headers="resource.headers"
-                  :class="{ 'px-4': expanded }"
-                  @update="onPageChange"
-        />
+        <ToolsRow v-if="!noResults" :meta="resource.meta" :headers="resource.headers" :class="{ 'px-4': expanded }" @update="onPageChange" />
 
         <div v-if="!noResults" class="relative" :class="{ 'border-b border-t': expanded, 'rounded-lg border': !expanded }">
             <Table
-                v-resizable="resizable"
+                v-resizable="resource.resizable"
                 @resize:end="saveColumnsPositions"
                 :style="{ overflow: scrollable ? 'auto' : 'visible' }"
                 @scroll="updateScrollPosition"
                 :class="{ 'table-fixed': true, scrolled: scrollPosition > 0 }"
                 data-name="scroll-container"
             >
-                <colgroup v-if="!resizable">
+                <colgroup v-if="!resource.resizable">
                     <col :style="{ width: column.width }" v-for="column in getFilteredColumns" :key="column.name" />
                 </colgroup>
 
@@ -246,8 +219,8 @@ const reload = (data: any) => {
                                         :params="row._customColumnsParams"
                                         :name="column.name"
                                         :class="cellClass(column)"
-                                        >{{ row[column.name] }}</component
-                                    >
+                                        >{{ row[column.name] }}
+                                    </component>
                                 </div>
                             </div>
                         </TableCell>
@@ -256,12 +229,15 @@ const reload = (data: any) => {
             </Table>
 
             <ScrollTableButton />
+
+            <Loader v-if="loading" class="absolute inset-0 z-10 flex justify-center bg-white/50" />
         </div>
 
         <EmptyState v-else />
 
         <Pagination
-            :class="{ 'px-4': expanded }"
+            :disabled="loading"
+            :class="{ 'px-4': expanded, disabled: loading }"
             :meta="resource.meta"
             :stickyPagination
             :hidePageNumbers
@@ -274,6 +250,7 @@ const reload = (data: any) => {
 table.scrolled tr:hover td.sticky {
     background-color: hsl(var(--muted) / 0.9);
 }
+
 table tr:hover td.sticky {
     background-color: hsl(var(--muted) / 0.5);
 }

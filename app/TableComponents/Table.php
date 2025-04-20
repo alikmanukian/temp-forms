@@ -7,6 +7,7 @@ use App\TableComponents\Filters\Filter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Str;
 use JsonException;
@@ -31,6 +32,8 @@ abstract class Table implements JsonSerializable
     protected ?string $resource = null;
 
     protected ?string $name = null;
+
+    protected bool $resizable = true;
 
     /**
      * @var int[]|null
@@ -140,12 +143,34 @@ abstract class Table implements JsonSerializable
         return $this->resolve();
     }
 
-    private function getQueryBuilder(): Builder
+    private function getFilters(): Collection
     {
-        $allowedFilters = collect($this->filters)
+        return collect($this->filters)
             ->filter()
             ->map(fn (Filter $filter) => AllowedFilter::partial($filter->getName()));
+    }
 
+    private function parseRequest(): void
+    {
+        $request = request();
+
+        collect($this->filters)
+            ->filter()
+            ->map(function (Filter $filter) use ($request) {
+                $filterName = $filter->getName();
+                $queryParam = ($this->name ? $this->name . '.' : '') . $filterName;
+
+                $request->input($queryParam);
+            });
+    }
+
+    private function getQueryBuilder(): Builder
+    {
+        $this->parseRequest();
+
+        $allowedFilters = $this->getFilters();
+
+        // prepare global search filter
         if (!empty($this->search)) {
             $allowedFilters->push($this->getCompoundSearch());
         }
@@ -187,6 +212,7 @@ abstract class Table implements JsonSerializable
             'stickyHeader' => $this->getStickyHeader(),
             'stickyPagination' => $this->getStickyPagination(),
             'searchable' => !empty($this->search),
+            'resizable' => $this->resizable,
             'meta' => [
                 'currentPage' => $paginator->currentPage(),
                 'perPage' => $paginator->perPage(),

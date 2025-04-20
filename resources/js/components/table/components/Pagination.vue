@@ -21,12 +21,14 @@ interface Props {
     stickyPagination?: boolean
     hidePageNumbers?: boolean
     hideArrows?: boolean
+    disabled?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
     stickyPagination: false,
     hidePageNumbers: false,
     hideArrows: false,
+    disabled: false,
 });
 
 const emit = defineEmits<{
@@ -53,7 +55,7 @@ const changePage = (page: number) => {
                     :default-page="1"
                     :page="meta.currentPage"
                     @update:page="changePage"
-                    :disabled="meta.total === 0 || meta.currentPage > meta.lastPage"
+                    :disabled="disabled || meta.total === 0 || meta.currentPage > meta.lastPage"
                     show-edges
         >
             <PaginationList v-slot="{ items }" class="flex items-center gap-1">
