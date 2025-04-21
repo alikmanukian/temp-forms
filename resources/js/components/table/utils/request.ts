@@ -1,87 +1,74 @@
 import { ref } from 'vue';
 import type { VisitOptions } from '@inertiajs/core';
 import { router } from '@inertiajs/vue3';
-
-// Interfaces for 2-level nested filter structure
-interface NestedFilter {
-    [key: string]: string | number | null;
-}
-
-interface FilterWithNesting {
-    [key: string]: NestedFilter;
-}
-
-// Interface for 1-level filter structure
-interface FlatFilter {
-    [key: string]: string | number | null;
-}
-
-// Union type for filter (can be either nested or flat)
-type Filter = FilterWithNesting | FlatFilter;
-
-// Interface for the full object
-interface DataObject {
-    filter: Filter;
-    [key: string]: any;
-}
-
-const cleanFilter = (obj: DataObject): DataObject => {
-    // Create a copy to avoid modifying the original object
-    const cleanedObj: DataObject = { ...obj, filter: {} };
-
-    // Iterate through filter properties
-    for (const key in obj.filter) {
-        const value = obj.filter[key];
-
-        // Handle 2-level nesting (e.g., users: { name: "" })
-        if (typeof value === 'object' && !Array.isArray(value)) {
-            const nestedClean: NestedFilter = {};
-            let hasNonEmpty = false;
-
-            // Check nested properties
-            for (const nestedKey in value) {
-                if (value[nestedKey] !== '' && value[nestedKey] != null) {
-                    nestedClean[nestedKey] = value[nestedKey];
-                    hasNonEmpty = true;
-                }
-            }
-
-            // Only add to filter if there are non-empty values
-            if (hasNonEmpty) {
-                cleanedObj.filter[key] = nestedClean;
-            }
-        }
-        // Handle 1-level (e.g., name: "")
-        else if (value !== '' && value != null) {
-            cleanedObj.filter[key] = value;
-        }
-    }
-
-    // Remove filter entirely if it's empty
-    if (Object.keys(cleanedObj.filter).length === 0) {
-        delete cleanedObj.filter;
-        // remove from url also
-    }
-
-    console.log(cleanedObj);
-
-    return cleanedObj;
-}
+import { type SearchParams, processSearchData } from './filterable';
 
 export const loading = ref<boolean>(false);
 
 export const useRequest = (name: string) => {
-    const reload = (data: any) => {
-        const params: VisitOptions = {
+    const reload = (searchData: SearchParams, options: VisitOptions = {}) => {
+
+        let params: VisitOptions = {
             only: ['query', name],
             onStart: () => (loading.value = true),
             onFinish: () => (loading.value = false),
+            replace: true, // todo remove
+            preserveState: true,
+            preserveScroll: true,
         };
 
-        // todo: clear empty filters, clear page=1
-        params.data = cleanFilter(data);
+        params = {...params, ...options};
 
-        router.reload(params);
+        // Get current query parameters
+        const urlSearchParams = new URLSearchParams(window.location.search);
+        const currentParams: Record<string, any> = {};
+
+        // First, parse all current URL parameters
+        for (const [key, value] of urlSearchParams.entries()) {
+            // Handle nested parameters like filter[name], filter[users][email]
+            if (key.includes('[') && key.includes(']')) {
+                const parts = key.replace(/\]/g, '').split('[');
+                let current = currentParams;
+
+                for (let i = 0; i < parts.length - 1; i++) {
+                    if (!current[parts[i]]) {
+                        current[parts[i]] = {};
+                    }
+                    current = current[parts[i]];
+                }
+
+                current[parts[parts.length - 1]] = value;
+            } else {
+                currentParams[key] = value;
+            }
+        }
+
+        // Process the new search data to remove only explicitly empty values
+        const processedData = processSearchData(searchData, currentParams);
+
+        // Remove page if it's 1 (default page)
+        if (processedData.page === 1) {
+            delete processedData.page;
+        }
+
+        // Handle nested page parameters
+        if (processedData.page && typeof processedData.page === 'object') {
+            Object.entries(processedData.page).forEach(([key, value]) => {
+                if (value === 1) {
+                    delete (processedData.page as Record<string, number>)[key];
+                }
+            });
+
+            // Remove the entire page object if it's empty after processing
+            if (Object.keys(processedData.page).length === 0) {
+                delete processedData.page;
+            }
+        }
+
+        params.data = processedData;
+
+        // Completely replace parameters instead of merging
+        router.visit(window.location.pathname, params);
     };
 
     return {

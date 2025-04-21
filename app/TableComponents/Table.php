@@ -4,6 +4,7 @@ namespace App\TableComponents;
 
 use App\TableComponents\Columns\Column;
 use App\TableComponents\Filters\Filter;
+use App\TableComponents\Filters\Spatie\AllowedFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -14,7 +15,6 @@ use JsonException;
 use JsonSerializable;
 use ReflectionClass;
 use RuntimeException;
-use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 /**
@@ -145,9 +145,12 @@ abstract class Table implements JsonSerializable
 
     private function getFilters(): Collection
     {
+        $this->parseRequest();
+
         return collect($this->filters)
             ->filter()
-            ->map(fn (Filter $filter) => AllowedFilter::partial($filter->getName()));
+            ->map(fn (Filter $filter) => $filter->getAllowedFilterMethod())
+            ->filter();
     }
 
     private function parseRequest(): void
@@ -157,17 +160,18 @@ abstract class Table implements JsonSerializable
         collect($this->filters)
             ->filter()
             ->map(function (Filter $filter) use ($request) {
-                $filterName = $filter->getName();
-                $queryParam = ($this->name ? $this->name . '.' : '') . $filterName;
+                $value = $request->input($filter->getQueryParam($this->name));
 
-                $request->input($queryParam);
+                if (empty($value)) {
+                    return;
+                }
+
+                $filter->parseRequestValue($this->name, $value);
             });
     }
 
     private function getQueryBuilder(): Builder
     {
-        $this->parseRequest();
-
         $allowedFilters = $this->getFilters();
 
         // prepare global search filter
@@ -208,11 +212,21 @@ abstract class Table implements JsonSerializable
         $data = [
             'name' => $this->getName(),
             'pageName' => $this->getPageName(),
-            'data' => $paginator->items(),
             'stickyHeader' => $this->getStickyHeader(),
             'stickyPagination' => $this->getStickyPagination(),
             'searchable' => !empty($this->search),
             'resizable' => $this->resizable,
+            'headers' => collect($this->columns)
+                ->map(fn (Column $column) => $column->toArray())
+                ->toArray(),
+            'filters' => collect($this->filters)
+                ->map(fn (Filter $filter) => $filter->toArray())
+                ->toArray()
+        ];
+
+        return array_merge($data, [
+            'hash' => $this->hash($data),
+            'data' => $paginator->items(),
             'meta' => [
                 'currentPage' => $paginator->currentPage(),
                 'perPage' => $paginator->perPage(),
@@ -220,17 +234,7 @@ abstract class Table implements JsonSerializable
                 'lastPage' => $paginator->lastPage(),
                 'perPageOptions' => $this->getPerPageOptions(),
             ],
-            'headers' => collect($this->columns)
-                ->map(fn (Column $column) => $column->toArray())
-                ->toArray(),
-            'filters' => collect($this->filters)
-                ->map(fn (Filter $filter) => $filter->toArray())
-                ->toArray(),
-        ];
-
-        $data['hash'] = $this->hash($data);
-
-        return $data;
+        ]);
     }
 
     private function getName(): string

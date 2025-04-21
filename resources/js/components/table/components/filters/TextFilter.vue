@@ -1,28 +1,31 @@
 <script lang="ts" setup>
 import { type Filter } from '../../index';
 import Search from '../../components/Search.vue';
+import { ref } from 'vue';
 
 interface Props {
     filter: Filter;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const emit = defineEmits<{
-    (e: 'update', name: string, value: string): void;
+    (e: 'update', value: string): void;
 }>();
 
-const search = (name: string, value: string) => {
-    emit('update', name, value)
+const search = (value: string) => {
+    emit('update', value)
 }
+
+const model = ref<string>(props.filter.value);
 
 </script>
 
 <template>
     <Search
-        :token="filter.name"
+        v-model="model"
         class="w-full focus-visible:ring-1 focus-visible:ring-offset-1 focus-visible:ring-ring/40 h-8 px-2"
-           type="text"
+        type="text"
         @update="search"
     />
 </template>

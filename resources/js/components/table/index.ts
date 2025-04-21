@@ -39,6 +39,8 @@ export interface Filter {
     defaultClause: string
     showInHeader: boolean
     component: string
+    value: string|number|boolean|null
+    selectedClause: string|null
 }
 
 export interface Paginated<T> {

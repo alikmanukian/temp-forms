@@ -4,7 +4,12 @@ namespace App\TableComponents\Enums;
 
 enum Clause: string
 {
-    case Equals = 'equals';
-    case Contains = 'contains';
-    case StartsWith = 'startsWith';
+    case Equals = '';
+    case DoesNotEqual = '!';
+    case Contains = '~';
+    case DoesNotContain = '!~';
+    case StartsWith = '^';
+    case DoesNotStartWith = '!^';
+    case EndsWith = '$';
+    case DoesNotEndWith = '!$';
 }

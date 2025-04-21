@@ -1,39 +1,27 @@
 <script setup lang="ts">
 import { Input } from '@/components/ui/input';
-import { watch, inject } from 'vue';
-import { useForm } from '@inertiajs/vue3';
 import { useDebounceFn } from '@vueuse/core';
-import { useFilters } from '@/components/table/utils/filterable';
 
-const props = defineProps<{
-    token: string;
+defineProps<{
+    modelValue: string;
 }>();
 
-const pageName = inject<string>('pageName') as string;
+const model = defineModel<string>()
 
-const { getInitialSearch } = useFilters(pageName);
-
-const form = useForm<{ search: string }>({
-    search: getInitialSearch(props.token),
-});
-
+// Emit debounced update event
 const emit = defineEmits<{
-    (e: 'update', name: string, value: string): void;
-}>();
+    (e: 'update', value: string): void
+}>()
 
 const debouncedFn = useDebounceFn(() => {
-    emit('update', props.token, form.search);
+    if (model.value !== undefined) {
+        emit('update', model.value)
+    }
 }, 300);
 
-watch(
-    () => form.search,
-    () => debouncedFn(),
-    {
-        deep: true,
-    },
-);
+const onInput = () => debouncedFn();
 </script>
 
 <template>
-    <Input v-model="form.search" />
+    <Input v-model="model" @input="onInput" />
 </template>
