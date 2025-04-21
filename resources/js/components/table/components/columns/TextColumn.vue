@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
-import type { Image as TypeImage, ImageRecord, Icon as TypeIcon, IconRecord, LinkRecord } from '../columns';
+import type { Image as TypeImage, ImageRecord, Icon as TypeIcon, IconRecord, LinkRecord } from './index';
 import Image from '../Image.vue';
 import Icon from '../Icon.vue';
 import Wrapper from '../Wrapper.vue';

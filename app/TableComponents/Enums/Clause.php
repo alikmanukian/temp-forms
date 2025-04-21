@@ -12,4 +12,12 @@ enum Clause: string
     case DoesNotStartWith = '!^';
     case EndsWith = '$';
     case DoesNotEndWith = '!$';
+
+    public function toString(): string
+    {
+        return match($this) {
+            self::Contains => 'Asterisk',
+            default => 'Equal'
+        };
+    }
 }

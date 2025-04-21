@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { cn } from '@/lib/utils';
 import { computed } from 'vue';
-import type { Icon as TypeIcon, IconRecord } from '../columns';
+import type { Icon as TypeIcon, IconRecord } from './index';
 import Icon from '../Icon.vue';
 
 interface VariantRecord {

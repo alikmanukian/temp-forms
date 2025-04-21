@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import Icon from '../Icon.vue';
-import type { Icon as TypeIcon, IconRecord } from '../columns';
+import type { Icon as TypeIcon, IconRecord } from './index';
 import { computed } from 'vue';
 
 interface Props {

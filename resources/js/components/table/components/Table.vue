@@ -12,10 +12,10 @@ import { init, useComponents } from '../utils/components';
 import ScrollTableButton from '../components/ScrollTableButton.vue';
 import { useScrollable } from '../utils/scrollable';
 import * as Columns from './columns';
-import * as Filters from './filters';
-import Search from '../components/Search.vue';
+import * as Filters from './filters/inputs';
+import DebounceInput from '../components/DebounceInput.vue';
 import FiltersButton from '@/components/table/components/FiltersButton.vue';
-import FiltersRow from '@/components/table/components/FiltersRow.vue';
+import FiltersRow from '@/components/table/components/filters/FiltersRow.vue';
 import { useFilters } from '@/components/table/utils/filterable';
 import { buildData } from '@/components/table/utils/helpers';
 import Loader from './Loader.vue';
@@ -147,7 +147,7 @@ props.resource.filters.forEach((filter: Filter) => {
 <template>
     <div class="@container" :class="{ '-mx-4': expanded }" ref="container" :data-name="`table-container-${name}`">
         <div class="flex space-x-3 p-4">
-            <Search v-if="resource.searchable" v-model="search" @update="(value) => onSearch('search', value)" class="flex-1" />
+            <DebounceInput v-if="resource.searchable" v-model="search" @update="(value) => onSearch('search', value)" class="flex-1" />
             <FiltersButton />
         </div>
 

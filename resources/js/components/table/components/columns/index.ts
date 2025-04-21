@@ -1,8 +1,8 @@
-export { default as TextColumn } from './columns/TextColumn.vue'
-export { default as BadgeColumn } from './columns/BadgeColumn.vue'
-export { default as BooleanColumn } from './columns/BooleanColumn.vue'
-export { default as ImageColumn } from './columns/ImageColumn.vue'
-export { default as DateColumn } from './columns/DateColumn.vue'
+export { default as TextColumn } from './TextColumn.vue'
+export { default as BadgeColumn } from './BadgeColumn.vue'
+export { default as BooleanColumn } from './BooleanColumn.vue'
+export { default as ImageColumn } from './ImageColumn.vue'
+export { default as DateColumn } from './DateColumn.vue'
 interface HtmlObject {
     class?: string
     style?: string

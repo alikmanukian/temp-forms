@@ -54,13 +54,13 @@ class Filter
     {
         return [
             'name' => $this->name,
-            'title' => $this->title,
+            'title' => $this->title ?? Str::title($this->name),
             'clauses' => array_map(static fn ($clause) => $clause->value, $this->clauses),
             'defaultClause' => $this->defaultClause?->value,
             'showInHeader' => $this->showInHeader,
             'component' => class_basename(static::class),
             'value' => $this->value,
-            'selectedClause' => $this->selectedClause?->value,
+            'selectedClause' => $this->selectedClause?->toString(),
         ];
     }
 

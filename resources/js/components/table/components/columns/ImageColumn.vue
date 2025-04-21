@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ImageRecord, Image as TypeImage } from '../columns';
+import type { ImageRecord, Image as TypeImage } from './index';
 import Image from '../Image.vue';
 import { computed } from 'vue';
 
