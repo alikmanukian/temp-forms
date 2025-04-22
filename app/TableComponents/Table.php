@@ -221,7 +221,7 @@ abstract class Table implements JsonSerializable
                 ->toArray(),
             'filters' => collect($this->filters)
                 ->map(fn (Filter $filter) => $filter->toArray())
-                ->toArray()
+                ->toArray(),
         ];
 
         return array_merge($data, [

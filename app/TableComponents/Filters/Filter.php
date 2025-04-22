@@ -13,6 +13,9 @@ use Illuminate\Support\Str;
  */
 class Filter
 {
+    /**
+     * @var Clause[]
+     */
     protected array $clauses = [];
     protected ?Clause $defaultClause = null;
 
@@ -55,43 +58,52 @@ class Filter
         return [
             'name' => $this->name,
             'title' => $this->title ?? Str::title($this->name),
-            'clauses' => array_map(static fn ($clause) => $clause->value, $this->clauses),
-            'defaultClause' => $this->defaultClause?->value,
+            'clauses' => $this->clauses(),
+            'defaultClause' => $this->defaultClause?->toArray(),
             'showInHeader' => $this->showInHeader,
             'component' => class_basename(static::class),
             'value' => $this->value,
-            'selectedClause' => $this->selectedClause?->toString(),
+            'selectedClause' => $this->selectedClause?->toArray(),
         ];
+    }
+
+    private function clauses(): array
+    {
+        return collect($this->clauses)
+            ->map(fn (Clause $clause) => $clause->toArray())
+            ->values()
+            ->toArray();
     }
 
     public function parseRequestValue(string $tableName, string $value): void
     {
-        $clauses = collect($this->clauses)
-            ->map(fn ($clause) => $clause->value)
-            ->sortByDesc(fn ($clause) => Str::length($clause))
-            ->filter()
-            ->values();
-
+        $clauses = Clause::sortByLength($this->clauses);
         foreach ($clauses as $clause) {
-            if (Str::startsWith($value, $clause)) {
-                $this->selectedClause = Clause::from($clause);
-                $this->value = Str::after($value, $clause);
-                break;
+            if (! Str::startsWith($value, $clause)) {
+                continue;
             }
+
+            $this->selectedClause = Clause::findBySearchSymbol($clause);
+            $newValue = Str::after($value, $clause);
+
+            if (! is_null($this->selectedClause) && ! empty($newValue)) {
+                $this->value = $newValue;
+            }
+
+            break;
         }
 
-        if (is_null($this->selectedClause) && collect($this->clauses)->contains(
-                fn ($clause) => $clause === Clause::Equals
-            )) {
+        if (! empty($value)
+            && is_null($this->selectedClause)
+            && collect($this->clauses)->contains(fn ($clause) => $clause === Clause::Equals)
+        ) {
             $this->selectedClause = Clause::Equals;
             $this->value = $value;
         }
 
-        if (! is_null($this->value)) {
-            request()->merge([
-                $this->getQueryParam($tableName) => $this->value,
-            ]);
-        }
+        request()->merge([
+            $this->getQueryParam($tableName) => $this->value,
+        ]);
     }
 
     public function getQueryParam(string $tableName): string
@@ -106,11 +118,13 @@ class Filter
     {
         return match ($this->selectedClause) {
             Clause::Contains => AllowedFilter::contains($this->name),
-//            Clause::DoesNotContain => ,
-//            Clause::StartsWith => 'beginsWithStrict',
-//            Clause::EndsWith => 'endsWithStrict',
+            Clause::DoesNotContain => AllowedFilter::doesNotContain($this->name),
+            Clause::StartsWith => AllowedFilter::startsWith($this->name),
+            Clause::DoesNotStartWith => AllowedFilter::doesNotStartWith($this->name),
+            Clause::EndsWith => AllowedFilter::endsWith($this->name),
+            Clause::DoesNotEndWith => AllowedFilter::doesNotEndWith($this->name),
             Clause::Equals => AllowedFilter::equals($this->name),
-//            Clause::DoesNotEqual,
+            Clause::DoesNotEqual => AllowedFilter::doesNotEqual($this->name),
             default => null,
         };
     }

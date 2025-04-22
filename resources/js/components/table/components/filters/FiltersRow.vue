@@ -12,19 +12,20 @@ const appliedFilters = computed(() => Object.fromEntries(
 ));
 
 const emit = defineEmits<{
-    (e: 'update', name: string, value: string): void;
+    (e: 'update', name: string, value: string, clause: string|null): void;
 }>();
 
-const onUpdate = (name: string, value: string) => {
-    emit('update', name, value)
+const onUpdate = (name: string, value: string, clause: string|null) => {
+    emit('update', name, value, clause)
 }
 
 </script>
 
 <template>
-    <div class="p-4 gap-4 flex items-center">
+    <div class="p-4 gap-4 flex items-center flex-wrap">
         <FilterDropdown v-for="filter in appliedFilters"
-                        :key="filter.name" :filter="filter"
+                        :key="filter.name"
+                        :filter="filter"
                         @update="onUpdate"
         />
     </div>

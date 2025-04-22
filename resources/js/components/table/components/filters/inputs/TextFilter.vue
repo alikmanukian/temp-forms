@@ -10,11 +10,11 @@ interface Props {
 const props = defineProps<Props>();
 
 const emit = defineEmits<{
-    (e: 'update', value: string): void;
+    (e: 'update', value: string, clause: string|null): void;
 }>();
 
 const search = (value: string) => {
-    emit('update', value)
+    emit('update', value, props.filter.selectedClause?.searchSymbol ?? props.filter.defaultClause.searchSymbol);
 }
 
 const model = ref<string>(props.filter.value as string);

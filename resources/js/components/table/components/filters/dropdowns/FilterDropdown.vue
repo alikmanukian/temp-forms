@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Icon from '@/components/Icon.vue';
-import type { Filter } from '@/components/table';
+import type { Clause, Filter } from '@/components/table';
+import { ref, watch } from 'vue';
 import {
     DropdownMenu,
     DropdownMenuTrigger,
@@ -8,56 +9,79 @@ import {
     DropdownMenuItem
 } from '@/components/ui/dropdown-menu';
 import { TextFilter } from '@/components/table/components/filters/inputs';
+import ClauseSymbol from '@/components/table/components/filters/dropdowns/ClauseSymbol.vue';
 
 interface Props {
     filter: Filter;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const emit = defineEmits<{
-    (e: 'update', name: string, value: string): void;
+    (e: 'update', name: string, value: string, clause: string|null): void;
 }>();
 
-const clear = (name: string, value: string) => {
-    emit('update', name, value);
-};
+const selectedClause = ref<Clause>(props.filter.selectedClause ?? props.filter.clauses[0]);
+const selectedFilter = ref<Filter>(props.filter);
+
+const onChangeClause = (value: Clause) => {
+    selectedClause.value = value;
+    emit('update', props.filter.name, props.filter.value as string, value.searchSymbol);
+}
+
+const onChangeValue = (value: string) => {
+    selectedFilter.value = {
+        ...props.filter,
+        value
+    }
+    emit('update', props.filter.name, value, selectedClause.value.searchSymbol);
+}
+
+watch(() => props.filter, (newValue: Filter) => {
+    selectedFilter.value = newValue;
+    selectedClause.value = newValue?.selectedClause ?? newValue?.clauses[0];
+});
 </script>
 
 <template>
     <DropdownMenu class="relative">
-        <div class="flex h-7 items-center overflow-hidden rounded-md text-sm shadow">
+        <div class="flex h-7 items-center overflow-hidden rounded-md text-sm shadow border border-border">
             <DropdownMenuTrigger class="group/filter flex h-full cursor-pointer items-center bg-gray-50 hover:bg-gray-100 hover:text-orange-600">
-                <span class="px-2 text-left font-medium">{{ filter.title }}</span>
+                <span class="px-2 text-left font-medium whitespace-nowrap">{{ filter.title }}</span>
                 <span class="flex items-center px-1 text-center text-lg leading-none">
-                    <Icon v-if="filter.selectedClause" :name="filter.selectedClause as string" class="size-4" />
+                    <ClauseSymbol :clause="selectedClause" />
                 </span>
-                <span class="px-2 text-left text-muted-foreground group-hover/filter:text-orange-600">{{ filter.value }}</span>
+                <span class="px-2 text-left text-muted-foreground group-hover/filter:text-orange-600 truncate max-w-48">{{ filter.value }}</span>
             </DropdownMenuTrigger>
-            <button @click.prevent="clear(filter.name, '')" class="h-full bg-gray-50 px-2 py-1 hover:bg-gray-100 hover:text-orange-600">
+            <button @click.prevent="onChangeValue('')" class="h-full bg-gray-50 px-2 py-1 hover:bg-gray-100 hover:text-orange-600">
                 <Icon name="X" class="size-3.5" />
             </button>
         </div>
 
         <DropdownMenuContent class="min-w-[300px] bg-gray-50 p-2 space-y-3 mt-1" align="start">
-            <div class="flex gap-2">
-                <label class="font-medium">Operator:</label>
+            <div class="flex gap-2 items-center">
+                <label>Operator:</label>
                 <DropdownMenu class="relative">
                     <DropdownMenuTrigger>
                         <div class="flex gap-1 items-center text-muted-foreground">
-                            <Icon v-if="filter.selectedClause" :name="filter.selectedClause as string" class="size-4" />
-                            <span>Contains</span>
+                            <ClauseSymbol :clause="selectedClause" />
+                            <span>{{ selectedClause.name }}</span>
                             <Icon name="ChevronDown" class="w-5" />
                         </div>
                     </DropdownMenuTrigger>
+
                     <DropdownMenuContent align="start">
-                        <DropdownMenuItem>Contains</DropdownMenuItem>
-                        <DropdownMenuItem>Does Not Contain</DropdownMenuItem>
+                        <DropdownMenuItem v-for="clause in filter.clauses" :key="clause.value" @click="onChangeClause(clause)">
+                            <div class="flex gap-1 items-center">
+                                <ClauseSymbol :clause />
+                                <span>{{ clause.name }}</span>
+                            </div>
+                        </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
 
-            <TextFilter :filter />
+            <TextFilter :filter="selectedFilter" @update="onChangeValue" />
         </DropdownMenuContent>
     </DropdownMenu>
 </template>

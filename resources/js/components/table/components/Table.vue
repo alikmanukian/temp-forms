@@ -109,26 +109,26 @@ provide('pageName', pageName);
 
 type ColumnTypes = keyof typeof Columns;
 
-const onSearch = (field: string, value: string) => {
-    if (value.length > 0 && field !== 'search') {
-        value = '~' + value;
+const onSearch = (field: string, value: string, clause: string|null) => {
+    if (clause) {
+        value = clause + value;
     }
 
     reload(setSearchParams(field, value), {
         onSuccess: (response) => {
-            filters[field] = response.props[name].filters.find((filter: Filter) => {
+            const filter = (response.props[name] as Paginated<any>).filters.find((filter: Filter) => {
                 return filter.name === field;
-            })
+            });
+
+            if (filter) {
+                filters[field] = filter;
+            }
         },
     });
 };
 
 const onPageChange = (page: number) => {
     reload(buildData(pageName, page));
-};
-
-const onClearFilter = (name: string, value: string) => {
-    onSearch(name, value);
 };
 
 const { reload, loading } = useRequest(props.resource.name);
@@ -138,7 +138,7 @@ const { getInitialSearch } = useFilters(pageName);
 const search = ref<string>(getInitialSearch('search'))
 
 // Initialize filters
-const filters = reactive({})
+const filters = reactive<Record<string, Filter>>({})
 props.resource.filters.forEach((filter: Filter) => {
     filters[filter.name] = {...filter}
 });
@@ -147,11 +147,11 @@ props.resource.filters.forEach((filter: Filter) => {
 <template>
     <div class="@container" :class="{ '-mx-4': expanded }" ref="container" :data-name="`table-container-${name}`">
         <div class="flex space-x-3 p-4">
-            <DebounceInput v-if="resource.searchable" v-model="search" @update="(value) => onSearch('search', value)" class="flex-1" />
+            <DebounceInput v-if="resource.searchable" v-model="search" @update="(value) => onSearch('search', value, '')" class="flex-1" />
             <FiltersButton />
         </div>
 
-        <FiltersRow :filters="filters" @update="onClearFilter" />
+        <FiltersRow :filters="filters" @update="onSearch" />
 
         <ToolsRow v-if="!noResults" :meta="resource.meta" :headers="resource.headers" :class="{ 'px-4': expanded }" @update="onPageChange" />
 
@@ -205,8 +205,8 @@ props.resource.filters.forEach((filter: Filter) => {
                             <component
                                 v-if="filters[column.name]"
                                 v-model="filters[column.name].value"
-                                @update="(value) => onSearch(column.name, value)"
-                                :is="Filters[filters[column.name].component]"
+                                @update="(value: string, clause: string|null) => onSearch(column.name, value, clause)"
+                                :is="Filters[filters[column.name].component as keyof typeof Filters]"
                                 :filter="resource.filters.find((filter: Filter) => filter.name === column.name)"
                             ></component>
                         </TableHead>

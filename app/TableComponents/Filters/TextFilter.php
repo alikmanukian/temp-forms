@@ -14,7 +14,9 @@ class TextFilter extends Filter
         Clause::Contains,
         Clause::DoesNotContain,
         Clause::StartsWith,
+        Clause::DoesNotStartWith,
         Clause::EndsWith,
+        Clause::DoesNotEndWith,
         Clause::Equals,
         Clause::DoesNotEqual,
     ];

@@ -1,4 +1,3 @@
-
 // Get initial search from query string
 import { usePage } from '@inertiajs/vue3';
 import { buildData } from '../utils/helpers';
@@ -11,11 +10,16 @@ export interface SearchParams {
     filter?: {
         [key: string]: string | FilterValue | null;
     };
-    page?: number | {
-        [key: string]: number;
-    };
+    page?:
+        | number
+        | {
+              [key: string]: number;
+          };
+
     [key: string]: any;
 }
+
+const possibleEmptyValues = ['', null, '*', '!*', '^', '!^', '$', '!$', '!'];
 
 /**
  * Process search data, merging with current params and removing explicitly empty values
@@ -63,7 +67,7 @@ const processFilterValues = (newValues: Record<string, any>, currentValues: Reco
             }
         }
         // For explicit empty values or null - remove them
-        else if (value === '' || value === null) {
+        else if (possibleEmptyValues.includes(value)) {
             delete currentValues[key];
         }
         // For other values - update them
@@ -94,28 +98,30 @@ export const useFilters = (pageName: string) => {
         filterParam += '.' + token;
 
         return filterParam;
-    }
+    };
 
     const getInitialSearch = (token: string) => {
-        return getFilterParam(token).split('.').reduce((acc, key) => {
-            if (acc && acc.hasOwnProperty(key)) {
-                return acc[key];
-            }
-            return null;
-        }, query)
-    }
+        return getFilterParam(token)
+            .split('.')
+            .reduce((acc, key) => {
+                if (acc && acc.hasOwnProperty(key)) {
+                    return acc[key];
+                }
+                return null;
+            }, query);
+    };
 
     const setSearchParams = (token: string, value: any) => {
         return {
             ...buildData(getFilterParam(token), value),
-            ...buildData(pageName, 1)
-        }
-    }
+            ...buildData(pageName, 1),
+        };
+    };
 
     return {
         query,
         getInitialSearch,
         getFilterParam,
         setSearchParams,
-    }
-}
+    };
+};

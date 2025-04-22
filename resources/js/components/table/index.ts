@@ -32,15 +32,22 @@ export interface TableHeader {
     _params: Record<string, number|string|boolean>
 }
 
+export interface Clause {
+    name: string
+    symbol: string
+    searchSymbol: string
+    value: string
+}
+
 export interface Filter {
     name: string
     title: string
-    clauses: string[]
-    defaultClause: string
+    clauses: Clause[]
+    defaultClause: Clause
     showInHeader: boolean
     component: string
     value: string|number|boolean|null
-    selectedClause: string|null
+    selectedClause: Clause|null
 }
 
 export interface Paginated<T> {
