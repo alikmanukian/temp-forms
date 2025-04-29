@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { Filter } from '../../index';
+import type { Filter, FilterOption } from '../index';
 import { computed } from 'vue';
-import { FilterDropdown } from './dropdowns';
+import { FilterDropdown } from './filters/dropdowns';
 interface Props {
     filters: Record<string, Filter>;
 }

@@ -6,7 +6,7 @@ use Illuminate\Support\Str;
 
 enum Clause: string
 {
-    case Equals = 'equals';
+    case Equals = 'equals'; // ''
     case DoesNotEqual = 'does_not_equal'; // '!';
     case Contains = 'contains'; //'~';
     case DoesNotContain = 'does_not_contain'; //'!~';
@@ -14,6 +14,8 @@ enum Clause: string
     case DoesNotStartWith = 'does_not_start_with'; //'!^';
     case EndsWith = 'ends_with'; //'$';
     case DoesNotEndWith = 'does_not_end_with'; //'!$';
+    case IsIn = 'is_in'; // ''
+    case IsNotIn = 'is_not_in'; // '!'
 
     public function toArray(): array
     {
@@ -25,7 +27,7 @@ enum Clause: string
         ];
     }
 
-    public static function findBySearchSymbol(string $symbol): ?self
+    public static function findBySearchSymbol(string $symbol, ?string $value = null): ?self
     {
         return collect(self::cases())
             ->first(fn(Clause $clause) => $clause->searchSymbol() === $symbol);
@@ -41,7 +43,9 @@ enum Clause: string
             self::EndsWith => 'Ends With',
             self::DoesNotEndWith => 'Does Not End With',
             self::Equals => 'Equals',
-            self::DoesNotEqual => 'Does Not Equal'
+            self::DoesNotEqual => 'Does Not Equal',
+            self::IsIn => 'Is In',
+            self::IsNotIn => 'Is Not In',
         };
     }
 
@@ -55,7 +59,9 @@ enum Clause: string
             self::EndsWith => 'DollarSign',
             self::DoesNotEndWith => '!DollarSign',
             self::Equals => 'Equal',
-            self::DoesNotEqual => 'EqualNot',
+            self::DoesNotEqual=> 'EqualNot',
+            self::IsIn => 'EqualApproximately',
+            self::IsNotIn => '!EqualApproximately',
         };
     }
 
@@ -69,7 +75,9 @@ enum Clause: string
             self::EndsWith => '$',
             self::DoesNotEndWith => '!$',
             self::Equals => '',
-            self::DoesNotEqual => '!'
+            self::DoesNotEqual => '!',
+            self::IsIn => '~',
+            self::IsNotIn => '!~',
         };
     }
 

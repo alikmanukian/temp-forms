@@ -15,7 +15,7 @@ import * as Columns from './columns';
 import * as Filters from './filters/inputs';
 import DebounceInput from '../components/DebounceInput.vue';
 import FiltersButton from '@/components/table/components/FiltersButton.vue';
-import FiltersRow from '@/components/table/components/filters/FiltersRow.vue';
+import FiltersRow from '@/components/table/components/FiltersRow.vue';
 import { useFilters } from '@/components/table/utils/filterable';
 import { buildData } from '@/components/table/utils/helpers';
 import Loader from './Loader.vue';
@@ -109,7 +109,11 @@ provide('pageName', pageName);
 
 type ColumnTypes = keyof typeof Columns;
 
-const onSearch = (field: string, value: string, clause: string|null) => {
+const onSearch = (field: string, value: string|string[], clause: string|null) => {
+    if (Array.isArray(value)) {
+        value = value.join(',')
+    }
+
     if (clause) {
         value = clause + value;
     }
@@ -205,7 +209,7 @@ props.resource.filters.forEach((filter: Filter) => {
                             <component
                                 v-if="filters[column.name]"
                                 v-model="filters[column.name].value"
-                                @update="(value: string, clause: string|null) => onSearch(column.name, value, clause)"
+                                @update="(value: string|string[], clause: string|null) => onSearch(column.name, value, clause)"
                                 :is="Filters[filters[column.name].component as keyof typeof Filters]"
                                 :filter="resource.filters.find((filter: Filter) => filter.name === column.name)"
                             ></component>

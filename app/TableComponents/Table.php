@@ -8,6 +8,7 @@ use App\TableComponents\Filters\Spatie\AllowedFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Str;
@@ -105,7 +106,7 @@ abstract class Table implements JsonSerializable
                 $this->search,
                 collect($this->columns)
                     ->filter(fn (Column $column) => $column->isSearchable())
-                    ->map(fn(Column $column) => $column->getName())
+                    ->map(fn (Column $column) => $column->getName())
                     ->values()
                     ->toArray()
             )
@@ -175,7 +176,7 @@ abstract class Table implements JsonSerializable
         $allowedFilters = $this->getFilters();
 
         // prepare global search filter
-        if (!empty($this->search)) {
+        if (! empty($this->search)) {
             $allowedFilters->push($this->getCompoundSearch());
         }
 
@@ -194,7 +195,7 @@ abstract class Table implements JsonSerializable
 
         return AllowedFilter::callback('search', function (Builder $query, string $value) {
             $query->where(function (Builder $query) use ($value) {
-                foreach($this->search as $field) {
+                foreach ($this->search as $field) {
                     $query->orWhere($field, 'LIKE', "%{$value}%");
                 }
             });
@@ -214,19 +215,28 @@ abstract class Table implements JsonSerializable
             'pageName' => $this->getPageName(),
             'stickyHeader' => $this->getStickyHeader(),
             'stickyPagination' => $this->getStickyPagination(),
-            'searchable' => !empty($this->search),
+            'searchable' => ! empty($this->search),
             'resizable' => $this->resizable,
             'headers' => collect($this->columns)
                 ->map(fn (Column $column) => $column->toArray())
                 ->toArray(),
             'filters' => collect($this->filters)
-                ->map(fn (Filter $filter) => $filter->toArray())
+                ->map(
+                    fn (Filter $filter) => Arr::except($filter->toArray(), ['value'])
+                ) // we do this to reset if filters structure changed except value
                 ->toArray(),
         ];
 
+        // 6914b414afa6210774fedcae4c93cdc94b227d254cfba5dbd0d7883e88eb6737
+        // ad1d108be0504c40893d757e1e3f316173c357480b17191837c586990564ee93
+        $hash = $this->hash($data);
+
         return array_merge($data, [
-            'hash' => $this->hash($data),
+            'hash' => $hash,
             'data' => $paginator->items(),
+            'filters' => collect($this->filters)
+                ->map(fn (Filter $filter) => $filter->toArray())
+                ->toArray(),
             'meta' => [
                 'currentPage' => $paginator->currentPage(),
                 'perPage' => $paginator->perPage(),

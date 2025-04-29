@@ -24,13 +24,17 @@ class FiltersEqual extends \Spatie\QueryBuilder\Filters\FiltersExact
         if (is_array($value)) {
             $query->whereIn(
                 column: DB::raw('LOWER(' . $query->qualifyColumn($property) . ')'),
-                values: $value,
+                values: array_map(static fn(string|int $v) => mb_strtolower((string) $v, 'UTF8'), $value),
                 not: $this->negative
             );
 
             return;
         }
 
-        $query->where(DB::raw('LOWER(' . $query->qualifyColumn($property) . ')'), ($this->negative ? '!' : '').'=', $value);
+        $query->where(
+            DB::raw('LOWER(' . $query->qualifyColumn($property) . ')'),
+            ($this->negative ? '!' : '').'=',
+            mb_strtolower((string) $value, 'UTF8')
+        );
     }
 }

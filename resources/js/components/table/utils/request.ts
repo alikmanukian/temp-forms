@@ -12,7 +12,6 @@ export const useRequest = (name: string) => {
             only: ['query', name],
             onStart: () => (loading.value = true),
             onFinish: () => (loading.value = false),
-            replace: true, // todo remove
             preserveState: true,
             preserveScroll: true,
         };

@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { TextFilter } from '@/components/table/components/filters/inputs';
 import ClauseSymbol from '@/components/table/components/filters/dropdowns/ClauseSymbol.vue';
+import * as Filters from '@/components/table/components/filters/inputs';
 
 interface Props {
     filter: Filter;
@@ -81,7 +82,12 @@ watch(() => props.filter, (newValue: Filter) => {
                 </DropdownMenu>
             </div>
 
-            <TextFilter :filter="selectedFilter" @update="onChangeValue" />
+            <component
+                v-model="selectedFilter.value"
+                @update="onChangeValue"
+                :is="Filters[selectedFilter.component as keyof typeof Filters]"
+                :filter="selectedFilter"
+            ></component>
         </DropdownMenuContent>
     </DropdownMenu>
 </template>

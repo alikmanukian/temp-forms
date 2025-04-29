@@ -46,8 +46,18 @@ export interface Filter {
     defaultClause: Clause
     showInHeader: boolean
     component: string
-    value: string|number|boolean|null
+    value: any
     selectedClause: Clause|null
+}
+
+export interface FilterOption {
+    label: string
+    value: string
+}
+
+export interface DropdownFilter extends Filter {
+    options: FilterOption[]
+    multiple: boolean
 }
 
 export interface Paginated<T> {

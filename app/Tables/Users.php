@@ -93,6 +93,13 @@ class Users extends Table
             Filters\TextFilter::make('name', 'Full Name')->showInHeader(),
             Filters\TextFilter::make('bio')->showInHeader(),
             Filters\TextFilter::make('email')->showInHeader(),
+            Filters\DropdownFilter::make('status')
+                ->showInHeader()
+                ->options([
+                    'active' => 'Active',
+                    'inactive' => 'Inactive'
+                ])
+                ->multiple(),
 //            Filters\NumericFilter::make('visit_count'),
 //            Filters\BooleanFilter::make('is_admin', 'Admin'),
 //            Filters\DateFilter::make('email_verified_at')->nullable(),

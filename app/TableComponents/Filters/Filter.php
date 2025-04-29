@@ -20,7 +20,11 @@ class Filter
     protected ?Clause $defaultClause = null;
 
     protected ?Clause $selectedClause = null;
-    protected ?string $value = null;
+
+    /**
+     * @var string|string[]|null
+     */
+    protected string|array|null $value = null;
 
     private function __construct(
         protected string $name,
@@ -83,11 +87,15 @@ class Filter
                 continue;
             }
 
-            $this->selectedClause = Clause::findBySearchSymbol($clause);
             $newValue = Str::after($value, $clause);
+            $this->selectedClause = Clause::findBySearchSymbol($clause, $newValue);
 
             if (! is_null($this->selectedClause) && ! empty($newValue)) {
                 $this->value = $newValue;
+            }
+
+            if (in_array($this->selectedClause, [Clause::IsIn, Clause::IsNotIn], true)) {
+                $this->value = explode(',', $newValue);
             }
 
             break;
@@ -125,6 +133,8 @@ class Filter
             Clause::DoesNotEndWith => AllowedFilter::doesNotEndWith($this->name),
             Clause::Equals => AllowedFilter::equals($this->name),
             Clause::DoesNotEqual => AllowedFilter::doesNotEqual($this->name),
+            Clause::IsIn => AllowedFilter::equals($this->name),
+            Clause::IsNotIn => AllowedFilter::doesNotEqual($this->name),
             default => null,
         };
     }

@@ -19,7 +19,7 @@ export interface SearchParams {
     [key: string]: any;
 }
 
-const possibleEmptyValues = ['', null, '*', '!*', '^', '!^', '$', '!$', '!'];
+const possibleEmptyValues = ['', null, '*', '!*', '^', '!^', '$', '!$', '!', '~', '!~'];
 
 /**
  * Process search data, merging with current params and removing explicitly empty values
