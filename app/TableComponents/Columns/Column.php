@@ -29,8 +29,6 @@ class Column
     public mixed $mapping = null;
     public array $appends = []; // for mutated attributes
 
-    protected bool $visible = true;
-
     private function __construct(
         protected string $name,
         protected ?string $header = null,
@@ -121,18 +119,6 @@ class Column
         return $this;
     }
 
-    public function visible(bool $visible): static
-    {
-        $this->visible = !$this->toggleable || $visible;
-
-        return $this;
-    }
-
-    public function hidden(): static
-    {
-        return $this->visible(false);
-    }
-
     public function isSearchable(): bool
     {
         return $this->searchable;
@@ -182,7 +168,6 @@ class Column
             'header' => $this->getHeader(),
             'width' => $this->getWidth(),
             'type' => class_basename($this),
-            'visible' => $this->visible,
             'options' => [
                 'sortable' => $this->sortable,
                 'toggleable' => $this->toggleable,

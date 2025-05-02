@@ -5,6 +5,7 @@ namespace App\Tables;
 use App\Models\User;
 use App\TableComponents\Enums\IconSize;
 use App\TableComponents\Enums\ImageSize;
+use App\TableComponents\Enums\Position;
 use App\TableComponents\Enums\Variant;
 use App\TableComponents\Icon;
 use App\TableComponents\Image;
@@ -47,8 +48,10 @@ class Users extends Table
                 ->image('avatar', function (Model $model, Image $image) {
                     return $image
                         ->alt($model->name)
+//                        ->position(Position::End)
                         ->class('rounded-md');
                 })
+//                ->rightAligned()
                 ->searchable(),
 
             Columns\BadgeColumn::make('status')
@@ -59,8 +62,7 @@ class Users extends Table
                 ->icon([
                     'active' => 'airplay',
                     'inactive' => 'angry'
-                ])
-            ->hidden(),
+                ]),
 
             /*Columns\ImageColumn::make('avatar')->image(function (Model $model, Image $image) {
                 return $image->url($model->friends->pluck('avatar'))->limit(2);
@@ -70,8 +72,8 @@ class Users extends Table
                 ->mapAs(function (Model $model, mixed $value) {
                     return (bool) $model->email_verified_at;
                 })
-                ->trueIcon('check')
-                ->hidden(),
+                ->trueIcon('Check')
+                ->centerAligned(),
 
             Columns\TextColumn::make('bio')->truncate(2),
 

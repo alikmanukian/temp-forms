@@ -2,6 +2,7 @@
 import Icon from '../Icon.vue';
 import type { Icon as TypeIcon, IconRecord } from './index';
 import { computed } from 'vue';
+import { cn } from '@/lib/utils';
 
 interface Props {
     name: string
@@ -19,10 +20,13 @@ const position = computed(() => {
 </script>
 
 <template>
-    <div class="flex space-x-1 items-center justify-center" :class="{
-        'flex-row-reverse': position === 'end'
-    }">
+    <div class="flex gap-1 items-center justify-center" :class="cn([
+        {
+            'flex-row-reverse': position === 'end'
+        },
+        props.class,
+    ])">
         <Icon :icon="params?.[name]?.icon as TypeIcon" />
-        <span :class="props.class"><slot /></span>
+        <span><slot /></span>
     </div>
 </template>

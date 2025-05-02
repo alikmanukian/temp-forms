@@ -40,7 +40,7 @@ const hiddenImagesCount = computed<number|null>(() => {
 
 <template>
     <Image v-if="images.length === 1" :image="images[0] as TypeImage" />
-    <div v-else class="flex items-center space-x-2">
+    <div v-else class="flex items-center gap-2">
         <div class="flex -space-x-[0.6rem]">
             <Image v-for="(image, index) in images"
                    class="size-8 ring-background rounded-full ring-2"

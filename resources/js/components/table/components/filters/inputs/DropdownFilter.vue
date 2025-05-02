@@ -14,20 +14,20 @@ import {
     ComboboxList,
     ComboboxTrigger,
 } from '@/components/ui/combobox';
-import { Check, ChevronsUpDown, Search } from 'lucide-vue-next';
+import Icon from '@/components/Icon.vue';
 
 interface Props {
     filter: DropdownFilter;
 }
 
-const props = defineProps<Props>();
+const props = defineProps<Props>()
 
 const model = ref<string>(props.filter.value as string);
-console.log('model', model.value);
+
 const selected = ref<FilterOption[]>(
     props.filter.options.filter((option) => props.filter.multiple ? model.value?.includes(option.value) : option.value == model.value)
 );
-console.log('selected', selected.value);
+
 const value = ref<string[]>(selected.value.map((option: FilterOption) => option.value));
 
 const emit = defineEmits<{
@@ -60,13 +60,13 @@ const label = computed(() => {
 </script>
 
 <template>
-    <Combobox v-model="value" by="label" :multiple="filter.multiple">
+    <Combobox v-model="value" by="label" :multiple="filter.multiple" class="h-8">
         <ComboboxAnchor as-child>
             <ComboboxTrigger as-child>
-                <Button variant="outline" class="justify-between w-full px-2">
+                <Button variant="outline" class="justify-between w-full px-2 h-8">
                     <span class="flex-1 text-left">{{ label }}</span>
 
-                    <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    <Icon name="ChevronsUpDown" class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </ComboboxTrigger>
         </ComboboxAnchor>
@@ -75,7 +75,7 @@ const label = computed(() => {
             <div class="relative w-full max-w-sm items-center">
                 <ComboboxInput class="h-10 rounded-none border-0 border-b pl-9 focus-visible:ring-0" placeholder="Type to search" />
                 <span class="absolute inset-y-0 start-0 flex items-center justify-center px-3">
-                    <Search class="size-4 text-muted-foreground" />
+                    <Icon name="Search" class="size-4 text-muted-foreground" />
                 </span>
             </div>
 
@@ -86,7 +86,7 @@ const label = computed(() => {
                     {{ option.label }}
 
                     <ComboboxItemIndicator>
-                        <Check :class="cn('ml-auto h-4 w-4')" v-if="value.includes(option.value)" />
+                        <Icon name="Check" :class="cn('ml-auto h-4 w-4')" v-if="value.includes(option.value)" />
                     </ComboboxItemIndicator>
                 </ComboboxItem>
             </ComboboxGroup>

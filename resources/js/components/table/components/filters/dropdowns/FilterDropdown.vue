@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import Icon from '@/components/Icon.vue';
 import type { Clause, Filter } from '@/components/table';
-import { ref, watch } from 'vue';
+import { ref, computed } from 'vue';
 import {
     DropdownMenu,
     DropdownMenuTrigger,
     DropdownMenuContent,
     DropdownMenuItem
 } from '@/components/ui/dropdown-menu';
-import { TextFilter } from '@/components/table/components/filters/inputs';
 import ClauseSymbol from '@/components/table/components/filters/dropdowns/ClauseSymbol.vue';
 import * as Filters from '@/components/table/components/filters/inputs';
 
@@ -38,9 +37,12 @@ const onChangeValue = (value: string) => {
     emit('update', props.filter.name, value, selectedClause.value.searchSymbol);
 }
 
-watch(() => props.filter, (newValue: Filter) => {
-    selectedFilter.value = newValue;
-    selectedClause.value = newValue?.selectedClause ?? newValue?.clauses[0];
+const filterComponent = computed(() => {
+    if (selectedFilter.value.component === 'DropdownFilter') {
+        return Filters['ListFilter'];
+    }
+
+    return Filters[selectedFilter.value.component as keyof typeof Filters]
 });
 </script>
 
@@ -85,7 +87,7 @@ watch(() => props.filter, (newValue: Filter) => {
             <component
                 v-model="selectedFilter.value"
                 @update="onChangeValue"
-                :is="Filters[selectedFilter.component as keyof typeof Filters]"
+                :is="filterComponent"
                 :filter="selectedFilter"
             ></component>
         </DropdownMenuContent>

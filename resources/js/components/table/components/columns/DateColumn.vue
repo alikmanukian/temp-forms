@@ -14,7 +14,7 @@ const props = defineProps<Props>();
 <template>
     <Wrapper :name
              :params="params as Record<string, LinkRecord>"
-             class="flex items-center space-x-2"
+             class="flex items-center gap-2"
     >
         <span :class="props.class"><slot /></span>
     </Wrapper>

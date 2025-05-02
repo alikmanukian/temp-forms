@@ -74,7 +74,7 @@ const columnWrappingMethod = (column: TableHeaderType) => {
 };
 
 const cellClass = (column: TableHeaderType) => {
-    return cn(['w-full', columnWrappingMethod(column), column.options.cellClass]);
+    return cn([columnWrappingMethod(column), column.options.alignment, column.options.cellClass]);
 };
 
 const resizeObserver = new ResizeObserver(() => {
@@ -227,16 +227,15 @@ props.resource.filters.forEach((filter: Filter) => {
                                 'sticky bg-white/90 hover:bg-muted/50 dark:bg-background/80': column.sticked,
                             }"
                         >
-                            <div class="flex items-center" :class="column.options.alignment">
-                                <div :class="cellClass(column)">
-                                    <component
-                                        :is="Columns[column.type as string as ColumnTypes]"
-                                        :params="row._customColumnsParams"
-                                        :name="column.name"
-                                        :class="cellClass(column)"
-                                        >{{ row[column.name] }}
-                                    </component>
-                                </div>
+                            <div class="flex items-center w-full" :class="column.options.alignment">
+                                <component
+                                    :is="Columns[column.type as string as ColumnTypes]"
+                                    :params="row._customColumnsParams"
+                                    :name="column.name"
+                                    :alignment="column.options.alignment"
+                                    :class="cellClass(column)"
+                                    >{{ row[column.name] }}
+                                </component>
                             </div>
                         </TableCell>
                     </TableRow>

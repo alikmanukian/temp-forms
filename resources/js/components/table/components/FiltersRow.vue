@@ -16,6 +16,7 @@ const emit = defineEmits<{
 }>();
 
 const onUpdate = (name: string, value: string, clause: string|null) => {
+    console.log('update', name, value, clause);
     emit('update', name, value, clause)
 }
 
