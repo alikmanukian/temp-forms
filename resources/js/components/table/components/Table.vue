@@ -151,7 +151,11 @@ props.resource.filters.forEach((filter: Filter) => {
 <template>
     <div class="@container" :class="{ '-mx-4': expanded }" ref="container" :data-name="`table-container-${name}`">
         <div class="flex space-x-3 p-4">
-            <DebounceInput v-if="resource.searchable" v-model="search" @update="(value) => onSearch('search', value, '')" class="flex-1" />
+            <div class="flex-1">
+                <DebounceInput v-if="resource.searchable"
+                               v-model="search"
+                               @update="(value) => onSearch('search', value, '')" />
+            </div>
             <FiltersButton />
         </div>
 
