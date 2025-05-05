@@ -66,8 +66,16 @@ class Filter
             'defaultClause' => $this->defaultClause?->toArray(),
             'showInHeader' => $this->showInHeader,
             'component' => class_basename(static::class),
-            'value' => $this->value,
+            'value' => !in_array($this->selectedClause, [
+                Clause::IsSet,
+                Clause::IsNotSet,
+            ], true) ? $this->value : '',
             'selectedClause' => $this->selectedClause?->toArray(),
+            'selected' => ! empty($this->value) || in_array($this->selectedClause, [
+                    Clause::IsSet,
+                    Clause::IsNotSet,
+                ], true),
+            'opened' => false,
         ];
     }
 

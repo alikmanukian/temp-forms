@@ -146,6 +146,15 @@ const filters = reactive<Record<string, Filter>>({})
 props.resource.filters.forEach((filter: Filter) => {
     filters[filter.name] = {...filter}
 });
+
+const onAddFilter = (name: string) => {
+    filters[name] = {
+        ...filters[name],
+        selected: true,
+        opened: true,
+        selectedClause: filters[name].defaultClause,
+    };
+}
 </script>
 
 <template>
@@ -156,7 +165,7 @@ props.resource.filters.forEach((filter: Filter) => {
                                v-model="search"
                                @update="(value) => onSearch('search', value, '')" />
             </div>
-            <FiltersButton />
+            <FiltersButton :filters="filters" @update="onAddFilter"/>
         </div>
 
         <FiltersRow :filters="filters" @update="onSearch" />
@@ -212,10 +221,10 @@ props.resource.filters.forEach((filter: Filter) => {
                         >
                             <component
                                 v-if="filters[column.name]"
-                                v-model="filters[column.name].value"
+                                :modelValue="filters[column.name].value"
                                 @update="(value: string|string[], clause: string|null) => onSearch(column.name, value, clause)"
                                 :is="Filters[filters[column.name].component as keyof typeof Filters]"
-                                :filter="resource.filters.find((filter: Filter) => filter.name === column.name)"
+                                :filter="filters[column.name]"
                             ></component>
                         </TableHead>
                     </TableRow>

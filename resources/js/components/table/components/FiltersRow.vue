@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Filter, FilterOption } from '../index';
+import type { Filter } from '../index';
 import { computed } from 'vue';
 import { FilterDropdown } from './filters/dropdowns';
 interface Props {
@@ -8,7 +8,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const appliedFilters = computed(() => Object.fromEntries(
-    Object.entries(props.filters).filter(([_, config]) => config && config.value !== null && config.value !== '')
+    Object.entries(props.filters).filter(([_, config]) => config && config.selected)
 ));
 
 const emit = defineEmits<{
@@ -16,7 +16,6 @@ const emit = defineEmits<{
 }>();
 
 const onUpdate = (name: string, value: string, clause: string|null) => {
-    console.log('update', name, value, clause);
     emit('update', name, value, clause)
 }
 

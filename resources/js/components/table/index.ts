@@ -34,7 +34,6 @@ export interface TableHeader {
 
 export interface Clause {
     name: string
-    symbol: string
     searchSymbol: string
     value: string
 }
@@ -46,7 +45,9 @@ export interface Filter {
     defaultClause: Clause
     showInHeader: boolean
     component: string
+    selected: boolean
     value: any
+    opened: boolean
     selectedClause: Clause|null
 }
 

@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import { type Filter } from '../../../index';
 import DebounceInput from '../../DebounceInput.vue';
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 interface Props {
     filter: Filter;
+    modelValue: string|null;
 }
 
 const props = defineProps<Props>();
@@ -18,6 +19,10 @@ const search = (value: string) => {
 }
 
 const model = ref<string>(props.filter.value as string);
+
+watch(() => props.modelValue, (newValue) => {
+    model.value = newValue as string;
+});
 
 </script>
 

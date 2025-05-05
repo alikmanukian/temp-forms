@@ -17,11 +17,13 @@ enum Clause: string
     case IsIn = 'is_in'; // ''
     case IsNotIn = 'is_not_in'; // '!'
 
+    case IsSet = 'is_set'; // '!null'
+    case IsNotSet = 'is_not_set'; // 'null'
+
     public function toArray(): array
     {
         return [
             'name' => $this->name(),
-            'symbol' => $this->symbol(),
             'searchSymbol' => $this->searchSymbol(),
             'value' => $this->value,
         ];
@@ -46,22 +48,8 @@ enum Clause: string
             self::DoesNotEqual => 'Does Not Equal',
             self::IsIn => 'Is In',
             self::IsNotIn => 'Is Not In',
-        };
-    }
-
-    private function symbol(): string
-    {
-        return match($this) {
-            self::Contains => 'Asterisk',
-            self::DoesNotContain => '!Asterisk',
-            self::StartsWith => 'ChevronUp',
-            self::DoesNotStartWith => '!ChevronUp',
-            self::EndsWith => 'DollarSign',
-            self::DoesNotEndWith => '!DollarSign',
-            self::Equals => 'Equal',
-            self::DoesNotEqual=> 'EqualNot',
-            self::IsIn => 'EqualApproximately',
-            self::IsNotIn => '!EqualApproximately',
+            self::IsSet => 'Is Set',
+            self::IsNotSet => 'Is Not Set',
         };
     }
 
@@ -78,6 +66,8 @@ enum Clause: string
             self::DoesNotEqual => '!',
             self::IsIn => '~',
             self::IsNotIn => '!~',
+            self::IsSet => '!null',
+            self::IsNotSet => 'null',
         };
     }
 

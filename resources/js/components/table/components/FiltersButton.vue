@@ -9,12 +9,21 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/Icon.vue';
+import type { Filter } from '@/components/table';
 
-const filters = [
-    {id: 'name', title: 'Name'},
-    {id: 'email', title: 'Email'},
-    {id: 'bio', title: 'Bio'},
-];
+interface Props {
+    filters: Record<string, Filter>;
+}
+
+defineProps<Props>()
+
+const emit = defineEmits<{
+    (e: 'update', name: string): void;
+}>()
+
+const onAddFilter = (name: string) => {
+    emit('update', name);
+}
 </script>
 
 <template>
@@ -30,7 +39,7 @@ const filters = [
             <DropdownMenuSeparator class="bg-gray-300" />
 
                 <DropdownMenuItem v-for="filter in filters"
-                    :key="filter.id"
+                    :key="filter.name" @click="onAddFilter(filter.name)"
                 >
                     <Icon name="Plus" class="mr-1 !size-3" /><span>{{filter.title}}</span>
                 </DropdownMenuItem>

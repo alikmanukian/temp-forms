@@ -15,6 +15,8 @@ class DropdownFilter extends Filter
         Clause::DoesNotEqual,
         Clause::IsIn,
         Clause::IsNotIn,
+        Clause::IsSet,
+        Clause::IsNotSet,
     ];
 
     public function options(array $options): static

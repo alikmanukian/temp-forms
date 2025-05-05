@@ -15,14 +15,22 @@ import {
     ComboboxTrigger,
 } from '@/components/ui/combobox';
 import Icon from '@/components/Icon.vue';
+import { AcceptableValue } from 'reka-ui';
 
 interface Props {
     filter: DropdownFilter;
+    modelValue: string|string[]|null;
 }
 
 const props = defineProps<Props>()
 
-const model = ref<string>(props.filter.value as string);
+const model = ref<string|string[]|null>(props.filter.value);
+
+watch(() => props.modelValue, (newValue: string|string[]|null) => {
+    model.value = newValue;
+    selected.value = props.filter.options.filter((option) => props.filter.multiple ? model.value?.includes(option.value) : option.value == model.value)
+    value.value = selected.value.map((option: FilterOption) => option.value);
+});
 
 const selected = ref<FilterOption[]>(
     props.filter.options.filter((option) => props.filter.multiple ? model.value?.includes(option.value) : option.value == model.value)
@@ -31,20 +39,14 @@ const selected = ref<FilterOption[]>(
 const value = ref<string[]>(selected.value.map((option: FilterOption) => option.value));
 
 const emit = defineEmits<{
-    (e: 'update', value: string|null, clause: string | null): void;
+    (e: 'update', value: AcceptableValue, clause: string | null): void;
 }>();
 
 const placeholder = ` `;
 
-watch(() => value.value, (newValue) => {
-    selected.value = props.filter.options.filter((item) => props.filter.multiple ? newValue.includes(item.value) : newValue == item.value);
-    emit('update',
-        props.filter.multiple
-            ? selected.value.map((item: FilterOption) => item.value)
-            : selected.value[0]?.value,
-        props.filter.selectedClause?.searchSymbol ?? props.filter.defaultClause.searchSymbol
-    );
-})
+const search = (value: AcceptableValue) => {
+    emit('update', value, props.filter.selectedClause?.searchSymbol ?? props.filter.defaultClause.searchSymbol);
+}
 
 const label = computed(() => {
     if (props.filter.multiple) {
@@ -60,7 +62,7 @@ const label = computed(() => {
 </script>
 
 <template>
-    <Combobox v-model="value" by="label" :multiple="filter.multiple" class="h-8">
+    <Combobox v-model="value" by="label" :multiple="filter.multiple" class="h-8" @update:modelValue="search">
         <ComboboxAnchor as-child>
             <ComboboxTrigger as-child>
                 <Button variant="outline" class="justify-between w-full px-2 h-8">
