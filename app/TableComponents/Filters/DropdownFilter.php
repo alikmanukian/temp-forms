@@ -13,8 +13,6 @@ class DropdownFilter extends Filter
     protected array $clauses = [
         Clause::Equals,
         Clause::DoesNotEqual,
-        Clause::IsSet,
-        Clause::IsNotSet,
     ];
 
     public function options(array $options): static

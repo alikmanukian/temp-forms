@@ -73,7 +73,6 @@ abstract class Table implements JsonSerializable
         // set searchable
         $table->setSearch();
 
-
         /*foreach ($table->columns() as $column) {
             $table->builder->addSelect($column->getName());
         }*/
@@ -150,14 +149,15 @@ abstract class Table implements JsonSerializable
 
         return collect($this->filters)
             ->filter()
-            ->map(fn (Filter $filter) => $filter->getAllowedFilterMethod())
+            ->map(function (Filter $filter) {
+                return $filter->getAllowedFilterMethod();
+            })
             ->filter();
     }
 
     private function parseRequest(): void
     {
         $request = request();
-
         collect($this->filters)
             ->filter()
             ->map(function (Filter $filter) use ($request) {

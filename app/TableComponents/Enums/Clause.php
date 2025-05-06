@@ -16,9 +16,10 @@ enum Clause: string
     case DoesNotEndWith = 'does_not_end_with'; //'!$';
     case IsIn = 'is_in'; // ''
     case IsNotIn = 'is_not_in'; // '!'
-
     case IsSet = 'is_set'; // '!null'
     case IsNotSet = 'is_not_set'; // 'null'
+    case IsTrue = 'is_true'; // 'true'
+    case IsFalse = 'is_false'; // 'false'
 
     public function toArray(): array
     {
@@ -50,6 +51,8 @@ enum Clause: string
             self::IsNotIn => 'Is Not In',
             self::IsSet => 'Is Set',
             self::IsNotSet => 'Is Not Set',
+            self::IsTrue => 'Is True',
+            self::IsFalse => 'Is False',
         };
     }
 
@@ -68,6 +71,8 @@ enum Clause: string
             self::IsNotIn => '!~',
             self::IsSet => '!null',
             self::IsNotSet => 'null',
+            self::IsTrue => 'true',
+            self::IsFalse => 'false',
         };
     }
 

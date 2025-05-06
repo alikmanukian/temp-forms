@@ -185,7 +185,7 @@ const onPageChange = (page: number) => {
                                 'sticky bg-white/90 hover:bg-muted/50 dark:bg-background/80': column.sticked,
                             }"
                         >
-                            <div class="flex items-center w-full" :class="column.options.alignment">
+                            <div class="flex items-center w-full" :class="column.options.alignment" v-if="row[column.name] !== null">
                                 <component
                                     :is="Columns[column.type as string as ColumnTypes]"
                                     :params="row._customColumnsParams"

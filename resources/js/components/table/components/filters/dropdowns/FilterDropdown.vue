@@ -65,12 +65,17 @@ watch(() => props.filter, (newFilter: Filter|DropdownFilter) => {
 const placeholder = ` `;
 
 const label = computed(() => {
-    if (selectedFilter.value.component === 'DropdownFilter' && (selectedFilter.value as DropdownFilter)?.multiple) {
-        if (Array.isArray(selectedFilter.value.value)) {
-            switch(selectedFilter.value.value.length) {
-                case 0: return placeholder
-                case 1: return (selectedFilter.value as DropdownFilter)?.options.find((option) => selectedFilter.value.value[0] == option.value)?.label
-                default: return selectedFilter.value.value.length + ' items'
+    if (selectedFilter.value.component === 'DropdownFilter') {
+        if ((selectedFilter.value as DropdownFilter)?.multiple) {
+            if (Array.isArray(selectedFilter.value.value)) {
+                switch (selectedFilter.value.value.length) {
+                    case 0:
+                        return placeholder
+                    case 1:
+                        return (selectedFilter.value as DropdownFilter)?.options.find((option) => selectedFilter.value.value[0] == option.value)?.label
+                    default:
+                        return selectedFilter.value.value.length + ' items'
+                }
             }
         }
 
@@ -78,10 +83,10 @@ const label = computed(() => {
             return selectedClause.value.name;
         }
 
-        return null
+        return (selectedFilter.value as DropdownFilter)?.options.find((option) => selectedFilter.value.value == option.value)?.label
     }
 
-    return (selectedFilter.value as DropdownFilter)?.options.find((option) => selectedFilter.value.value == option.value)?.label
+    return selectedFilter.value.value;
 })
 </script>
 

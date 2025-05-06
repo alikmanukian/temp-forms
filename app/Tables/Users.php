@@ -68,7 +68,7 @@ class Users extends Table
                 return $image->url($model->friends->pluck('avatar'))->limit(2);
             }),*/
 
-            Columns\BooleanColumn::make('is_verified', 'IsVerified')
+            Columns\BooleanColumn::make('is_verified', 'Is Verified')
                 ->mapAs(function (Model $model, mixed $value) {
                     return (bool) $model->email_verified_at;
                 })
@@ -101,7 +101,16 @@ class Users extends Table
                     'active' => 'Active',
                     'inactive' => 'Inactive'
                 ])
+                ->nullable()
                 ->multiple(),
+            Filters\DropdownFilter::make('email_verified_at', 'Is Verified')
+                ->as('is_verified')
+                ->showInHeader()
+                ->options([
+                    'true' => 'True',
+                    'false' => 'False'
+                ])
+                ->nullable(),
 //            Filters\NumericFilter::make('visit_count'),
 //            Filters\BooleanFilter::make('is_admin', 'Admin'),
 //            Filters\DateFilter::make('email_verified_at')->nullable(),
