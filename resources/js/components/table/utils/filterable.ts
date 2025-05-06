@@ -1,6 +1,9 @@
 // Get initial search from query string
 import { usePage } from '@inertiajs/vue3';
 import { buildData } from '../utils/helpers';
+import type { Clause, Filter, Paginated } from '@/components/table';
+import { useRequest } from '@/components/table/utils/request';
+import { reactive } from 'vue';
 
 interface FilterValue {
     [key: string]: string | number | FilterValue | null;
@@ -77,14 +80,26 @@ const processFilterValues = (newValues: Record<string, any>, currentValues: Reco
     });
 };
 
+export const clauseShouldHaveValue = (clause: Clause) => {
+    return ["is_set", 'is_not_set'].includes(clause.value)
+}
+
 /**
  * Recursively cleans an object, removing empty string values
  */
 
-export const useFilters = (pageName: string) => {
+export const useFilters = (pageName: string, tableName: string, initialFilters: Filter[]) => {
     const page = usePage<{
         query: any;
     }>();
+
+    const { reload } = useRequest(tableName);
+
+    // Initialize filters
+    const filters = reactive<Record<string, Filter>>({})
+    initialFilters.forEach((filter: Filter) => {
+        filters[filter.name] = {...filter}
+    });
 
     const query = page.props.query;
 
@@ -118,10 +133,72 @@ export const useFilters = (pageName: string) => {
         };
     };
 
+    const search = (field: string, value: string|string[], clause: string|null, callback?: (filter?: Filter) => void) => {
+        if (Array.isArray(value)) {
+            value = value.join(',')
+        }
+
+        if (value === null) {
+            value = '';
+        }
+
+        if (clause) {
+            value = clause + value;
+        }
+
+        const searchParams = setSearchParams(field, value);
+
+        reload(searchParams, {
+            preserveState: true,
+            preserveScroll: true,
+            onSuccess: (response) => {
+                const filter = (response.props[tableName] as Paginated<any>).filters.find((filter: Filter) => {
+                    return filter.name === field;
+                });
+
+                if (callback) {
+                    callback(filter);
+                }
+
+                if (filter) {
+                    filters[field] = filter;
+                }
+
+            },
+        });
+    };
+
+    const onUpdateFilter = (field: string, value: string|string[], clause: Clause|null) => {
+        search(field, value, clause?.searchSymbol ?? null, (filter?: Filter) => {
+            if (filter) {
+                filter.selected = true;
+                filter.selectedClause = clause;
+            }
+        });
+    };
+
+    const onDeleteFilter = (field: string) => {
+        search(field, '', null);
+    };
+
+    const onAddFilter = (name: string) => {
+        filters[name] = {
+            ...filters[name],
+            selected: true,
+            opened: true,
+            selectedClause: filters[name].defaultClause,
+        };
+    }
+
     return {
         query,
+        filters,
         getInitialSearch,
         getFilterParam,
         setSearchParams,
+        search,
+        onUpdateFilter,
+        onDeleteFilter,
+        onAddFilter,
     };
 };

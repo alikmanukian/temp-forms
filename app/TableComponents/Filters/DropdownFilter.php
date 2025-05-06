@@ -6,15 +6,13 @@ use App\TableComponents\Enums\Clause;
 
 class DropdownFilter extends Filter
 {
-    protected ?Clause $defaultClause = Clause::IsIn;
+    protected ?Clause $defaultClause = Clause::Equals;
     protected array $options = [];
     protected bool $multiple = false;
 
     protected array $clauses = [
         Clause::Equals,
         Clause::DoesNotEqual,
-        Clause::IsIn,
-        Clause::IsNotIn,
         Clause::IsSet,
         Clause::IsNotSet,
     ];
@@ -28,6 +26,13 @@ class DropdownFilter extends Filter
 
     public function multiple(): static
     {
+        $this->clauses = [...[
+            Clause::IsIn,
+            Clause::IsNotIn,
+        ], ...$this->clauses];
+
+        $this->defaultClause = Clause::IsIn;
+
         $this->multiple = true;
         return $this;
     }
@@ -35,7 +40,7 @@ class DropdownFilter extends Filter
     public function toArray(): array
     {
         return array_merge(parent::toArray(), [
-            'multiple' => $this->multiple,
+            'multiple' => $this->multiple && in_array($this->selectedClause, [Clause::IsIn, Clause::IsNotIn], true),
             'options' => collect($this->options)
                 ->map(fn (mixed $value, mixed $key) => [
                     'label' => $value,

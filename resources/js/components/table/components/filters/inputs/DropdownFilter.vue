@@ -20,17 +20,20 @@ import { AcceptableValue } from 'reka-ui';
 interface Props {
     filter: DropdownFilter;
     modelValue: string|string[]|null;
+    inHeader?: boolean;
 }
 
-const props = defineProps<Props>()
-
-const model = ref<string|string[]|null>(props.filter.value);
-
-watch(() => props.modelValue, (newValue: string|string[]|null) => {
-    model.value = newValue;
-    selected.value = props.filter.options.filter((option) => props.filter.multiple ? model.value?.includes(option.value) : option.value == model.value)
-    value.value = selected.value.map((option: FilterOption) => option.value);
+const props = withDefaults(defineProps<Props>(), {
+    inHeader: false
 });
+
+const emit = defineEmits<{
+    (e: 'update', value: AcceptableValue, clause: string | null): void;
+}>();
+
+const isDefaultClause = ref<boolean>(props.filter.selectedClause?.value === props.filter.defaultClause.value);
+
+const model = ref<string|string[]>('');
 
 const selected = ref<FilterOption[]>(
     props.filter.options.filter((option) => props.filter.multiple ? model.value?.includes(option.value) : option.value == model.value)
@@ -38,15 +41,20 @@ const selected = ref<FilterOption[]>(
 
 const value = ref<string[]>(selected.value.map((option: FilterOption) => option.value));
 
-const emit = defineEmits<{
-    (e: 'update', value: AcceptableValue, clause: string | null): void;
-}>();
+const setModelValue = (newValue: string|string[]|null) => {
+    if (!props.inHeader || isDefaultClause.value) {
+        model.value = newValue ? newValue : (props.filter.multiple ? [] : '');
+    } else {
+        model.value = props.filter.multiple ? [] : '';
+    }
+
+    selected.value = props.filter.options.filter((option) => props.filter.multiple ? model.value?.includes(option.value) : option.value == model.value)
+    value.value = selected.value.map((option: FilterOption) => option.value);
+}
+
+setModelValue(props.filter.value);
 
 const placeholder = ` `;
-
-const search = (value: AcceptableValue) => {
-    emit('update', value, props.filter.selectedClause?.searchSymbol ?? props.filter.defaultClause.searchSymbol);
-}
 
 const label = computed(() => {
     if (props.filter.multiple) {
@@ -59,6 +67,26 @@ const label = computed(() => {
 
     return selected.value[0]?.label ?? placeholder
 })
+
+const search = (value: AcceptableValue) => {
+    emit(
+        'update',
+        value,
+        props.inHeader
+            ? props.filter.defaultClause.searchSymbol
+            : props.filter.selectedClause?.searchSymbol ?? props.filter.defaultClause.searchSymbol
+    );
+}
+
+watch(() => props.modelValue, (newValue: string|string[]|null) => {
+    setModelValue(newValue);
+});
+
+watch(() => props.filter.selectedClause, (newValue) => {
+    isDefaultClause.value = newValue?.value === props.filter.defaultClause.value;
+
+    setModelValue(props.filter.value);
+});
 </script>
 
 <template>

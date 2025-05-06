@@ -1,3 +1,5 @@
+import type { TableHeader as TableHeaderType } from '@/components/table';
+
 /**
  * Example usage:
  * const key1 = 'page';
@@ -37,3 +39,25 @@ export const getQueryParams = (except: any): Record<string, any> => {
 
     return Object.fromEntries([...queryParams]);
 }
+
+export const columnWrappingMethod = (column: TableHeaderType, stickyHeader: boolean) => {
+    if (column.options.truncate == 1) {
+        return 'truncate';
+    }
+
+    if (column.options.truncate > 1) {
+        // line-clamp-2
+        // line-clamp-3
+        // line-clamp-4
+        // line-clamp-5
+        return 'line-clamp-' + column.options.truncate;
+    }
+
+    if (column.options.wrap) {
+        return '';
+    }
+
+    if (!stickyHeader) {
+        return 'whitespace-nowrap';
+    }
+};

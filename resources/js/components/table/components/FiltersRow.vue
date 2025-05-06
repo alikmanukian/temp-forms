@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Filter } from '../index';
+import type { Clause, Filter } from '../index';
 import { computed } from 'vue';
 import { FilterDropdown } from './filters/dropdowns';
 interface Props {
@@ -12,13 +12,17 @@ const appliedFilters = computed(() => Object.fromEntries(
 ));
 
 const emit = defineEmits<{
-    (e: 'update', name: string, value: string, clause: string|null): void;
+    (e: 'update', name: string, value: string, clause: Clause|null): void;
+    (e: 'delete', name: string): void;
 }>();
 
-const onUpdate = (name: string, value: string, clause: string|null) => {
+const onUpdate = (name: string, value: string, clause: Clause|null) => {
     emit('update', name, value, clause)
 }
 
+const onDelete = (name: string) => {
+    emit('delete', name)
+}
 </script>
 
 <template>
@@ -27,6 +31,7 @@ const onUpdate = (name: string, value: string, clause: string|null) => {
                         :key="filter.name"
                         :filter="filter"
                         @update="onUpdate"
+                        @delete="onDelete"
         />
     </div>
 </template>

@@ -8,8 +8,8 @@ import {
     DropdownMenuContent,
     DropdownMenuItem
 } from '@/components/ui/dropdown-menu';
-import ClauseSymbol from '@/components/table/components/filters/dropdowns/ClauseSymbol.vue';
 import * as Filters from '@/components/table/components/filters/inputs';
+import { clauseShouldHaveValue } from '@/components/table/utils/filterable';
 
 interface Props {
     filter: Filter|DropdownFilter;
@@ -18,28 +18,35 @@ interface Props {
 const props = defineProps<Props>();
 
 const emit = defineEmits<{
-    (e: 'update', name: string, value: string, clause: string|null): void;
+    (e: 'update', name: string, value: string, clause: Clause|null): void;
+    (e: 'delete', name: string): void;
 }>();
 
 const selectedClause = ref<Clause>(props.filter.selectedClause ?? props.filter.clauses[0]);
 const selectedFilter = ref<Filter|DropdownFilter>(props.filter);
-const showComponent = computed<boolean>(() => !["is_set", 'is_not_set'].includes(selectedClause.value.value));
+const showComponent = computed<boolean>(() => !clauseShouldHaveValue(selectedClause.value));
 
 const onChangeClause = (value: Clause) => {
     selectedClause.value = value;
     selectedFilter.value.selected = true;
 
-    if (["is_set", 'is_not_set'].includes(selectedClause.value.value)) {
+    if (clauseShouldHaveValue(selectedClause.value)) {
         selectedFilter.value.value = '';
     }
 
-    emit('update', props.filter.name, props.filter.value as string, value.searchSymbol);
+    if (clauseShouldHaveValue(selectedClause.value) || selectedFilter.value.value) {
+        emit('update', props.filter.name, selectedFilter.value.value as string, selectedClause.value);
+    }
 }
 
 const onChangeValue = (value: string) => {
-    selectedFilter.value.value = value;
+    // selectedFilter.value.value = value;
     selectedFilter.value.opened = false;
-    emit('update', props.filter.name, value, selectedClause.value.searchSymbol);
+    emit('update', props.filter.name, value, selectedClause.value);
+}
+
+const onDeleteFilter = () => {
+    emit('delete', props.filter.name);
 }
 
 const filterComponent = computed(() => {
@@ -67,14 +74,14 @@ const label = computed(() => {
             }
         }
 
-        if (['is_set', 'is_not_set'].includes(selectedClause.value.value)) {
+        if (clauseShouldHaveValue(selectedClause.value)) {
             return selectedClause.value.name;
         }
 
         return null
     }
 
-    return selectedFilter.value.value
+    return (selectedFilter.value as DropdownFilter)?.options.find((option) => selectedFilter.value.value == option.value)?.label
 })
 </script>
 
@@ -87,7 +94,7 @@ const label = computed(() => {
                     {{ label }}
                 </span>
             </DropdownMenuTrigger>
-            <button @click.prevent="onChangeValue('')" class="h-full bg-gray-50 px-2 py-1 hover:bg-gray-100 hover:text-orange-600">
+            <button @click.prevent="onDeleteFilter" class="h-full bg-gray-50 px-2 py-1 hover:bg-gray-100 hover:text-orange-600">
                 <Icon name="X" class="size-3.5" />
             </button>
         </div>

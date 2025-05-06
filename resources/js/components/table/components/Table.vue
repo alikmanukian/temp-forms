@@ -2,7 +2,7 @@
 import type { Filter, Paginated, TableHeader as TableHeaderType } from '../index';
 import Pagination from '../components/Pagination.vue';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { computed, nextTick, onMounted, onUnmounted, provide, reactive, ref, useTemplateRef, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, provide, ref, useTemplateRef } from 'vue';
 import vResizable from '../utils/resizable';
 import EmptyState from '../components/EmptyState.vue';
 import ToolsRow from '../components/ToolsRow.vue';
@@ -17,7 +17,7 @@ import DebounceInput from '../components/DebounceInput.vue';
 import FiltersButton from '@/components/table/components/FiltersButton.vue';
 import FiltersRow from '@/components/table/components/FiltersRow.vue';
 import { useFilters } from '@/components/table/utils/filterable';
-import { buildData } from '@/components/table/utils/helpers';
+import { buildData, columnWrappingMethod } from '@/components/table/utils/helpers';
 import Loader from './Loader.vue';
 import { useRequest } from '@/components/table/utils/request';
 
@@ -26,6 +26,8 @@ interface Props {
     expanded?: boolean;
     hidePageNumbers?: boolean;
 }
+
+type ColumnTypes = keyof typeof Columns;
 
 const props = withDefaults(defineProps<Props>(), {
     expanded: false,
@@ -38,43 +40,28 @@ const pageName = props.resource.pageName;
 
 const { getFilteredColumns } = useComponents(name);
 const { scrollPosition, scrollable, updateScrollPosition, updateScrollSize, updateContainerWidth, saveColumnsPositions } = useScrollable(name);
-const { setSearchParams } = useFilters(pageName);
+const { search,
+    getInitialSearch,
+    filters,
+    onUpdateFilter,
+    onDeleteFilter,
+    onAddFilter
+} = useFilters(pageName, name, props.resource.filters);
+const { reload, loading } = useRequest(props.resource.name);
 
 const container = useTemplateRef<HTMLElement>('container');
 
 const stickyHeader = computed(() => props.resource.stickyHeader);
 const stickyPagination = computed(() => props.resource.stickyPagination);
 
-    const showFiltersRowInHeader = computed(() => {
+const showFiltersRowInHeader = computed(() => {
     return props.resource.filters.some((filter: Filter) => {
         return filter.showInHeader;
     });
 });
 
-const columnWrappingMethod = (column: TableHeaderType) => {
-    if (column.options.truncate == 1) {
-        return 'truncate';
-    }
-
-    if (column.options.truncate > 1) {
-        // line-clamp-2
-        // line-clamp-3
-        // line-clamp-4
-        // line-clamp-5
-        return 'line-clamp-' + column.options.truncate;
-    }
-
-    if (column.options.wrap) {
-        return '';
-    }
-
-    if (!stickyHeader.value) {
-        return 'whitespace-nowrap';
-    }
-};
-
 const cellClass = (column: TableHeaderType) => {
-    return cn([columnWrappingMethod(column), column.options.alignment, column.options.cellClass]);
+    return cn([columnWrappingMethod(column, stickyHeader.value), column.options.alignment, column.options.cellClass]);
 };
 
 const resizeObserver = new ResizeObserver(() => {
@@ -107,54 +94,11 @@ onUnmounted(() => {
 provide('name', name);
 provide('pageName', pageName);
 
-type ColumnTypes = keyof typeof Columns;
-
-const onSearch = (field: string, value: string|string[], clause: string|null) => {
-    if (Array.isArray(value)) {
-        value = value.join(',')
-    }
-
-    if (clause) {
-        value = clause + value;
-    }
-
-    reload(setSearchParams(field, value), {
-        onSuccess: (response) => {
-            const filter = (response.props[name] as Paginated<any>).filters.find((filter: Filter) => {
-                return filter.name === field;
-            });
-
-            if (filter) {
-                filters[field] = filter;
-            }
-        },
-    });
-};
+const searchString = ref<string>(getInitialSearch('search'))
 
 const onPageChange = (page: number) => {
     reload(buildData(pageName, page));
 };
-
-const { reload, loading } = useRequest(props.resource.name);
-
-const { getInitialSearch } = useFilters(pageName);
-
-const search = ref<string>(getInitialSearch('search'))
-
-// Initialize filters
-const filters = reactive<Record<string, Filter>>({})
-props.resource.filters.forEach((filter: Filter) => {
-    filters[filter.name] = {...filter}
-});
-
-const onAddFilter = (name: string) => {
-    filters[name] = {
-        ...filters[name],
-        selected: true,
-        opened: true,
-        selectedClause: filters[name].defaultClause,
-    };
-}
 </script>
 
 <template>
@@ -162,13 +106,13 @@ const onAddFilter = (name: string) => {
         <div class="flex space-x-3 p-4">
             <div class="flex-1">
                 <DebounceInput v-if="resource.searchable"
-                               v-model="search"
-                               @update="(value) => onSearch('search', value, '')" />
+                               v-model="searchString"
+                               @update="(value) => search('search', value, '')" />
             </div>
             <FiltersButton :filters="filters" @update="onAddFilter"/>
         </div>
 
-        <FiltersRow :filters="filters" @update="onSearch" />
+        <FiltersRow :filters="filters" @update="onUpdateFilter" @delete="onDeleteFilter" />
 
         <ToolsRow v-if="!noResults" :meta="resource.meta" :headers="resource.headers" :class="{ 'px-4': expanded }" @update="onPageChange" />
 
@@ -222,9 +166,10 @@ const onAddFilter = (name: string) => {
                             <component
                                 v-if="filters[column.name]"
                                 :modelValue="filters[column.name].value"
-                                @update="(value: string|string[], clause: string|null) => onSearch(column.name, value, clause)"
+                                @update="(value: string|string[], clause: string|null) => search(column.name, value, clause)"
                                 :is="Filters[filters[column.name].component as keyof typeof Filters]"
                                 :filter="filters[column.name]"
+                                :inHeader="true"
                             ></component>
                         </TableHead>
                     </TableRow>
