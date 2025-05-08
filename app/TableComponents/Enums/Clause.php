@@ -27,6 +27,7 @@ enum Clause: string
             'name' => $this->name(),
             'searchSymbol' => $this->searchSymbol(),
             'value' => $this->value,
+            'prefix' => $this->prefix(),
         ];
     }
 
@@ -49,6 +50,26 @@ enum Clause: string
             self::DoesNotEqual => 'Does Not Equal',
             self::IsIn => 'Is In',
             self::IsNotIn => 'Is Not In',
+            self::IsSet => 'Is Set',
+            self::IsNotSet => 'Is Not Set',
+            self::IsTrue => 'Is True',
+            self::IsFalse => 'Is False',
+        };
+    }
+
+    private function prefix(): string
+    {
+        return match($this) {
+            self::Contains => '',
+            self::DoesNotContain => 'Not Contains',
+            self::StartsWith => 'Starts with',
+            self::DoesNotStartWith => 'Not Starts with',
+            self::EndsWith => 'Ends with',
+            self::DoesNotEndWith => 'Not ends with',
+            self::Equals => '',
+            self::DoesNotEqual => 'Not',
+            self::IsIn => '',
+            self::IsNotIn => 'Not',
             self::IsSet => 'Is Set',
             self::IsNotSet => 'Is Not Set',
             self::IsTrue => 'Is True',

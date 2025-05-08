@@ -13,13 +13,13 @@ import ScrollTableButton from '../components/ScrollTableButton.vue';
 import { useScrollable } from '../utils/scrollable';
 import * as Columns from './columns';
 import * as Filters from './filters/inputs';
-import DebounceInput from '../components/DebounceInput.vue';
 import FiltersButton from '@/components/table/components/FiltersButton.vue';
 import FiltersRow from '@/components/table/components/FiltersRow.vue';
 import { useFilters } from '@/components/table/utils/filterable';
 import { buildData, columnWrappingMethod } from '@/components/table/utils/helpers';
 import Loader from './Loader.vue';
 import { useRequest } from '@/components/table/utils/request';
+import SearchInput from '@/components/table/components/SearchInput.vue';
 
 interface Props {
     resource: Paginated<any>;
@@ -40,15 +40,17 @@ const pageName = props.resource.pageName;
 
 const { getFilteredColumns } = useComponents(name);
 const { scrollPosition, scrollable, updateScrollPosition, updateScrollSize, updateContainerWidth, saveColumnsPositions } = useScrollable(name);
-const { search,
-    getInitialSearch,
+const {
+    searchBy,
     filters,
     onUpdateFilter,
     onDeleteFilter,
-    onAddFilter
+    onAddFilter,
+    getInitialSearch
 } = useFilters(pageName, name, props.resource.filters);
 const { reload, loading } = useRequest(props.resource.name);
 
+const searchString = ref<string>(getInitialSearch('search') || '');
 const container = useTemplateRef<HTMLElement>('container');
 
 const stickyHeader = computed(() => props.resource.stickyHeader);
@@ -91,28 +93,39 @@ onUnmounted(() => {
     }
 });
 
+const filtersAreApplied = computed(() =>
+    Object.entries(filters).filter(([_, config]) => config && config.selected).length > 0 || searchString.value?.length > 0
+);
+
 provide('name', name);
 provide('pageName', pageName);
-
-const searchString = ref<string>(getInitialSearch('search'))
+provide('filters', filters);
+provide('filtersAreApplied', filtersAreApplied);
 
 const onPageChange = (page: number) => {
     reload(buildData(pageName, page));
+};
+
+const resetSearchString = () => {
+    searchString.value = '';
 };
 </script>
 
 <template>
     <div class="@container" :class="{ '-mx-4': expanded }" ref="container" :data-name="`table-container-${name}`">
         <div class="flex space-x-3 p-4">
-            <div class="flex-1">
-                <DebounceInput v-if="resource.searchable"
-                               v-model="searchString"
-                               @update="(value) => search('search', value, '')" />
-            </div>
-            <FiltersButton :filters="filters" @update="onAddFilter"/>
+
+            <SearchInput v-model="searchString"
+                         :searchable="resource.searchable"
+                         class="flex-1"
+                         @update="(value: string) => searchString = value"
+                         placeholder="Type to search ..."
+            />
+
+            <FiltersButton @update="onAddFilter" :resetSearchString="resetSearchString"/>
         </div>
 
-        <FiltersRow :filters="filters" @update="onUpdateFilter" @delete="onDeleteFilter" />
+        <FiltersRow @update="onUpdateFilter" @delete="onDeleteFilter" />
 
         <ToolsRow v-if="!noResults" :meta="resource.meta" :headers="resource.headers" :class="{ 'px-4': expanded }" @update="onPageChange" />
 
@@ -166,7 +179,7 @@ const onPageChange = (page: number) => {
                             <component
                                 v-if="filters[column.name]"
                                 :modelValue="filters[column.name].value"
-                                @update="(value: string|string[], clause: string|null) => search(column.name, value, clause)"
+                                @update="(value: string|string[], clause: string|null) => searchBy(column.name, value, clause)"
                                 :is="Filters[filters[column.name].component as keyof typeof Filters]"
                                 :filter="filters[column.name]"
                                 :inHeader="true"

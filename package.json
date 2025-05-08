@@ -46,6 +46,7 @@
         "tailwindcss-animate": "^1.0.7",
         "typescript": "^5.2.2",
         "universal-cookie": "^7.2.2",
+        "usemods": "^1.13.0",
         "vite": "^6.0.3",
         "vue": "^3.5.13",
         "vue-tsc": "^2.2.0",

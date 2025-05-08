@@ -36,6 +36,7 @@ export interface Clause {
     name: string
     searchSymbol: string
     value: string
+    prefix: string
 }
 
 export interface Filter {
@@ -71,7 +72,7 @@ export interface Paginated<T> {
     hash: string
     stickyHeader: boolean
     stickyPagination: boolean
-    searchable: boolean
+    searchable: string[]
     resizable: boolean
 }
 

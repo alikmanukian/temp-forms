@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import type { Clause, Filter } from '../index';
-import { computed } from 'vue';
+import { computed, inject } from 'vue';
 import { FilterDropdown } from './filters/dropdowns';
-interface Props {
-    filters: Record<string, Filter>;
-}
-const props = defineProps<Props>()
+
+const filters = inject('filters') as Record<string, Filter>;
 
 const appliedFilters = computed(() => Object.fromEntries(
-    Object.entries(props.filters).filter(([_, config]) => config && config.selected)
+    Object.entries(filters).filter(([_, config]) => config && config.selected)
 ));
 
 const emit = defineEmits<{
@@ -26,12 +24,16 @@ const onDelete = (name: string) => {
 </script>
 
 <template>
-    <div class="p-4 gap-4 flex items-center flex-wrap">
-        <FilterDropdown v-for="filter in appliedFilters"
-                        :key="filter.name"
-                        :filter="filter"
-                        @update="onUpdate"
-                        @delete="onDelete"
-        />
+
+    <div class="p-4 space-y-2" v-if="Object.keys(appliedFilters).length > 0">
+        <div>Applied filters</div>
+        <div class="gap-4 flex items-center flex-wrap border bg-muted/50 mt-1 p-2 rounded-lg">
+            <FilterDropdown v-for="filter in appliedFilters"
+                            :key="filter.name"
+                            :filter="filter"
+                            @update="onUpdate"
+                            @delete="onDelete"
+            />
+        </div>
     </div>
 </template>

@@ -215,7 +215,7 @@ abstract class Table implements JsonSerializable
             'pageName' => $this->getPageName(),
             'stickyHeader' => $this->getStickyHeader(),
             'stickyPagination' => $this->getStickyPagination(),
-            'searchable' => ! empty($this->search),
+            'searchable' => $this->search,
             'resizable' => $this->resizable,
             'headers' => collect($this->columns)
                 ->map(fn (Column $column) => $column->toArray())

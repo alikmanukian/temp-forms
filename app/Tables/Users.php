@@ -109,8 +109,7 @@ class Users extends Table
                 ->options([
                     'true' => 'True',
                     'false' => 'False'
-                ])
-                ->nullable(),
+                ]),
 //            Filters\NumericFilter::make('visit_count'),
 //            Filters\BooleanFilter::make('is_admin', 'Admin'),
 //            Filters\DateFilter::make('email_verified_at')->nullable(),

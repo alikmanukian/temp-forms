@@ -37,7 +37,7 @@ const inputClass = computed(() => cn([props.class, {
             <Icon :name="icon" class="size-4 text-muted-foreground" />
         </span>
 
-        <Input v-model="model" @input="onInput" :class="inputClass"/>
+        <Input v-model="model" @input="onInput" :class="inputClass" v-bind="$attrs"/>
     </div>
 
 </template>

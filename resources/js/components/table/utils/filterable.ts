@@ -3,7 +3,7 @@ import { usePage } from '@inertiajs/vue3';
 import { buildData } from '../utils/helpers';
 import type { Clause, Filter, Paginated } from '@/components/table';
 import { useRequest } from '@/components/table/utils/request';
-import { reactive } from 'vue';
+import { reactive, Ref } from 'vue';
 
 interface FilterValue {
     [key: string]: string | number | FilterValue | null;
@@ -23,6 +23,21 @@ export interface SearchParams {
 }
 
 const possibleEmptyValues = ['', null, '*', '!*', '^', '!^', '$', '!$', '!', '~', '!~'];
+
+const deepMerge = (target: any, source: any) => {
+    for (const key in source) {
+        if (
+            source[key] instanceof Object &&
+            key in target &&
+            target[key] instanceof Object
+        ) {
+            deepMerge(target[key], source[key])
+        } else {
+            target[key] = structuredClone(source[key]) // or use JSON.parse(JSON.stringify(...)) for older browsers
+        }
+    }
+    return target
+}
 
 /**
  * Process search data, merging with current params and removing explicitly empty values
@@ -80,15 +95,15 @@ const processFilterValues = (newValues: Record<string, any>, currentValues: Reco
     });
 };
 
-export const clauseShouldHaveValue = (clause: Clause) => {
-    return ["is_set", 'is_not_set'].includes(clause.value)
-}
+export const clauseShouldNotHaveValue = (clause: Clause) => {
+    return ['is_set', 'is_not_set'].includes(clause.value);
+};
 
 /**
  * Recursively cleans an object, removing empty string values
  */
 
-export const useFilters = (pageName: string, tableName: string, initialFilters: Filter[]) => {
+export const useFilters = (pageName: string, tableName: string, initialFilters: Filter[]|Record<string, Filter>) => {
     const page = usePage<{
         query: any;
     }>();
@@ -96,10 +111,14 @@ export const useFilters = (pageName: string, tableName: string, initialFilters: 
     const { reload } = useRequest(tableName);
 
     // Initialize filters
-    const filters = reactive<Record<string, Filter>>({})
-    initialFilters.forEach((filter: Filter) => {
-        filters[filter.name] = {...filter}
-    });
+    let filters = reactive<Record<string, Filter>>({})
+    if (Array.isArray(initialFilters)) {
+        initialFilters.forEach((filter: Filter) => {
+            filters[filter.name] = {...filter}
+        });
+    } else {
+        filters = initialFilters;
+    }
 
     const query = page.props.query;
 
@@ -133,7 +152,15 @@ export const useFilters = (pageName: string, tableName: string, initialFilters: 
         };
     };
 
-    const search = (field: string, value: string|string[], clause: string|null, callback?: (filter?: Filter) => void) => {
+    const search = (searchParams: object, params: object) => {
+        reload(searchParams, {
+            preserveState: true,
+            preserveScroll: true,
+            ...params
+        });
+    }
+
+    const searchBy = (field: string, value: string|string[], clause: string|null, callback?: (filter?: Filter) => void) => {
         if (Array.isArray(value)) {
             value = value.join(',')
         }
@@ -146,12 +173,8 @@ export const useFilters = (pageName: string, tableName: string, initialFilters: 
             value = clause + value;
         }
 
-        const searchParams = setSearchParams(field, value);
-
-        reload(searchParams, {
-            preserveState: true,
-            preserveScroll: true,
-            onSuccess: (response) => {
+        search(setSearchParams(field, value), {
+            onSuccess: (response: any) => {
                 const filter = (response.props[tableName] as Paginated<any>).filters.find((filter: Filter) => {
                     return filter.name === field;
                 });
@@ -164,12 +187,34 @@ export const useFilters = (pageName: string, tableName: string, initialFilters: 
                     filters[field] = filter;
                 }
 
-            },
-        });
+            }
+        })
     };
 
+    const resetSearch = () => {
+        let searchParams: Record<string, any> = {};
+
+        // set empty filters
+        Object.keys(filters).forEach(key => {
+          searchParams = deepMerge(searchParams, setSearchParams(key, ''));
+        });
+
+        // set empty global search string
+        searchParams = deepMerge(searchParams, setSearchParams('search', ''));
+
+        search(searchParams, {
+            onSuccess: () => {
+                // clear filters
+                Object.keys(filters).forEach(key => {
+                    filters[key].selected = false
+                    filters[key].value = null
+                });
+            }
+        });
+    }
+
     const onUpdateFilter = (field: string, value: string|string[], clause: Clause|null) => {
-        search(field, value, clause?.searchSymbol ?? null, (filter?: Filter) => {
+        searchBy(field, value, clause?.searchSymbol ?? null, (filter?: Filter) => {
             if (filter) {
                 filter.selected = true;
                 filter.selectedClause = clause;
@@ -178,7 +223,7 @@ export const useFilters = (pageName: string, tableName: string, initialFilters: 
     };
 
     const onDeleteFilter = (field: string) => {
-        search(field, '', null);
+        searchBy(field, '', null);
     };
 
     const onAddFilter = (name: string) => {
@@ -196,9 +241,10 @@ export const useFilters = (pageName: string, tableName: string, initialFilters: 
         getInitialSearch,
         getFilterParam,
         setSearchParams,
-        search,
+        searchBy,
         onUpdateFilter,
         onDeleteFilter,
         onAddFilter,
+        resetSearch,
     };
 };
