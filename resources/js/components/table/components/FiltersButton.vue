@@ -60,11 +60,18 @@ const resetFilters = () => {
             <DropdownMenuLabel>Add filter</DropdownMenuLabel>
             <DropdownMenuSeparator class="bg-gray-300" />
 
+            <template v-if="Object.keys(unAppliedFilters).length > 0">
                 <DropdownMenuItem v-for="filter in unAppliedFilters"
                     :key="filter.name" @click="onAddFilter(filter.name)"
                 >
-                    <Icon name="Plus" class="mr-1 !size-3" /><span>{{filter.title}}</span>
+                    <Icon name="Plus" class="!size-3" /><span>{{filter.title}}</span>
                 </DropdownMenuItem>
+            </template>
+            <template v-else>
+                <DropdownMenuItem class="flex items-center gap-2">
+                    <span>No filters available</span>
+                </DropdownMenuItem>
+            </template>
         </DropdownMenuContent>
     </DropdownMenu>
 </template>

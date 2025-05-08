@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import Icon from '@/components/Icon.vue';
 import type { Clause, DropdownFilter, Filter } from '@/components/table';
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, nextTick, inject, onMounted } from 'vue';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import * as Filters from '@/components/table/components/filters/inputs';
 import { clauseShouldNotHaveValue } from '@/components/table/utils/filterable';
+import { focusOnNth } from 'usemods';
 
 interface Props {
     filter: Filter | DropdownFilter;
@@ -16,6 +17,8 @@ const emit = defineEmits<{
     (e: 'update', name: string, value: string, clause: Clause | null): void;
     (e: 'delete', name: string): void;
 }>();
+
+const name = inject('name') as string;
 
 const selectedClause = ref<Clause>(props.filter.selectedClause ?? props.filter.clauses[0]);
 const selectedFilter = ref<Filter | DropdownFilter>(props.filter);
@@ -87,14 +90,31 @@ const label = computed(() => {
 
     return selectedFilter.value.value;
 });
+
+const focusInputElement = () => {
+    nextTick(() => {
+        const container = document.querySelector(`#filter-${name}-${selectedFilter.value.component}-${selectedFilter.value.name}`) as HTMLElement;
+        if (container) {
+            focusOnNth(container, 0);
+        }
+    });
+}
+
+const onOpenDropdown = (opened: boolean) => {
+    if (opened) {
+        focusInputElement();
+    }
+};
+
+onMounted(() => focusInputElement())
 </script>
 
 <template>
-    <DropdownMenu class="relative" :defaultOpen="filter.opened">
+    <DropdownMenu class="relative" :defaultOpen="filter.opened" @update:open="onOpenDropdown">
         <div class="flex h-7 items-center overflow-hidden rounded-md border border-border text-sm shadow">
             <DropdownMenuTrigger class="group/filter flex h-full cursor-pointer items-center bg-gray-50 hover:bg-gray-100 hover:text-orange-600">
                 <div class="whitespace-nowrap px-2 text-left font-medium">{{ filter.title }}:</div>
-                <div class="max-w-48 truncate pr-2 text-left text-muted-foreground group-hover/filter:text-orange-600 flex gap-1">
+                <div class="flex max-w-48 gap-1 truncate pr-2 text-left text-muted-foreground group-hover/filter:text-orange-600">
                     <span class="underline underline-offset-2">{{ filter.selectedClause?.prefix }}</span>
                     <span>{{ label }}</span>
                 </div>
@@ -129,6 +149,7 @@ const label = computed(() => {
             </div>
 
             <component
+                :id="`filter-${name}-${selectedFilter.component}-${selectedFilter.name}`"
                 v-if="showComponent"
                 v-model="selectedFilter.value"
                 @update="onChangeValue"

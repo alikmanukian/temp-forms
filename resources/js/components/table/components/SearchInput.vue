@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import DebounceInput from '@/components/table/components/DebounceInput.vue';
-import { inject, ref, onMounted, computed, nextTick } from 'vue';
+import { inject, onMounted, computed, nextTick } from 'vue';
 import { useFilters } from '@/components/table/utils/filterable';
 import type { Filter } from '@/components/table';
 import Icon from '@/components/Icon.vue';
@@ -48,8 +48,6 @@ const inputContainer = computed(() => document.querySelector(`#search-input-${na
 const searchableFields = computed(() => {
     return props.searchable.map((field) => filters[field].title).join(', ');
 })
-
-console.log(searchableFields.value);
 </script>
 <template>
     <div v-if="searchable.length > 0" class="relative">
