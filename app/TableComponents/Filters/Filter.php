@@ -67,7 +67,7 @@ class Filter
     public function toArray(): array
     {
         return [
-            'name' => $this->name,
+            'name' => $this->getAlias(),
             'title' => $this->title ?? Str::of($this->name)->replace('_', ' ')->title($this->name),
             'clauses' => $this->clauses(),
             'defaultClause' => $this->defaultClause?->toArray(),
@@ -129,13 +129,13 @@ class Filter
         }
 
         request()->merge([
-            $this->getQueryParam($tableName) => $this->value,
+            $this->getQueryParam($tableName, $this->getName()) => $this->value,
         ]);
     }
 
-    public function getQueryParam(string $tableName): string
+    public function getQueryParam(string $tableName, ?string $filterName = null): string
     {
-        $filterName = $this->getAlias();
+        $filterName = $filterName ?? $this->getAlias();
         $queryParam = ($tableName ? $tableName . '.' : '') . $filterName;
 
         return 'filter.' . $queryParam;
@@ -143,7 +143,7 @@ class Filter
 
     public function getAllowedFilterMethod(): ?AllowedFilter
     {
-        $field = $this->getAlias();
+        $field = $this->getName();
 
         return match ($this->selectedClause) {
             Clause::Contains => AllowedFilter::contains($field),

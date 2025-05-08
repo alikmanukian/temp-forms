@@ -167,7 +167,9 @@ abstract class Table implements JsonSerializable
                     return;
                 }
 
-                $filter->parseRequestValue($this->name, $value);
+                if (is_string($value)) {
+                    $filter->parseRequestValue($this->name, $value);
+                }
             });
     }
 
@@ -269,6 +271,8 @@ abstract class Table implements JsonSerializable
 
     private function getPaginated(): LengthAwarePaginator
     {
+        dump($this->getQueryBuilder()->toSql());
+
         return $this->getQueryBuilder()
             ->paginate(
                 perPage: $this->getPerPage(),
