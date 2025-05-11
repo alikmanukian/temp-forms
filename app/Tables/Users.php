@@ -109,7 +109,14 @@ class Users extends Table
                 ->options([
                     'true' => 'True',
                     'false' => 'False'
-                ]),
+                ])
+                ->useCallback(function (Builder $query, $value) {
+                    if ($value) {
+                        $query->whereNotNull('email_verified_at');
+                    } else {
+                        $query->whereNull('email_verified_at');
+                    }
+                }),
 //            Filters\NumericFilter::make('visit_count'),
 //            Filters\BooleanFilter::make('is_admin', 'Admin'),
 //            Filters\DateFilter::make('email_verified_at')->nullable(),

@@ -4,7 +4,7 @@ import type { Clause, DropdownFilter, Filter } from '@/components/table';
 import { ref, computed, watch, nextTick, inject, onMounted } from 'vue';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import * as Filters from '@/components/table/components/filters/inputs';
-import { clauseShouldNotHaveValue } from '@/components/table/utils/filterable';
+import { clauseShouldNotHaveValue, clauseIsArrayable } from '@/components/table/utils/filterable';
 import { focusOnNth } from 'usemods';
 
 interface Props {
@@ -30,6 +30,11 @@ const onChangeClause = (value: Clause) => {
 
     if (clauseShouldNotHaveValue(selectedClause.value)) {
         selectedFilter.value.value = '';
+    }
+
+    if (!clauseIsArrayable(selectedClause.value) && Array.isArray(selectedFilter.value.value)) {
+        selectedFilter.value.value = [];
+        emit('update', props.filter.name, selectedFilter.value.value as string, selectedClause.value);
     }
 
     if (clauseShouldNotHaveValue(selectedClause.value) || selectedFilter.value.value) {

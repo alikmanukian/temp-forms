@@ -33,6 +33,8 @@ class Filter
 
     protected ?string $alias = null;
 
+    protected mixed $callback = null;
+
     private function __construct(
         protected string $name,
         protected ?string $title = null,
@@ -113,8 +115,16 @@ class Filter
                 $this->value = explode(',', $newValue);
             }
 
-            if (in_array($this->selectedClause, [Clause::IsSet, Clause::IsNotSet, Clause::IsTrue, Clause::IsFalse], true)) {
+            if (in_array($this->selectedClause, [Clause::IsSet, Clause::IsNotSet], true)) {
                 $this->value = 'anyValue';
+            }
+
+            if ($this->selectedClause === Clause::IsTrue) {
+                $this->value = true;
+            }
+
+            if ($this->selectedClause === Clause::IsFalse) {
+                $this->value = false;
             }
 
             break;
@@ -144,6 +154,10 @@ class Filter
     public function getAllowedFilterMethod(): ?AllowedFilter
     {
         $field = $this->getName();
+
+        if (is_callable($this->callback)) {
+            return AllowedFilter::callback($field, $this->callback);
+        }
 
         return match ($this->selectedClause) {
             Clause::Contains => AllowedFilter::contains($field),
@@ -185,5 +199,12 @@ class Filter
     public function getAlias(): string
     {
         return $this->alias ?? $this->name;
+    }
+
+    public function useCallback(callable $callback): static
+    {
+        $this->callback = $callback;
+
+        return $this;
     }
 }

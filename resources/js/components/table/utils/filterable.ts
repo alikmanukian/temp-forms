@@ -99,6 +99,10 @@ export const clauseShouldNotHaveValue = (clause: Clause) => {
     return ['is_set', 'is_not_set'].includes(clause.value);
 };
 
+export const clauseIsArrayable = (clause: Clause) => {
+    return ['is_in', 'is_not_in'].includes(clause.value);
+};
+
 /**
  * Recursively cleans an object, removing empty string values
  */
