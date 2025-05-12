@@ -103,13 +103,9 @@ class Users extends Table
                 ])
                 ->nullable()
                 ->multiple(),
-            Filters\DropdownFilter::make('email_verified_at', 'Is Verified')
+            Filters\BooleanFilter::make('email_verified_at', 'Is Verified')
                 ->as('is_verified')
                 ->showInHeader()
-                ->options([
-                    'true' => 'True',
-                    'false' => 'False'
-                ])
                 ->useCallback(function (Builder $query, $value) {
                     if ($value) {
                         $query->whereNotNull('email_verified_at');
