@@ -3,6 +3,7 @@
 namespace App\Tables;
 
 use App\Models\User;
+use App\TableComponents\Enums\Clause;
 use App\TableComponents\Enums\IconSize;
 use App\TableComponents\Enums\ImageSize;
 use App\TableComponents\Enums\Position;
@@ -38,6 +39,7 @@ class Users extends Table
                 ->width('75px'),
 
             Columns\TextColumn::make('name', 'Full Name')
+                ->as('full_name')
                 ->stickable()
                 ->linkTo(function (Model $model) {
                     return $model->id === 1 ? [
@@ -68,10 +70,13 @@ class Users extends Table
                 return $image->url($model->friends->pluck('avatar'))->limit(2);
             }),*/
 
-            Columns\BooleanColumn::make('is_verified', 'Is Verified')
+            Columns\BooleanColumn::make('email_verified_at', 'Is Verified')
+                ->as('is_verified')
                 ->mapAs(function (Model $model, mixed $value) {
-                    return (bool) $model->email_verified_at;
+                    return (bool) $value;
                 })
+//                ->trueLabel('Yes')
+//                ->falseLabel('No')
                 ->trueIcon('Check')
                 ->centerAligned(),
 
@@ -92,7 +97,9 @@ class Users extends Table
     {
         return [
             Filters\TextFilter::make('id', 'ID')->showInHeader(),
-            Filters\TextFilter::make('name', 'Full Name')->showInHeader(),
+            Filters\TextFilter::make('name', 'Full Name')
+                ->as('full_name')
+                ->showInHeader(),
             Filters\TextFilter::make('bio')->showInHeader(),
             Filters\TextFilter::make('email')->showInHeader(),
             Filters\DropdownFilter::make('status')
@@ -105,14 +112,14 @@ class Users extends Table
                 ->multiple(),
             Filters\BooleanFilter::make('email_verified_at', 'Is Verified')
                 ->as('is_verified')
-                ->showInHeader()
-                ->useCallback(function (Builder $query, $value) {
+                ->applyUsing(function (Builder $query, string $attribute, Clause $clause, mixed $value) {
                     if ($value) {
-                        $query->whereNotNull('email_verified_at');
+                        $query->whereNotNull($attribute);
                     } else {
-                        $query->whereNull('email_verified_at');
+                        $query->whereNull($attribute);
                     }
-                }),
+                })
+                ->showInHeader(),
 //            Filters\NumericFilter::make('visit_count'),
 //            Filters\BooleanFilter::make('is_admin', 'Admin'),
 //            Filters\DateFilter::make('email_verified_at')->nullable(),

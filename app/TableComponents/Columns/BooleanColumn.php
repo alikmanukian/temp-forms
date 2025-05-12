@@ -103,7 +103,7 @@ class BooleanColumn extends Column
         }
 
         // rewrite model value for the boolean column
-        $outputModel->{$this->name} = match((bool) $inputModel->{$this->name}) {
+        $outputModel->{$this->getAlias()} = match((bool) $inputModel->{$this->name}) {
             true => $this->trueLabel ?? static::$defaultTrueLabel,
             false => $this->falseLabel ?? static::$defaultFalseLabel,
         };

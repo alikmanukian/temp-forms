@@ -6,6 +6,7 @@ import { computed } from 'vue';
 interface Props {
     name: string;
     params: Record<string, ImageRecord>;
+    alignment: 'justify-start'|'justify-center'|'justify-end';
     class: string;
 }
 

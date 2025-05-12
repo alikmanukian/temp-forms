@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils';
 interface Props {
     name: string
     params: Record<string, IconRecord>
+    alignment: 'justify-start'|'justify-center'|'justify-end';
+    hasIcon: boolean
     class: string
 }
 
@@ -27,6 +29,6 @@ const position = computed(() => {
         props.class,
     ])">
         <Icon :icon="params?.[name]?.icon as TypeIcon" />
-        <span><slot /></span>
+        <span v-if="!hasIcon"><slot /></span>
     </div>
 </template>

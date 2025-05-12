@@ -205,6 +205,7 @@ const resetSearchString = () => {
                                     :name="column.name"
                                     :alignment="column.options.alignment"
                                     :class="cellClass(column)"
+                                    :hasIcon="column.hasIcon"
                                     >{{ row[column.name] }}
                                 </component>
                             </div>

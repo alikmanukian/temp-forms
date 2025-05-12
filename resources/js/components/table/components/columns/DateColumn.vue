@@ -5,6 +5,7 @@ import Wrapper from '@/components/table/components/Wrapper.vue';
 interface Props {
     name: string;
     params: Record<string, LinkRecord>;
+    alignment: 'justify-start'|'justify-center'|'justify-end';
     class: string;
 }
 

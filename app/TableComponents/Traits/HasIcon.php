@@ -52,8 +52,8 @@ trait HasIcon
             $value = array_merge($value, $this->icon->toArray());
         }
 
-        if (is_array($this->iconCallback) && array_key_exists($inputModel->{$this->name}, $this->iconCallback)) {
-            $iconValue = $this->iconCallback[$inputModel->{$this->name}] ?? '';
+        if (is_array($this->iconCallback) && array_key_exists($outputModel->{$this->getAlias()}, $this->iconCallback)) {
+            $iconValue = $this->iconCallback[$outputModel->{$this->getAlias()}] ?? '';
             $value = array_merge($value, $this->icon->icon($iconValue)->toArray());
         }
 

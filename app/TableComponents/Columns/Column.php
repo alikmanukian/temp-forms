@@ -13,27 +13,29 @@ use Illuminate\Support\Str;
 use ReflectionProperty;
 
 /**
- * @method sortable()
- * @method notSortable()
- * @method searchable()
- * @method notSearchable()
- * @method toggleable()
- * @method notToggleable()
- * @method stickable()
- * @method notStickable()
- * @method headerAlignment(ColumnAlignment $value)
- * @method alignment(ColumnAlignment $value)
+ * @method $this sortable()
+ * @method $this notSortable()
+ * @method $this searchable()
+ * @method $this notSearchable()
+ * @method $this toggleable()
+ * @method $this notToggleable():
+ * @method $this stickable()
+ * @method $this notStickable()
+ * @method $this headerAlignment(ColumnAlignment $value)
+ * @method $this alignment(ColumnAlignment $value)
  */
 class Column
 {
     public mixed $mapping = null;
     public array $appends = []; // for mutated attributes
 
+    protected ?string $alias = null;
+
     private function __construct(
         protected string $name,
         protected ?string $header = null,
         protected bool $sortable = false, // todo
-        protected bool $searchable = false, // todo
+        protected bool $searchable = false,
         protected bool $toggleable = true, // allow/disallow in columns visibility
         protected bool $stickable = false,
         protected ColumnAlignment $headerAlignment = ColumnAlignment::Left,
@@ -60,6 +62,11 @@ class Column
     public function getName(): string
     {
         return $this->name;
+    }
+
+    public function getAlias(): string
+    {
+        return $this->alias ?? $this->name;
     }
 
     public function getHeader(): string
@@ -121,7 +128,14 @@ class Column
 
     public function isSearchable(): bool
     {
-        return $this->searchable;
+        return (bool) $this->searchable;
+    }
+
+    public function as(string $alias): static
+    {
+        $this->alias = $alias;
+
+        return $this;
     }
 
     /**
@@ -164,10 +178,11 @@ class Column
     public function toArray(): array
     {
         return [
-            'name' => $this->getName(),
+            'name' => $this->getAlias(),
             'header' => $this->getHeader(),
             'width' => $this->getWidth(),
             'type' => class_basename($this),
+            'hasIcon' => property_exists($this, 'icon') && !is_null($this->icon),
             'options' => [
                 'sortable' => $this->sortable,
                 'toggleable' => $this->toggleable,
@@ -209,17 +224,18 @@ class Column
     public function useMappings(Model $inputModel, Model $outputModel): void
     {
         $value = $inputModel->getRawOriginal($this->name);
-        $outputModel->{$this->name} = $value;
+        $field = $this->getAlias();
+        $outputModel->{$field} = $value;
 
         if (is_callable($this->mapping)) {
-            $outputModel->{$this->name} = call_user_func($this->mapping, $inputModel, $value);
+            $outputModel->{$field} = call_user_func($this->mapping, $inputModel, $value);
         } else if (is_array($this->mapping) && array_key_exists($value, $this->mapping)) {
-            $outputModel->{$this->name} = $this->mapping[$value];
+            $outputModel->{$field} = $this->mapping[$value];
         }
 
         // if the column is mutated, we need to append it to the model
-        if (in_array($this->name, $inputModel->getMutatedAttributes(), true)) {
-            $this->appends[] = $this->name;
+        if (in_array($field, $inputModel->getMutatedAttributes(), true)) {
+            $this->appends[] = $field;
         }
     }
 
@@ -250,7 +266,7 @@ class Column
 
     protected function setColumnParamToModel(Model $model, string $paramName, mixed $paramValue): void
     {
-        $key = $this->name . '.' . $paramName;
+        $key = $this->getAlias() . '.' . $paramName;
         if (is_null($model->_customColumnsParams)) {
             $model->_customColumnsParams = [];
         }

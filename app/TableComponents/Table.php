@@ -19,7 +19,7 @@ use RuntimeException;
 use Spatie\QueryBuilder\QueryBuilder;
 
 /**
- * @method searchUsing(Builder $query, string $value)
+ * @method AllowedFilter searchUsing(Builder $query, string $value)
  */
 abstract class Table implements JsonSerializable
 {
@@ -105,7 +105,7 @@ abstract class Table implements JsonSerializable
                 $this->search,
                 collect($this->columns)
                     ->filter(fn (Column $column) => $column->isSearchable())
-                    ->map(fn (Column $column) => $column->getName())
+                    ->map(fn (Column $column) => $column->getAlias())
                     ->values()
                     ->toArray()
             )

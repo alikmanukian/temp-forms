@@ -26,6 +26,7 @@ export interface TableHeader {
     header: string
     width: string
     left: number
+    hasIcon: boolean
     visible?: boolean
     sticked?: boolean
     options: TableHeaderOptions

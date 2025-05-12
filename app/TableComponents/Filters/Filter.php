@@ -10,11 +10,12 @@ use App\TableComponents\Filters\Spatie\FiltersIsNotSet;
 use App\TableComponents\Filters\Spatie\FiltersIsSet;
 use App\TableComponents\Filters\Spatie\FiltersIsTrue;
 use BadMethodCallException;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 /**
- * @method title(string $title)
- * @method showInHeader()
+ * @method $this title(string $title)
+ * @method $this showInHeader()
  */
 class Filter
 {
@@ -75,7 +76,7 @@ class Filter
             'defaultClause' => $this->defaultClause?->toArray(),
             'showInHeader' => $this->showInHeader,
             'component' => class_basename(static::class),
-            'value' => !in_array($this->selectedClause, [
+            'value' => ! in_array($this->selectedClause, [
                 Clause::IsSet,
                 Clause::IsNotSet,
             ], true) ? $this->value : '',
@@ -139,7 +140,7 @@ class Filter
         }
 
         request()->merge([
-            $this->getQueryParam($tableName, $this->getName()) => $this->value,
+            $this->getQueryParam($tableName, $this->getAlias()) => $this->value,
         ]);
     }
 
@@ -153,27 +154,30 @@ class Filter
 
     public function getAllowedFilterMethod(): ?AllowedFilter
     {
-        $field = $this->getName();
+        $name = $this->getAlias();
+        $internalName = $this->getName();
 
-        if (is_callable($this->callback)) {
-            return AllowedFilter::callback($field, $this->callback);
+        if ($this->selectedClause && is_callable($this->callback)) {
+            return AllowedFilter::callback($name, function (Builder $builder, mixed $value) use ($internalName) {
+                return call_user_func($this->callback, $builder, $internalName, $this->selectedClause, $value);
+            }, $internalName);
         }
 
         return match ($this->selectedClause) {
-            Clause::Contains => AllowedFilter::contains($field),
-            Clause::DoesNotContain => AllowedFilter::doesNotContain($field),
-            Clause::StartsWith => AllowedFilter::startsWith($field),
-            Clause::DoesNotStartWith => AllowedFilter::doesNotStartWith($field),
-            Clause::EndsWith => AllowedFilter::endsWith($field),
-            Clause::DoesNotEndWith => AllowedFilter::doesNotEndWith($field),
-            Clause::Equals => AllowedFilter::equals($field),
-            Clause::DoesNotEqual => AllowedFilter::doesNotEqual($field),
-            Clause::IsIn => AllowedFilter::equals($field),
-            Clause::IsNotIn => AllowedFilter::doesNotEqual($field),
-            Clause::IsSet => AllowedFilter::custom($field, new FiltersIsSet),
-            Clause::IsNotSet => AllowedFilter::custom($field, new FiltersIsNotSet),
-            Clause::IsTrue => AllowedFilter::custom($field, new FiltersIsTrue),
-            Clause::IsFalse => AllowedFilter::custom($field, new FiltersIsFalse),
+            Clause::Contains => AllowedFilter::contains($name, $internalName),
+            Clause::DoesNotContain => AllowedFilter::doesNotContain($name, $internalName),
+            Clause::StartsWith => AllowedFilter::startsWith($name, $internalName),
+            Clause::DoesNotStartWith => AllowedFilter::doesNotStartWith($name, $internalName),
+            Clause::EndsWith => AllowedFilter::endsWith($name, $internalName),
+            Clause::DoesNotEndWith => AllowedFilter::doesNotEndWith($name, $internalName),
+            Clause::Equals => AllowedFilter::equals($name, $internalName),
+            Clause::DoesNotEqual => AllowedFilter::doesNotEqual($name, $internalName),
+            Clause::IsIn => AllowedFilter::equals($name, $internalName),
+            Clause::IsNotIn => AllowedFilter::doesNotEqual($name, $internalName),
+            Clause::IsSet => AllowedFilter::custom($name, new FiltersIsSet, $internalName),
+            Clause::IsNotSet => AllowedFilter::custom($name, new FiltersIsNotSet, $internalName),
+            Clause::IsTrue => AllowedFilter::custom($name, new FiltersIsTrue, $internalName),
+            Clause::IsFalse => AllowedFilter::custom($name, new FiltersIsFalse, $internalName),
             default => null,
         };
     }
@@ -201,7 +205,10 @@ class Filter
         return $this->alias ?? $this->name;
     }
 
-    public function useCallback(callable $callback): static
+    /**
+     * Use callback for filtering column
+     */
+    public function applyUsing(callable $callback): static
     {
         $this->callback = $callback;
 

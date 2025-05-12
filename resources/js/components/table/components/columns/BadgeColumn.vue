@@ -11,6 +11,7 @@ interface VariantRecord {
 interface Props {
     name: string
     params: Record<string, IconRecord|VariantRecord>
+    alignment: 'justify-start'|'justify-center'|'justify-end';
     class: string
 }
 
