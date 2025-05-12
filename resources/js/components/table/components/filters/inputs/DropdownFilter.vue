@@ -10,7 +10,6 @@ import {
     ComboboxGroup,
     ComboboxInput,
     ComboboxItem,
-    ComboboxItemIndicator,
     ComboboxList,
     ComboboxTrigger,
 } from '@/components/ui/combobox';
@@ -19,13 +18,10 @@ import { AcceptableValue } from 'reka-ui';
 
 interface Props {
     filter: DropdownFilter;
-    modelValue: string|string[]|null;
-    inHeader?: boolean;
+    modelValue: any;
 }
 
-const props = withDefaults(defineProps<Props>(), {
-    inHeader: false
-});
+const props = defineProps<Props>();
 
 const emit = defineEmits<{
     (e: 'update', value: AcceptableValue, clause: string | null): void;
@@ -33,26 +29,24 @@ const emit = defineEmits<{
 
 const isDefaultClause = ref<boolean>(props.filter.selectedClause?.value === props.filter.defaultClause.value);
 
-const model = ref<string|string[]>('');
+const model = ref<any>(null);
 
 const selected = ref<FilterOption[]>(
     props.filter.options.filter((option) => props.filter.multiple ? model.value?.includes(option.value) : option.value == model.value)
 );
 
-const value = ref<string[]>(selected.value.map((option: FilterOption) => option.value));
+const value = ref<any>(null);
 
-const setModelValue = (newValue: string|string[]|null) => {
-    if (!props.inHeader || isDefaultClause.value) {
-        model.value = newValue ? newValue : (props.filter.multiple ? [] : '');
-    } else {
-        model.value = props.filter.multiple ? [] : '';
-    }
+const setModelValue = (newValue: any) => {
+    model.value = newValue;
 
     selected.value = props.filter.options.filter((option) => props.filter.multiple ? model.value?.includes(option.value) : option.value == model.value)
-    value.value = selected.value.map((option: FilterOption) => option.value);
+
+    console.log('setModelValue', [...selected.value]);
+
 }
 
-setModelValue(props.filter.value);
+setModelValue(props.modelValue);
 
 const placeholder = ` `;
 
@@ -69,16 +63,15 @@ const label = computed(() => {
 })
 
 const search = (value: AcceptableValue) => {
+    console.log('search', value);
     emit(
         'update',
         value,
-        props.inHeader
-            ? props.filter.defaultClause.searchSymbol
-            : props.filter.selectedClause?.searchSymbol ?? props.filter.defaultClause.searchSymbol
+        props.filter.defaultClause.searchSymbol
     );
 }
 
-watch(() => props.modelValue, (newValue: string|string[]|null) => {
+watch(() => props.modelValue, (newValue: any) => {
     setModelValue(newValue);
 });
 
@@ -90,7 +83,7 @@ watch(() => props.filter.selectedClause, (newValue) => {
 </script>
 
 <template>
-    <Combobox v-model="value" by="label" :multiple="filter.multiple" class="h-8" @update:modelValue="search">
+    <Combobox v-model="selected" by="label" :multiple="filter.multiple" class="h-8" @update:modelValue="search">
         <ComboboxAnchor as-child>
             <ComboboxTrigger as-child>
                 <Button variant="outline" class="justify-between w-full px-2 h-8">
@@ -115,9 +108,6 @@ watch(() => props.filter.selectedClause, (newValue) => {
                 <ComboboxItem v-for="option in filter.options" :key="option.value" :value="option.value">
                     {{ option.label }}
 
-                    <ComboboxItemIndicator>
-                        <Icon name="Check" :class="cn('ml-auto h-4 w-4')" v-if="value.includes(option.value)" />
-                    </ComboboxItemIndicator>
                 </ComboboxItem>
             </ComboboxGroup>
         </ComboboxList>
