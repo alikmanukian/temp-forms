@@ -9,7 +9,7 @@ class FiltersStartsWith extends FiltersContains
         $value = mb_strtolower((string) $value, 'UTF8');
 
         return [
-            "LOWER({$property}) ".($this->negative ? 'not' : '')." LIKE ?".self::maybeSpecifyEscapeChar($driver),
+            "LOWER({$property}) ".($this->negative ? 'not' : '')." LIKE ?",
             [self::escapeLike($value).'%'],
         ];
     }

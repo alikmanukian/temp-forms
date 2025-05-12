@@ -271,9 +271,9 @@ abstract class Table implements JsonSerializable
 
     private function getPaginated(): LengthAwarePaginator
     {
-        dump($this->getQueryBuilder()->toSql());
+        $builder = $this->getQueryBuilder();
 
-        return $this->getQueryBuilder()
+        return $builder
             ->paginate(
                 perPage: $this->getPerPage(),
                 pageName: $this->getPageName()

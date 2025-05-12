@@ -14,7 +14,7 @@ class FiltersContains extends \Spatie\QueryBuilder\Filters\FiltersPartial
         $value = mb_strtolower((string) $value, 'UTF8');
 
         return [
-            "LOWER({$property}) ".($this->negative ? 'not' : '')." LIKE ?".self::maybeSpecifyEscapeChar($driver),
+            "LOWER({$property}) ".($this->negative ? 'not' : '')." LIKE ?",
             ['%'.self::escapeLike($value).'%'],
         ];
     }
