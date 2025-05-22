@@ -22,7 +22,7 @@ export interface SearchParams {
     [key: string]: any;
 }
 
-const possibleEmptyValues = ['', null, '*', '!*', '^', '!^', '$', '!$', '!', '~', '!~'];
+const possibleEmptyValues = ['', null, 'contains', 'not.contains', 'starts', 'not.starts', 'ends', 'not.ends', 'not', 'in', 'not.in'];
 
 const deepMerge = (target: any, source: any) => {
     for (const key in source) {
@@ -174,7 +174,7 @@ export const useFilters = (pageName: string, tableName: string, initialFilters: 
         }
 
         if (clause) {
-            value = clause + value;
+            value = clause + (value ? '.' + value : '');
         }
 
         search(setSearchParams(field, value), {

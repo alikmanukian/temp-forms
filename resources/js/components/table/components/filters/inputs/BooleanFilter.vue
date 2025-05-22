@@ -6,7 +6,7 @@ import { AcceptableValue } from 'reka-ui';
 
 interface Props {
     filter: DropdownFilterType;
-    modelValue: string|string[]|null;
+    modelValue: string|string[]|number|null;
 }
 
 const props = defineProps<Props>();
@@ -23,6 +23,8 @@ const model=ref<any>(null)
 
 setModelValue(props.modelValue);
 
+console.log('modelValue', model.value);
+
 const onUpdate = (value: AcceptableValue) => {
     if (value == props.modelValue) {
         // value not changed (unselected)
@@ -30,8 +32,8 @@ const onUpdate = (value: AcceptableValue) => {
     } else {
         emit(
             'update',
-            value ? 'true' : 'false',
-            ''
+            '',
+            value ? 'true' : 'false'
         );
     }
 

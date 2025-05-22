@@ -102,7 +102,7 @@ class Filter
                 continue;
             }
 
-            $newValue = Str::after($value, $clause);
+            $newValue = Str::after($value, $clause.".");
             $this->selectedClause = Clause::findBySearchSymbol($clause, $newValue);
 
             if (! is_null($this->selectedClause) && ! empty($newValue)) {
