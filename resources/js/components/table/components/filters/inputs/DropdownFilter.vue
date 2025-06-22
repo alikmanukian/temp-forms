@@ -42,23 +42,12 @@ const selected = ref<FilterOption[]>(
 const value = ref<string[]>(selected.value.map((option: FilterOption) => option.value));
 
 const setModelValue = (newValue: string | string[] | number | null) => {
-    if (props.filter.name === 'is_verified') {
-        console.log('setModelValue', { 'inHeader': props.inHeader, newValue });
-    }
     model.value = newValue ? newValue : props.filter.multiple ? [] : '';
 
     selected.value = props.filter.options.filter((option) =>
         props.filter.multiple && Array.isArray(model.value) ? model.value?.includes(option.value) : option.value === model.value,
     );
     value.value = selected.value.map((option: FilterOption) => option.value);
-    if (props.filter.name === 'is_verified') {
-        console.log('selected', {
-            name: props.filter.name,
-            value: value.value,
-            options: props.filter.options,
-            model: model.value,
-        });
-    }
 };
 
 setModelValue(props.modelValue);

@@ -10,37 +10,33 @@ import {
 import { Button } from '@/components/ui/button';
 import Icon from '@/components/Icon.vue';
 import type { Filter } from '@/components/table';
-import { computed, inject, Ref } from 'vue';
-import { useFilters } from '@/components/table/utils/filterable';
+import { computed, inject } from 'vue';
 
 interface Props {
-    resetSearchString: () => void;
+    resetFilters: () => void;
 }
 
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
     (e: 'update', name: string): void;
+    (e: 'reset'): void;
 }>()
 
 const onAddFilter = (name: string) => {
     emit('update', name);
 }
 
-const pageName = inject('pageName') as string;
-const name = inject('name') as string;
 const filters = inject('filters') as Record<string, Filter>;
 const filtersAreApplied = inject('filtersAreApplied') as boolean;
-
-const { resetSearch } = useFilters(pageName, name, filters);
 
 const unAppliedFilters = computed(() => Object.fromEntries(
     Object.entries(filters).filter(([_, config]) => !config || !config.selected)
 ));
 
 const resetFilters = () => {
-    resetSearch();
-    props.resetSearchString();
+    props.resetFilters();
+    emit('reset');
 }
 </script>
 

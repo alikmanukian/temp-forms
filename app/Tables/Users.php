@@ -24,8 +24,6 @@ class Users extends Table
 
     protected string $defaultSort = 'name';
 
-    protected array $search = [];
-
     protected bool $stickyHeader = true;
     protected bool $stickyPagination = true;
 

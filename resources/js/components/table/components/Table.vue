@@ -2,7 +2,7 @@
 import type { Filter, Paginated, TableHeader as TableHeaderType } from '../index';
 import Pagination from '../components/Pagination.vue';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { computed, nextTick, onMounted, onUnmounted, provide, ref, useTemplateRef } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, provide, useTemplateRef } from 'vue';
 import vResizable from '../utils/resizable';
 import EmptyState from '../components/EmptyState.vue';
 import ToolsRow from '../components/ToolsRow.vue';
@@ -21,6 +21,7 @@ import Loader from './Loader.vue';
 import { useRequest } from '@/components/table/utils/request';
 import SearchInput from '@/components/table/components/SearchInput.vue';
 
+// TYPES ---------------------------------------
 interface Props {
     resource: Paginated<any>;
     expanded?: boolean;
@@ -29,6 +30,7 @@ interface Props {
 
 type ColumnTypes = keyof typeof Columns;
 
+// PROPS ---------------------------------------
 const props = withDefaults(defineProps<Props>(), {
     expanded: false,
     hidePageNumbers: false,
@@ -40,27 +42,25 @@ const pageName = props.resource.pageName;
 
 const { getFilteredColumns } = useComponents(name);
 const { scrollPosition, scrollable, updateScrollPosition, updateScrollSize, updateContainerWidth, saveColumnsPositions } = useScrollable(name);
+
 const {
-    searchBy,
+    searchString,
     filters,
+    showFiltersRowInHeader,
+    filtersAreApplied,
+    searchBy,
     onUpdateFilter,
     onDeleteFilter,
     onAddFilter,
-    getInitialSearch
+    resetFilters
 } = useFilters(pageName, name, props.resource.filters);
+
 const { reload, loading } = useRequest(props.resource.name);
 
-const searchString = ref<string>(getInitialSearch('search') || '');
 const container = useTemplateRef<HTMLElement>('container');
 
 const stickyHeader = computed(() => props.resource.stickyHeader);
 const stickyPagination = computed(() => props.resource.stickyPagination);
-
-const showFiltersRowInHeader = computed(() => {
-    return props.resource.filters.some((filter: Filter) => {
-        return filter.showInHeader;
-    });
-});
 
 const cellClass = (column: TableHeaderType) => {
     return cn([columnWrappingMethod(column, stickyHeader.value), column.options.alignment, column.options.cellClass]);
@@ -93,10 +93,6 @@ onUnmounted(() => {
     }
 });
 
-const filtersAreApplied = computed(() =>
-    Object.entries(filters).filter(([_, config]) => config && config.selected).length > 0 || searchString.value?.length > 0
-);
-
 provide('name', name);
 provide('pageName', pageName);
 provide('filters', filters);
@@ -104,10 +100,6 @@ provide('filtersAreApplied', filtersAreApplied);
 
 const onPageChange = (page: number) => {
     reload(buildData(pageName, page));
-};
-
-const resetSearchString = () => {
-    searchString.value = '';
 };
 </script>
 
@@ -124,9 +116,13 @@ const resetSearchString = () => {
                          class="flex-1"
                          @update="(value: string) => searchString = value"
                          placeholder="Type to search ..."
+                         :search="searchBy"
             />
 
-            <FiltersButton @update="onAddFilter" :resetSearchString="resetSearchString"/>
+            <FiltersButton @update="onAddFilter"
+                           @reset="searchString = ''"
+                           :resetFilters="resetFilters"
+            />
         </div>
 
         <FiltersRow @update="onUpdateFilter" @delete="onDeleteFilter" />

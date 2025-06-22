@@ -23,8 +23,6 @@ const model=ref<any>(null)
 
 setModelValue(props.modelValue);
 
-console.log('modelValue', model.value);
-
 const onUpdate = (value: AcceptableValue) => {
     if (value == props.modelValue) {
         // value not changed (unselected)

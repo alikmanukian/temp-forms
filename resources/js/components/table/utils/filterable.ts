@@ -3,7 +3,7 @@ import { usePage } from '@inertiajs/vue3';
 import { buildData } from '../utils/helpers';
 import type { Clause, Filter, Paginated } from '@/components/table';
 import { useRequest } from '@/components/table/utils/request';
-import { reactive, Ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 
 interface FilterValue {
     [key: string]: string | number | FilterValue | null;
@@ -107,7 +107,7 @@ export const clauseIsArrayable = (clause: Clause) => {
  * Recursively cleans an object, removing empty string values
  */
 
-export const useFilters = (pageName: string, tableName: string, initialFilters: Filter[]|Record<string, Filter>) => {
+export const useFilters = (pageName: string, tableName: string, initialFilters: Filter[]) => {
     const page = usePage<{
         query: any;
     }>();
@@ -115,16 +115,13 @@ export const useFilters = (pageName: string, tableName: string, initialFilters: 
     const { reload } = useRequest(tableName);
 
     // Initialize filters
-    let filters = reactive<Record<string, Filter>>({})
-    if (Array.isArray(initialFilters)) {
-        initialFilters.forEach((filter: Filter) => {
-            filters[filter.name] = {...filter}
-        });
-    } else {
-        filters = initialFilters;
-    }
+    const filters = reactive<Record<string, Filter>>({})
+    initialFilters.forEach((filter: Filter) => {
+        filters[filter.name] = { ...filter };
+    });
 
     const query = page.props.query;
+
 
     const getFilterParam = (token: string) => {
         let filterParam = 'filter';
@@ -195,7 +192,7 @@ export const useFilters = (pageName: string, tableName: string, initialFilters: 
         })
     };
 
-    const resetSearch = () => {
+    const resetFilters = () => {
         let searchParams: Record<string, any> = {};
 
         // set empty filters
@@ -239,16 +236,31 @@ export const useFilters = (pageName: string, tableName: string, initialFilters: 
         };
     }
 
+    const searchString = ref<string>(getInitialSearch('search') || '');
+
+    const showFiltersRowInHeader = computed(() => {
+        return initialFilters.some((filter: Filter) => {
+            return filter.showInHeader;
+        });
+    });
+
+    const filtersAreApplied = computed(() =>
+        Object.entries(filters).filter(([_, config]) => config && config.selected).length > 0 || searchString.value?.length > 0
+    );
+
+
     return {
         query,
         filters,
-        getInitialSearch,
+        searchString,
+        showFiltersRowInHeader,
+        filtersAreApplied,
         getFilterParam,
         setSearchParams,
         searchBy,
         onUpdateFilter,
         onDeleteFilter,
         onAddFilter,
-        resetSearch,
+        resetFilters,
     };
 };

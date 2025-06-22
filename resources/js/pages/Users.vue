@@ -25,14 +25,12 @@ defineProps<{
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 pb-0">
             <Table :resource="users"
                    hidePageNumbers
-                   resizable
                    expanded
             />
 
 <!--            <Table :resource="employees"-->
 <!--                   :reloadOnly="['employees']"-->
 <!--                   hidePageNumbers-->
-<!--                   resizable-->
 <!--            />-->
         </div>
     </AppLayout>

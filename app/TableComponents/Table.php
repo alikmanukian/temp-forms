@@ -101,8 +101,18 @@ abstract class Table implements JsonSerializable
     public function setSearch(): void
     {
         $this->search = array_unique(
+            collect($this->columns)
+                ->filter(fn (Column $column) => $column->isSearchable())
+                ->map(fn (Column $column) => $column->getName())
+                ->values()
+                ->toArray()
+        );
+    }
+
+    private function getSearchable(): array
+    {
+        return array_unique(
             array_merge(
-                $this->search,
                 collect($this->columns)
                     ->filter(fn (Column $column) => $column->isSearchable())
                     ->map(fn (Column $column) => $column->getAlias())
@@ -217,7 +227,7 @@ abstract class Table implements JsonSerializable
             'pageName' => $this->getPageName(),
             'stickyHeader' => $this->getStickyHeader(),
             'stickyPagination' => $this->getStickyPagination(),
-            'searchable' => $this->search,
+            'searchable' => $this->getSearchable(),
             'resizable' => $this->resizable,
             'headers' => collect($this->columns)
                 ->map(fn (Column $column) => $column->toArray())

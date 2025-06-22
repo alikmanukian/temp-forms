@@ -24,8 +24,6 @@ export const useScrollable = (name: string) => {
             total = total + th.getBoundingClientRect().width;
         });
 
-        console.log('tableWidth', total);
-
         tableWidth.value = total;
     };*/
 

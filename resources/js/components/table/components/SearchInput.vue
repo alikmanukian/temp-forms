@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import DebounceInput from '@/components/table/components/DebounceInput.vue';
 import { inject, onMounted, computed, nextTick } from 'vue';
-import { useFilters } from '@/components/table/utils/filterable';
 import type { Filter } from '@/components/table';
 import Icon from '@/components/Icon.vue';
 import { focusOnNth } from 'usemods'
 
 interface Props {
     searchable: string[];
+    search: (field: string, value: string|string[], clause: string|null, callback?: (filter?: Filter) => void) => void
 }
 
 const props = defineProps<Props>();
@@ -16,16 +16,13 @@ const emit = defineEmits<{
     (e: 'update', value: string): void;
 }>()
 
-const pageName = inject('pageName') as string;
 const name = inject('name') as string;
 const filters = inject('filters') as Record<string, Filter>;
-
-const { searchBy } = useFilters(pageName, name, filters);
 
 const searchString = defineModel<string>();
 
 const resetSearch = () => {
-    searchBy('search', '', '');
+    props.search('search', '', '');
     emit('update', '');
     if (inputContainer.value) {
         focusOnNth(inputContainer.value, 0);
@@ -33,7 +30,7 @@ const resetSearch = () => {
 };
 
 const onSearch = (value: string) => {
-    searchBy('search', value, '')
+    props.search('search', value, '')
     emit('update', value);
 }
 
