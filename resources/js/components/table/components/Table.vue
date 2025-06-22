@@ -112,9 +112,13 @@ const resetSearchString = () => {
 </script>
 
 <template>
-    <div class="@container" :class="{ '-mx-4': expanded }" ref="container" :data-name="`table-container-${name}`">
+    <div class="@container"
+         :class="{ '-mx-4': expanded }"
+         ref="container"
+         :data-name="`table-container-${name}`"
+    >
+        <!-- Search -->
         <div class="flex space-x-3 p-4">
-
             <SearchInput v-model="searchString"
                          :searchable="resource.searchable"
                          class="flex-1"
