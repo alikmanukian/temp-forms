@@ -123,4 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'imagemagick' => [
+        'path' => env('IMAGEMAGICK_PATH', '/usr/bin/convert'),
+    ],
 ];

@@ -1,9 +1,10 @@
 <script lang="ts" setup>
-import type { Image } from './columns';
+import type { Image as ImageType } from './columns';
+import Image from '@/components/core/components/Image.vue';
 import { computed } from 'vue';
 
 const props = defineProps<{
-    image?: Image|null
+    image?: ImageType|null
 }>()
 
 const src = computed(() => {
@@ -15,8 +16,20 @@ const src = computed(() => {
         ? props.image?.url
         : (props.image?.url?.[0] ?? null);
 });
+
+const placeholder = computed(() => {
+    if (!src.value || src.value.startsWith('data:') || src.value.startsWith('http://') || src.value.startsWith('https://')) {
+        return null;
+    }
+
+    const lastDot = src.value.lastIndexOf('.');
+    const filename = src.value.substring(0, lastDot);
+    const extension = src.value.substring(lastDot);
+
+    return `${filename}-placeholder${extension}`;
+});
 </script>
 
 <template>
-    <img v-if="image && src" v-bind="image" :src/>
+    <Image v-if="image && src" v-bind="image" :src :placeholder />
 </template>

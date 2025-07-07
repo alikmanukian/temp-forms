@@ -14,8 +14,10 @@
         "inertiaui/modal": "^0.19.4",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
+        "spatie/image": "^3.8",
         "spatie/laravel-query-builder": "^6.3",
-        "tightenco/ziggy": "^2.4"
+        "tightenco/ziggy": "^2.4",
+        "ext-fileinfo": "*"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.15",
