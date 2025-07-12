@@ -96,7 +96,7 @@ const processFilterValues = (newValues: Record<string, any>, currentValues: Reco
 };
 
 export const clauseShouldNotHaveValue = (clause: Clause) => {
-    return ['is_set', 'is_not_set'].includes(clause.value);
+    return ['is_set', 'is_not_set', 'is_true', 'is_false'].includes(clause.value);
 };
 
 export const clauseIsArrayable = (clause: Clause) => {
@@ -232,7 +232,7 @@ export const useFilters = (pageName: string, tableName: string, initialFilters: 
             ...filters[name],
             selected: true,
             opened: true,
-            selectedClause: filters[name].defaultClause,
+            selectedClause: null,
         };
     }
 

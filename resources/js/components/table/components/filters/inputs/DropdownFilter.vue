@@ -1,7 +1,5 @@
 <script lang="ts" setup>
-import { type DropdownFilter, FilterOption } from '../../../index';
-import { computed, ref, watch } from 'vue';
-import { cn } from '@/lib/utils';
+import Icon from '@/components/Icon.vue';
 import { Button } from '@/components/ui/button';
 import {
     Combobox,
@@ -14,17 +12,21 @@ import {
     ComboboxList,
     ComboboxTrigger,
 } from '@/components/ui/combobox';
-import Icon from '@/components/Icon.vue';
+import { cn } from '@/lib/utils';
 import { AcceptableValue } from 'reka-ui';
+import { computed, ref, watch } from 'vue';
+import { type DropdownFilter, FilterOption } from '../../../index';
 
 interface Props {
     filter: DropdownFilter;
-    modelValue: string | string[] | number | null;
+    modelValue: string | string[] | number | boolean | null;
     inHeader?: boolean;
+    searchable?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
     inHeader: false,
+    searchable: true,
 });
 
 const emit = defineEmits<{
@@ -33,24 +35,30 @@ const emit = defineEmits<{
 
 const isDefaultClause = ref<boolean>(props.filter.selectedClause?.value === props.filter.defaultClause.value);
 
-const model = ref<string | string[] | number | null>(null);
+const model = ref<string | string[] | number | boolean | null>(null);
 
 const selected = ref<FilterOption[]>(
-    props.filter.options.filter((option) => (props.filter.multiple && Array.isArray(model.value) ? model.value?.includes(option.value) : option.value == model.value)),
+    props.filter.options.filter((option) =>
+        props.filter.multiple && Array.isArray(model.value) ? model.value?.includes(option.value) : option.value == model.value,
+    ),
 );
 
 const value = ref<string[]>(selected.value.map((option: FilterOption) => option.value));
 
-const setModelValue = (newValue: string | string[] | number | null) => {
-    model.value = newValue ? newValue : props.filter.multiple ? [] : '';
+const setModelValue = (newValue: string | string[] | number | boolean | null) => {
+    model.value = newValue !== null ? newValue : props.filter.multiple ? [] : '';
 
-    selected.value = props.filter.options.filter((option) =>
-        props.filter.multiple && Array.isArray(model.value) ? model.value?.includes(option.value) : option.value === model.value,
-    );
+    selected.value = props.filter.options.filter((option) => {
+        if (Array.isArray(model.value)) {
+            return model.value?.includes(option.value);
+        }
+
+        return option.value === model.value;
+    });
     value.value = selected.value.map((option: FilterOption) => option.value);
 };
 
-setModelValue(props.modelValue);
+setModelValue(props.filter.value);
 
 const placeholder = ` `;
 
@@ -80,8 +88,8 @@ const search = (value: AcceptableValue) => {
 };
 
 watch(
-    () => props.modelValue,
-    (newValue: string | string[] | number | null) => {
+    () => props.filter.value,
+    (newValue: string | string[] | number | boolean | null) => {
         setModelValue(newValue);
     },
 );
@@ -109,7 +117,7 @@ watch(
         </ComboboxAnchor>
 
         <ComboboxList>
-            <div class="relative w-full max-w-sm items-center">
+            <div class="relative w-full max-w-sm items-center" v-if="searchable">
                 <ComboboxInput class="h-10 rounded-none border-0 border-b pl-9 focus-visible:ring-0" placeholder="Type to search" />
                 <span class="absolute inset-y-0 start-0 flex items-center justify-center px-3">
                     <Icon name="Search" class="size-4 text-muted-foreground" />
@@ -123,7 +131,7 @@ watch(
                     {{ option.label }}
 
                     <ComboboxItemIndicator>
-                        <Icon name="Check" :class="cn('ml-auto h-4 w-4')" v-if="value.includes(option.value)" />
+                        <Icon name="Check" :class="cn('ml-auto h-4 w-4')" v-if="Array.isArray(value) ? value.includes(option.value) : value == option.value" />
                     </ComboboxItemIndicator>
                 </ComboboxItem>
             </ComboboxGroup>

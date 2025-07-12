@@ -71,7 +71,9 @@ watch(
 const placeholder = ` `;
 
 const label = computed(() => {
-    if (selectedFilter.value.component === 'DropdownFilter') {
+    if (selectedFilter.value.component === 'DropdownFilter'
+    || selectedFilter.value.component === 'BooleanFilter'
+    ) {
         if ((selectedFilter.value as DropdownFilter)?.multiple) {
             if (Array.isArray(selectedFilter.value.value)) {
                 switch (selectedFilter.value.value.length) {
@@ -120,8 +122,8 @@ onMounted(() => focusInputElement())
             <DropdownMenuTrigger class="group/filter flex h-full cursor-pointer items-center bg-gray-50 hover:bg-gray-100 hover:text-orange-600">
                 <div class="whitespace-nowrap px-2 text-left font-medium">{{ filter.title }}:</div>
                 <div class="flex max-w-48 gap-1 truncate pr-2 text-left text-muted-foreground group-hover/filter:text-orange-600">
-                    <span class="underline underline-offset-2">{{ filter.selectedClause?.prefix }}</span>
-                    <span>{{ label }}</span>
+                    <span class="underline underline-offset-2" v-if="filter.selectedClause">{{ filter.selectedClause?.prefix }}</span>
+                    <span v-if="label">{{ label }}</span>
                 </div>
             </DropdownMenuTrigger>
             <button @click.prevent="onDeleteFilter" class="h-full bg-gray-50 px-2 py-1 hover:bg-gray-100 hover:text-orange-600">
@@ -137,7 +139,7 @@ onMounted(() => focusInputElement())
                         <div class="flex items-center gap-1 font-bold text-muted-foreground">
                             <span
                                 class="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-sm font-medium text-green-700 ring-1 ring-inset ring-green-600/20"
-                                >{{ selectedClause.name }}</span
+                                >{{ ! filter.selectedClause && filter.defaultClause.name == 'Is True' ? 'Not Selected' : selectedClause.name }}</span
                             >
                             <Icon name="ChevronDown" class="w-5" />
                         </div>

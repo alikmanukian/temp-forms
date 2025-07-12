@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { Filter, Paginated, TableHeader as TableHeaderType } from '../index';
+import type { Paginated, TableHeader as TableHeaderType } from '../index';
 import Pagination from '../components/Pagination.vue';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { computed, nextTick, onMounted, onUnmounted, provide, useTemplateRef } from 'vue';

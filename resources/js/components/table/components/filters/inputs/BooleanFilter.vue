@@ -6,7 +6,7 @@ import { AcceptableValue } from 'reka-ui';
 
 interface Props {
     filter: DropdownFilterType;
-    modelValue: string|string[]|number|null;
+    modelValue: string|string[]|number|boolean|null;
 }
 
 const props = defineProps<Props>();
@@ -47,5 +47,6 @@ watch(() => props.modelValue, (newValue: any) => {
     <DropdownFilter :filter
                     v-model="model"
                     @update="onUpdate"
+                    :searchable="false"
     ></DropdownFilter>
 </template>

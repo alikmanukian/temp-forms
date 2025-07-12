@@ -18,13 +18,13 @@ const emit = defineEmits<{
     (e: 'update', value: string): void
 }>()
 
-const debouncedFn = useDebounceFn(() => {
-    if (model.value !== undefined) {
-        emit('update', model.value)
-    }
+const debouncedFn = useDebounceFn((value: string) => {
+    emit('update', value)
 }, 300);
 
-const onInput = () => debouncedFn();
+const onInput = (event: InputEvent) => {
+    debouncedFn((event.target as HTMLInputElement).value)
+}
 
 const inputClass = computed(() => cn([props.class, {
     'pl-8': props.icon,
