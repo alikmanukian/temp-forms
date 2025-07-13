@@ -3,8 +3,6 @@
 namespace App\TableComponents\Filters;
 
 use App\TableComponents\Enums\Clause;
-use Illuminate\Support\Str;
-use PhpParser\Builder\Class_;
 
 class TextFilter extends Filter
 {

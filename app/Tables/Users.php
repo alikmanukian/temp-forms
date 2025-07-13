@@ -120,7 +120,7 @@ class Users extends Table
                 ->showInHeader(),
 //            Filters\NumericFilter::make('visit_count'),
 //            Filters\BooleanFilter::make('is_admin', 'Admin'),
-//            Filters\DateFilter::make('email_verified_at')->nullable(),
+            Filters\DateFilter::make('created_at')->nullable(),
         ];
     }
 }
