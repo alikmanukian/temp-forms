@@ -1,63 +1,125 @@
 <script lang="ts" setup>
+import { Button } from '@/components/form';
+import { Calendar } from '@/components/ui/calendar';
+
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { CalendarDate, DateFormatter, getLocalTimeZone, parseDate, today, type DateValue } from '@internationalized/date';
+import { CalendarIcon } from 'lucide-vue-next';
+import { toDate } from 'reka-ui/date';
+import { computed, ref, watch } from 'vue';
 import { type Filter } from '../../../index';
-import DebounceInput from '../../DebounceInput.vue';
-import { ref, watch } from 'vue';
 
 interface Props {
     filter: Filter;
-    modelValue: string|null;
+    modelValue: string | null;
     inHeader?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    inHeader: false
+    inHeader: false,
 });
 
 const emit = defineEmits<{
-    (e: 'update', value: string, clause: string|null): void;
+    (e: 'update', value: string, clause: string | null): void;
 }>();
-
-const setModelValue = (value: string|null) => {
-    if (!props.inHeader || isDefaultClause.value) {
-        model.value = value as string;
-    } else {
-        model.value = '';
-    }
-}
 
 const isDefaultClause = ref<boolean>(props.filter.selectedClause?.value === props.filter.defaultClause.value);
 
-const model = ref<string>('');
+const model = ref<string | null>(null);
+
+const df = new DateFormatter('en-US', {
+    dateStyle: 'medium',
+});
+
+// Convert string date to CalendarDate object
+const dateValue = computed(() => {
+    if (!model.value) return undefined;
+    try {
+        return parseDate(model.value);
+    } catch {
+        return undefined;
+    }
+});
+
+const setModelValue = (value: string | null) => {
+    if (!props.inHeader || isDefaultClause.value) {
+        model.value = value;
+    } else {
+        model.value = null;
+    }
+};
 
 setModelValue(props.filter.value);
 
-const search = (value: string) => {
+const search = (value: string | null) => {
     emit(
         'update',
-        value,
+        value || '',
         props.inHeader
             ? props.filter.defaultClause.searchSymbol
-            : props.filter.selectedClause?.searchSymbol ?? props.filter.defaultClause.searchSymbol
+            : (props.filter.selectedClause?.searchSymbol ?? props.filter.defaultClause.searchSymbol),
     );
-}
+};
 
-watch(() => props.modelValue, (newValue) => {
-    setModelValue(newValue);
-});
+const onDateSelect = (date: DateValue | undefined) => {
+    if (date) {
+        // Convert CalendarDate to ISO string format for filtering
+        const dateString = date.toString(); // This gives YYYY-MM-DD format
+        model.value = dateString;
+        search(dateString);
+    } else {
+        model.value = null;
+        search(null);
+    }
+};
 
-watch(() => props.filter.selectedClause, (newValue) => {
-    isDefaultClause.value = newValue?.value === props.filter.defaultClause.value;
+watch(
+    () => props.modelValue,
+    (newValue) => {
+        setModelValue(newValue);
+    },
+);
 
-    setModelValue(props.filter.value);
-});
-
+watch(
+    () => props.filter.selectedClause,
+    (newValue) => {
+        isDefaultClause.value = newValue?.value === props.filter.defaultClause.value;
+        setModelValue(props.filter.value);
+    },
+);
 </script>
 
 <template>
-    <DebounceInput
-        v-model="model"
-        class="w-full focus-visible:ring-1 focus-visible:ring-offset-1 focus-visible:ring-ring/40 h-8 px-2"
-        type="text"
-        @update="search"
-    />
+    <!-- Show calendar directly in FilterDropdown (when not inHeader) -->
+    <div v-if="!inHeader">
+        <Calendar
+            :model-value="dateValue"
+            calendar-label="Select date"
+            initial-focus
+            :min-value="new CalendarDate(1900, 1, 1)"
+            :max-value="today(getLocalTimeZone())"
+            @update:model-value="onDateSelect"
+        />
+    </div>
+
+    <!-- Show button with popover calendar in table header (when inHeader) -->
+    <Popover v-else>
+        <PopoverTrigger as-child>
+            <Button variant="outline" :class="cn('h-8 w-full px-2 font-normal', !dateValue && 'text-muted-foreground')">
+                <span>{{ dateValue ? df.format(toDate(dateValue)) : 'Pick a date' }}</span>
+                <CalendarIcon class="ms-auto h-4 w-4 opacity-50" />
+            </Button>
+        </PopoverTrigger>
+        <PopoverContent class="w-auto p-0">
+            <Calendar
+                :model-value="dateValue"
+                calendar-label="Select date"
+                initial-focus
+                :min-value="new CalendarDate(1900, 1, 1)"
+                :max-value="today(getLocalTimeZone())"
+                @update:model-value="onDateSelect"
+            />
+        </PopoverContent>
+    </Popover>
 </template>

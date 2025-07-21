@@ -167,7 +167,9 @@ class Filter
             Clause::DoesNotStartWith => AllowedFilter::doesNotStartWith($name, $internalName),
             Clause::EndsWith => AllowedFilter::endsWith($name, $internalName),
             Clause::DoesNotEndWith => AllowedFilter::doesNotEndWith($name, $internalName),
-            Clause::Equals => AllowedFilter::equals($name, $internalName),
+            Clause::Equals => $this instanceof DateFilter ?
+                AllowedFilter::equalsDate($name, $internalName) :
+                AllowedFilter::equals($name, $internalName),
             Clause::DoesNotEqual => AllowedFilter::doesNotEqual($name, $internalName),
             Clause::IsIn => AllowedFilter::equals($name, $internalName),
             Clause::IsNotIn => AllowedFilter::doesNotEqual($name, $internalName),

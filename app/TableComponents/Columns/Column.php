@@ -21,6 +21,7 @@ use ReflectionProperty;
  * @method $this notToggleable():
  * @method $this stickable()
  * @method $this notStickable()
+ * @method $this width(string $value)
  * @method $this headerAlignment(ColumnAlignment $value)
  * @method $this alignment(ColumnAlignment $value)
  */

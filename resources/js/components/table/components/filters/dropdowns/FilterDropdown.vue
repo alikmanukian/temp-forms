@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import Icon from '@/components/Icon.vue';
 import type { Clause, DropdownFilter, Filter } from '@/components/table';
-import { ref, computed, watch, nextTick, inject, onMounted } from 'vue';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import * as Filters from '@/components/table/components/filters/inputs';
-import { clauseShouldNotHaveValue, clauseIsArrayable } from '@/components/table/utils/filterable';
+import { clauseIsArrayable, clauseShouldNotHaveValue } from '@/components/table/utils/filterable';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { focusOnNth } from 'usemods';
+import { computed, inject, nextTick, onMounted, ref, watch } from 'vue';
 
 interface Props {
     filter: Filter | DropdownFilter;
@@ -71,9 +71,7 @@ watch(
 const placeholder = ` `;
 
 const label = computed(() => {
-    if (selectedFilter.value.component === 'DropdownFilter'
-    || selectedFilter.value.component === 'BooleanFilter'
-    ) {
+    if (selectedFilter.value.component === 'DropdownFilter' || selectedFilter.value.component === 'BooleanFilter') {
         if ((selectedFilter.value as DropdownFilter)?.multiple) {
             if (Array.isArray(selectedFilter.value.value)) {
                 switch (selectedFilter.value.value.length) {
@@ -105,7 +103,7 @@ const focusInputElement = () => {
             focusOnNth(container, 0);
         }
     });
-}
+};
 
 const onOpenDropdown = (opened: boolean) => {
     if (opened) {
@@ -113,7 +111,7 @@ const onOpenDropdown = (opened: boolean) => {
     }
 };
 
-onMounted(() => focusInputElement())
+onMounted(() => focusInputElement());
 </script>
 
 <template>
@@ -139,7 +137,7 @@ onMounted(() => focusInputElement())
                         <div class="flex items-center gap-1 font-bold text-muted-foreground">
                             <span
                                 class="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-sm font-medium text-green-700 ring-1 ring-inset ring-green-600/20"
-                                >{{ ! filter.selectedClause && filter.defaultClause.name == 'Is True' ? 'Not Selected' : selectedClause.name }}</span
+                                >{{ !filter.selectedClause && filter.defaultClause.name == 'Is True' ? 'Not Selected' : selectedClause.name }}</span
                             >
                             <Icon name="ChevronDown" class="w-5" />
                         </div>

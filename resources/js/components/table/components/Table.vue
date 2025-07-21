@@ -1,25 +1,25 @@
 <script lang="ts" setup>
-import type { Paginated, TableHeader as TableHeaderType } from '../index';
-import Pagination from '../components/Pagination.vue';
+import FiltersButton from '@/components/table/components/FiltersButton.vue';
+import FiltersRow from '@/components/table/components/FiltersRow.vue';
+import SearchInput from '@/components/table/components/SearchInput.vue';
+import { useFilters } from '@/components/table/utils/filterable';
+import { buildData, columnWrappingMethod } from '@/components/table/utils/helpers';
+import { useRequest } from '@/components/table/utils/request';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { computed, nextTick, onMounted, onUnmounted, provide, useTemplateRef } from 'vue';
-import vResizable from '../utils/resizable';
-import EmptyState from '../components/EmptyState.vue';
-import ToolsRow from '../components/ToolsRow.vue';
 import { cn } from '@/lib/utils';
+import { computed, nextTick, onMounted, onUnmounted, provide, useTemplateRef } from 'vue';
+import EmptyState from '../components/EmptyState.vue';
 import HeaderButton from '../components/HeaderButton.vue';
-import { init, useComponents } from '../utils/components';
+import Pagination from '../components/Pagination.vue';
 import ScrollTableButton from '../components/ScrollTableButton.vue';
+import ToolsRow from '../components/ToolsRow.vue';
+import type { Paginated, TableHeader as TableHeaderType } from '../index';
+import { init, useComponents } from '../utils/components';
+import vResizable from '../utils/resizable';
 import { useScrollable } from '../utils/scrollable';
 import * as Columns from './columns';
 import * as Filters from './filters/inputs';
-import FiltersButton from '@/components/table/components/FiltersButton.vue';
-import FiltersRow from '@/components/table/components/FiltersRow.vue';
-import { useFilters } from '@/components/table/utils/filterable';
-import { buildData, columnWrappingMethod } from '@/components/table/utils/helpers';
 import Loader from './Loader.vue';
-import { useRequest } from '@/components/table/utils/request';
-import SearchInput from '@/components/table/components/SearchInput.vue';
 
 // TYPES ---------------------------------------
 interface Props {
@@ -43,17 +43,8 @@ const pageName = props.resource.pageName;
 const { getFilteredColumns } = useComponents(name);
 const { scrollPosition, scrollable, updateScrollPosition, updateScrollSize, updateContainerWidth, saveColumnsPositions } = useScrollable(name);
 
-const {
-    searchString,
-    filters,
-    showFiltersRowInHeader,
-    filtersAreApplied,
-    searchBy,
-    onUpdateFilter,
-    onDeleteFilter,
-    onAddFilter,
-    resetFilters
-} = useFilters(pageName, name, props.resource.filters);
+const { searchString, filters, showFiltersRowInHeader, filtersAreApplied, searchBy, onUpdateFilter, onDeleteFilter, onAddFilter, resetFilters } =
+    useFilters(pageName, name, props.resource.filters);
 
 const { reload, loading } = useRequest(props.resource.name);
 
@@ -104,25 +95,19 @@ const onPageChange = (page: number) => {
 </script>
 
 <template>
-    <div class="@container"
-         :class="{ '-mx-4': expanded }"
-         ref="container"
-         :data-name="`table-container-${name}`"
-    >
+    <div class="@container" :class="{ '-mx-4': expanded }" ref="container" :data-name="`table-container-${name}`">
         <!-- Search -->
         <div class="flex space-x-3 p-4">
-            <SearchInput v-model="searchString"
-                         :searchable="resource.searchable"
-                         class="flex-1"
-                         @update="(value: string) => searchString = value"
-                         placeholder="Type to search ..."
-                         :search="searchBy"
+            <SearchInput
+                v-model="searchString"
+                :searchable="resource.searchable"
+                class="flex-1"
+                @update="(value: string) => (searchString = value)"
+                placeholder="Type to search ..."
+                :search="searchBy"
             />
 
-            <FiltersButton @update="onAddFilter"
-                           @reset="searchString = ''"
-                           :resetFilters="resetFilters"
-            />
+            <FiltersButton @update="onAddFilter" @reset="searchString = ''" :resetFilters="resetFilters" />
         </div>
 
         <FiltersRow @update="onUpdateFilter" @delete="onDeleteFilter" />
@@ -174,12 +159,13 @@ const onPageChange = (page: number) => {
                             :class="{
                                 'sticky z-10': column.sticked,
                                 'pl-2': index === 0,
+                                'pr-2': index === getFilteredColumns.length - 1,
                             }"
                         >
                             <component
                                 v-if="filters[column.name]"
                                 :modelValue="filters[column.name].value"
-                                @update="(value: string|string[], clause: string|null) => searchBy(column.name, value, clause)"
+                                @update="(value: string | string[], clause: string | null) => searchBy(column.name, value, clause)"
                                 :is="Filters[filters[column.name].component as keyof typeof Filters]"
                                 :filter="filters[column.name]"
                                 :inHeader="true"
@@ -198,7 +184,7 @@ const onPageChange = (page: number) => {
                                 'sticky bg-white/90 hover:bg-muted/50 dark:bg-background/80': column.sticked,
                             }"
                         >
-                            <div class="flex items-center w-full" :class="column.options.alignment" v-if="row[column.name] !== null">
+                            <div class="flex w-full items-center" :class="column.options.alignment" v-if="row[column.name] !== null">
                                 <component
                                     :is="Columns[column.type as string as ColumnTypes]"
                                     :params="row._customColumnsParams"

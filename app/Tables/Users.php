@@ -3,28 +3,24 @@
 namespace App\Tables;
 
 use App\Models\User;
+use App\TableComponents\Columns;
 use App\TableComponents\Enums\Clause;
-use App\TableComponents\Enums\IconSize;
-use App\TableComponents\Enums\ImageSize;
-use App\TableComponents\Enums\Position;
 use App\TableComponents\Enums\Variant;
-use App\TableComponents\Icon;
+use App\TableComponents\Filters;
 use App\TableComponents\Image;
 use App\TableComponents\Table;
-use App\TableComponents\Columns;
-use App\TableComponents\Filters;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Arr;
 
 class Users extends Table
 {
-    /** @var class-string $resource */
+    /** @var class-string */
     protected ?string $resource = User::class;
 
     protected string $defaultSort = 'name';
 
     protected bool $stickyHeader = true;
+
     protected bool $stickyPagination = true;
 
     public function columns(): array
@@ -57,11 +53,11 @@ class Users extends Table
             Columns\BadgeColumn::make('status')
                 ->variant([
                     'active' => Variant::Green,
-                    'inactive' => Variant::Red
+                    'inactive' => Variant::Red,
                 ])
                 ->icon([
                     'active' => 'airplay',
-                    'inactive' => 'angry'
+                    'inactive' => 'angry',
                 ]),
 
             /*Columns\ImageColumn::make('avatar')->image(function (Model $model, Image $image) {
@@ -85,9 +81,8 @@ class Users extends Table
             Columns\DateColumn::make('created_at')
                 ->format('Y, M d'),
 
-//            Columns\NumericColumn::make('visit_count', sortable: true),
-//            Columns\DateColumn::make('email_verified_at'),
-//            Columns\ActionColumn::new(),
+            //            Columns\NumericColumn::make('visit_count', sortable: true),
+            //            Columns\ActionColumn::new(),
         ];
     }
 
@@ -104,7 +99,7 @@ class Users extends Table
                 ->showInHeader()
                 ->options([
                     'active' => 'Active',
-                    'inactive' => 'Inactive'
+                    'inactive' => 'Inactive',
                 ])
                 ->nullable()
                 ->multiple(),
@@ -118,8 +113,8 @@ class Users extends Table
                     }
                 })
                 ->showInHeader(),
-//            Filters\NumericFilter::make('visit_count'),
-//            Filters\BooleanFilter::make('is_admin', 'Admin'),
+            //            Filters\NumericFilter::make('visit_count'),
+            //            Filters\BooleanFilter::make('is_admin', 'Admin'),
             Filters\DateFilter::make('created_at')->nullable(),
         ];
     }
