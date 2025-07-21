@@ -21,7 +21,7 @@ interface Props {
     filter: DropdownFilter;
     modelValue: string | string[] | number | boolean | null;
     inHeader?: boolean;
-    searchable?: boolean
+    searchable?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -131,7 +131,11 @@ watch(
                     {{ option.label }}
 
                     <ComboboxItemIndicator>
-                        <Icon name="Check" :class="cn('ml-auto h-4 w-4')" v-if="Array.isArray(value) ? value.includes(option.value) : value == option.value" />
+                        <Icon
+                            name="Check"
+                            :class="cn('ml-auto h-4 w-4')"
+                            v-if="Array.isArray(value) ? value.includes(option.value) : value == option.value"
+                        />
                     </ComboboxItemIndicator>
                 </ComboboxItem>
             </ComboboxGroup>

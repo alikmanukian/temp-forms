@@ -8,18 +8,21 @@ enum Clause: string
 {
     case Equals = 'equals'; // ''
     case DoesNotEqual = 'does_not_equal'; // '!';
-    case Contains = 'contains'; //'~';
-    case DoesNotContain = 'does_not_contain'; //'!~';
-    case StartsWith = 'starts_with'; //'^';
-    case DoesNotStartWith = 'does_not_start_with'; //'!^';
-    case EndsWith = 'ends_with'; //'$';
-    case DoesNotEndWith = 'does_not_end_with'; //'!$';
+    case Contains = 'contains'; // '~';
+    case DoesNotContain = 'does_not_contain'; // '!~';
+    case StartsWith = 'starts_with'; // '^';
+    case DoesNotStartWith = 'does_not_start_with'; // '!^';
+    case EndsWith = 'ends_with'; // '$';
+    case DoesNotEndWith = 'does_not_end_with'; // '!$';
     case IsIn = 'is_in'; // ''
     case IsNotIn = 'is_not_in'; // '!'
     case IsSet = 'is_set'; // '!null'
     case IsNotSet = 'is_not_set'; // 'null'
     case IsTrue = 'is_true'; // 'true'
     case IsFalse = 'is_false'; // 'false'
+    case After = 'after'; // '>'
+    case Before = 'before'; // '<'
+    case Between = 'between'; // '<>'
 
     public function toArray(): array
     {
@@ -34,12 +37,12 @@ enum Clause: string
     public static function findBySearchSymbol(string $symbol, ?string $value = null): ?self
     {
         return collect(self::cases())
-            ->first(fn(Clause $clause) => $clause->searchSymbol() === $symbol);
+            ->first(fn (Clause $clause) => $clause->searchSymbol() === $symbol);
     }
 
     private function name(): string
     {
-        return match($this) {
+        return match ($this) {
             self::Contains => 'Contains',
             self::DoesNotContain => 'Does Not Contain',
             self::StartsWith => 'Starts With',
@@ -54,12 +57,15 @@ enum Clause: string
             self::IsNotSet => 'Is Not Set',
             self::IsTrue => 'Is True',
             self::IsFalse => 'Is False',
+            self::After => 'After',
+            self::Before => 'Before',
+            self::Between => 'Between',
         };
     }
 
     private function prefix(): string
     {
-        return match($this) {
+        return match ($this) {
             self::Contains => '',
             self::DoesNotContain => 'Not Contains',
             self::StartsWith => 'Starts with',
@@ -74,12 +80,15 @@ enum Clause: string
             self::IsNotSet => 'Is Not Set',
             self::IsTrue => 'Is True',
             self::IsFalse => 'Is False',
+            self::After => 'After',
+            self::Before => 'Before',
+            self::Between => 'Between',
         };
     }
 
     private function searchSymbol(): string
     {
-        return match($this) {
+        return match ($this) {
             self::Contains => 'contains',
             self::DoesNotContain => 'not.contains',
             self::StartsWith => 'starts',
@@ -94,14 +103,17 @@ enum Clause: string
             self::IsNotSet => 'null',
             self::IsTrue => 'true',
             self::IsFalse => 'false',
+            self::After => 'after',
+            self::Before => 'before',
+            self::Between => 'between',
         };
     }
 
     public static function sortByLength(array $clauses): array
     {
         return collect(self::cases())
-            ->map(fn(Clause $clause) => $clause->searchSymbol())
-            ->sortByDesc(fn(string $symbol) => Str::length($symbol))
+            ->map(fn (Clause $clause) => $clause->searchSymbol())
+            ->sortByDesc(fn (string $symbol) => Str::length($symbol))
             ->values()
             ->toArray();
     }

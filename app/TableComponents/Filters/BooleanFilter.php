@@ -9,8 +9,8 @@ class BooleanFilter extends Filter
     protected ?Clause $defaultClause = Clause::IsTrue;
 
     protected array $options = [
-        true => "True",
-        false => "False"
+        true => 'True',
+        false => 'False',
     ];
 
     protected array $clauses = [
@@ -33,7 +33,21 @@ class BooleanFilter extends Filter
                     'value' => (bool) $value,
                 ])
                 ->values()
-                ->toArray()
+                ->toArray(),
         ]);
+    }
+
+    public function falseLabel(string $label): self
+    {
+        $this->options[false] = $label;
+
+        return $this;
+    }
+
+    public function trueLabel(string $label): self
+    {
+        $this->options[true] = $label;
+
+        return $this;
     }
 }

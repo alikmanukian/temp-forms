@@ -4,11 +4,11 @@ namespace App\TableComponents\Filters\Spatie;
 
 use Illuminate\Database\Eloquent\Builder;
 
-class FiltersIsSet implements \Spatie\QueryBuilder\Filters\Filter
+class FiltersBefore implements \Spatie\QueryBuilder\Filters\Filter
 {
     /** {@inheritdoc} */
     public function __invoke(Builder $query, $value, string $property): void
     {
-        $query->whereNotNull($property);
+        $query->whereDate($property, '<=', $value);
     }
 }

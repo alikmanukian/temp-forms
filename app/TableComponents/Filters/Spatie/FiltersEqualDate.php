@@ -3,7 +3,6 @@
 namespace App\TableComponents\Filters\Spatie;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
 
 class FiltersEqualDate extends \Spatie\QueryBuilder\Filters\FiltersExact
 {

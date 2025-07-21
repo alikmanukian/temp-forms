@@ -35,18 +35,14 @@ class Users extends Table
             Columns\TextColumn::make('name', 'Full Name')
                 ->as('full_name')
                 ->stickable()
-                ->linkTo(function (Model $model) {
-                    return $model->id === 1 ? [
-                        'href' => 'https://google.com',
-                        'target' => '_blank',
-                    ] : route('dashboard');
-                })
-                ->image('avatar', function (Model $model, Image $image) {
-                    return $image
-                        ->alt($model->name)
+                ->linkTo(fn (Model $model) => $model->id === 1 ? [
+                    'href' => 'https://google.com',
+                    'target' => '_blank',
+                ] : route('dashboard'))
+                ->image('avatar', fn (Model $model, Image $image) => $image
+                    ->alt($model->name)
 //                        ->position(Position::End)
-                        ->class('rounded-md');
-                })
+                    ->class('rounded-md'))
 //                ->rightAligned()
                 ->searchable(),
 
@@ -69,8 +65,8 @@ class Users extends Table
                 ->mapAs(function (Model $model, mixed $value) {
                     return (bool) $value;
                 })
-//                ->trueLabel('Yes')
-//                ->falseLabel('No')
+                // ->trueLabel('Yes')
+                // ->falseLabel('No')
                 ->trueIcon('Check')
                 ->centerAligned(),
 
@@ -112,7 +108,9 @@ class Users extends Table
                         $query->whereNull($attribute);
                     }
                 })
-                ->showInHeader(),
+                ->showInHeader()
+                ->trueLabel('Yes')
+                ->falseLabel('No'),
             //            Filters\NumericFilter::make('visit_count'),
             //            Filters\BooleanFilter::make('is_admin', 'Admin'),
             Filters\DateFilter::make('created_at')->nullable(),

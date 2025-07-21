@@ -9,9 +9,9 @@ class DateFilter extends Filter
     protected ?Clause $defaultClause = Clause::Equals;
 
     protected array $clauses = [
-        Clause::Equals
-        // after
-        // before
-        // between
+        Clause::Equals,
+        Clause::After,
+        Clause::Before,
+        Clause::Between,
     ];
 }

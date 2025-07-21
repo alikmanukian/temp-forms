@@ -2,9 +2,11 @@
 
 namespace App\TableComponents\Filters;
 
-use App\TableComponents\Columns\Column;
 use App\TableComponents\Enums\Clause;
 use App\TableComponents\Filters\Spatie\AllowedFilter;
+use App\TableComponents\Filters\Spatie\FiltersAfter;
+use App\TableComponents\Filters\Spatie\FiltersBefore;
+use App\TableComponents\Filters\Spatie\FiltersBetween;
 use App\TableComponents\Filters\Spatie\FiltersIsFalse;
 use App\TableComponents\Filters\Spatie\FiltersIsNotSet;
 use App\TableComponents\Filters\Spatie\FiltersIsSet;
@@ -23,6 +25,7 @@ class Filter
      * @var Clause[]
      */
     protected array $clauses = [];
+
     protected ?Clause $defaultClause = null;
 
     protected ?Clause $selectedClause = null;
@@ -40,12 +43,11 @@ class Filter
         protected string $name,
         protected ?string $title = null,
         protected bool $showInHeader = false,
-    ) {
-    }
+    ) {}
 
     public static function make(...$arguments): static
     {
-        return (new static(...$arguments));
+        return new static(...$arguments);
     }
 
     /**
@@ -79,9 +81,9 @@ class Filter
             'value' => $this->value,
             'selectedClause' => $this->selectedClause?->toArray(),
             'selected' => ! empty($this->value) || in_array($this->selectedClause, [
-                    Clause::IsSet,
-                    Clause::IsNotSet,
-                ], true),
+                Clause::IsSet,
+                Clause::IsNotSet,
+            ], true),
             'opened' => false,
         ];
     }
@@ -102,7 +104,7 @@ class Filter
                 continue;
             }
 
-            $newValue = Str::after($value, $clause.".");
+            $newValue = Str::after($value, $clause.'.');
             $this->selectedClause = Clause::findBySearchSymbol($clause, $newValue);
 
             if (! is_null($this->selectedClause) && ! empty($newValue)) {
@@ -144,9 +146,9 @@ class Filter
     public function getQueryParam(string $tableName, ?string $filterName = null): string
     {
         $filterName = $filterName ?? $this->getAlias();
-        $queryParam = ($tableName ? $tableName . '.' : '') . $filterName;
+        $queryParam = ($tableName ? $tableName.'.' : '').$filterName;
 
-        return 'filter.' . $queryParam;
+        return 'filter.'.$queryParam;
     }
 
     public function getAllowedFilterMethod(): ?AllowedFilter
@@ -177,6 +179,9 @@ class Filter
             Clause::IsNotSet => AllowedFilter::custom($name, new FiltersIsNotSet, $internalName),
             Clause::IsTrue => AllowedFilter::custom($name, new FiltersIsTrue, $internalName),
             Clause::IsFalse => AllowedFilter::custom($name, new FiltersIsFalse, $internalName),
+            Clause::After => AllowedFilter::custom($name, new FiltersAfter, $internalName),
+            Clause::Before => AllowedFilter::custom($name, new FiltersBefore, $internalName),
+            Clause::Between => AllowedFilter::custom($name, new FiltersBetween, $internalName),
             default => null,
         };
     }
