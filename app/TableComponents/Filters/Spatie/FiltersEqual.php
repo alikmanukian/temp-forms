@@ -4,8 +4,9 @@ namespace App\TableComponents\Filters\Spatie;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
+use Spatie\QueryBuilder\Filters\FiltersExact;
 
-class FiltersEqual extends \Spatie\QueryBuilder\Filters\FiltersExact
+class FiltersEqual extends FiltersExact
 {
     public function __construct(protected bool $addRelationConstraint = true, protected bool $negative = false)
     {

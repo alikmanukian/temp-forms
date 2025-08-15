@@ -163,7 +163,7 @@ const onPageChange = (page: number) => {
                             }"
                         >
                             <component
-                                v-if="filters[column.name]"
+                                v-if="filters[column.name].showInHeader"
                                 :modelValue="filters[column.name].value"
                                 @update="(value: string | string[], clause: string | null) => searchBy(column.name, value, clause)"
                                 :is="Filters[filters[column.name].component as keyof typeof Filters]"

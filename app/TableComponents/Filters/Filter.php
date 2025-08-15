@@ -111,7 +111,7 @@ class Filter
                 $this->value = $newValue;
             }
 
-            if (in_array($this->selectedClause, [Clause::IsIn, Clause::IsNotIn], true)) {
+            if (in_array($this->selectedClause, [Clause::IsIn, Clause::IsNotIn, Clause::Between], true)) {
                 $this->value = explode(',', $newValue);
             }
 
@@ -172,7 +172,9 @@ class Filter
             Clause::Equals => $this instanceof DateFilter ?
                 AllowedFilter::equalsDate($name, $internalName) :
                 AllowedFilter::equals($name, $internalName),
-            Clause::DoesNotEqual => AllowedFilter::doesNotEqual($name, $internalName),
+            Clause::DoesNotEqual => $this instanceof DateFilter ?
+                AllowedFilter::doesNotEqualsDate($name, $internalName) :
+                AllowedFilter::doesNotEqual($name, $internalName),
             Clause::IsIn => AllowedFilter::equals($name, $internalName),
             Clause::IsNotIn => AllowedFilter::doesNotEqual($name, $internalName),
             Clause::IsSet => AllowedFilter::custom($name, new FiltersIsSet, $internalName),

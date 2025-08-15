@@ -3,8 +3,9 @@
 namespace App\TableComponents\Filters\Spatie;
 
 use Illuminate\Database\Eloquent\Builder;
+use Spatie\QueryBuilder\Filters\FiltersExact;
 
-class FiltersEqualDate extends \Spatie\QueryBuilder\Filters\FiltersExact
+class FiltersEqualDate extends FiltersExact
 {
     public function __construct(protected bool $addRelationConstraint = true, protected bool $negative = false)
     {

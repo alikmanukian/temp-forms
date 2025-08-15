@@ -66,4 +66,11 @@ class AllowedFilter extends \Spatie\QueryBuilder\AllowedFilter
 
         return new static($name, new FiltersEqualDate($addRelationConstraint), $internalName);
     }
+
+    public static function doesNotEqualsDate(string $name, ?string $internalName = null, bool $addRelationConstraint = true, ?string $arrayValueDelimiter = null): static
+    {
+        static::setFilterArrayValueDelimiter($arrayValueDelimiter);
+
+        return new static($name, new FiltersEqualDate($addRelationConstraint, true), $internalName);
+    }
 }

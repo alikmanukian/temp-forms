@@ -10,6 +10,7 @@ class DateFilter extends Filter
 
     protected array $clauses = [
         Clause::Equals,
+        Clause::DoesNotEqual,
         Clause::After,
         Clause::Before,
         Clause::Between,

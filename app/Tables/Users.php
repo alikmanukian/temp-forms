@@ -113,7 +113,9 @@ class Users extends Table
                 ->falseLabel('No'),
             //            Filters\NumericFilter::make('visit_count'),
             //            Filters\BooleanFilter::make('is_admin', 'Admin'),
-            Filters\DateFilter::make('created_at')->nullable(),
+            Filters\DateFilter::make('created_at')
+                ->showInHeader()
+                ->nullable(),
         ];
     }
 }

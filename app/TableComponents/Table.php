@@ -178,7 +178,7 @@ abstract class Table implements JsonSerializable
                 }
 
                 if (is_string($value)) {
-                    $filter->parseRequestValue($this->name, $value);
+                    $filter->parseRequestValue($this->name, urldecode($value));
                 }
             });
     }

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Button } from '@/components/form';
+import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -9,6 +9,7 @@ import { CalendarIcon } from 'lucide-vue-next';
 import { toDate } from 'reka-ui/date';
 import { computed, ref, watch } from 'vue';
 import { type Filter } from '../../../index';
+import { RangeCalendar } from '@/components/ui/range-calendar';
 
 interface Props {
     filter: Filter;
@@ -93,14 +94,19 @@ watch(
 <template>
     <!-- Show calendar directly in FilterDropdown (when not inHeader) -->
     <div v-if="!inHeader">
-        <Calendar
-            :model-value="dateValue"
-            calendar-label="Select date"
-            initial-focus
-            :min-value="new CalendarDate(1900, 1, 1)"
-            :max-value="today(getLocalTimeZone())"
-            @update:model-value="onDateSelect"
-        />
+        <template v-if="filter.selectedClause?.value !== 'between'">
+            <Calendar
+                :model-value="dateValue"
+                calendar-label="Select date"
+                initial-focus
+                :min-value="new CalendarDate(1900, 1, 1)"
+                :max-value="today(getLocalTimeZone())"
+                @update:model-value="onDateSelect"
+            />
+        </template>
+        <template v-else>
+            <RangeCalendar v-model="dateValue" class="rounded-md border" />
+        </template>
     </div>
 
     <!-- Show button with popover calendar in table header (when inHeader) -->

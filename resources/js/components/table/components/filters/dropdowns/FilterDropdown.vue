@@ -27,6 +27,7 @@ const showComponent = computed<boolean>(() => !clauseShouldNotHaveValue(selected
 const onChangeClause = (value: Clause) => {
     selectedClause.value = value;
     selectedFilter.value.selected = true;
+    selectedFilter.value.selectedClause = value;
 
     if (clauseShouldNotHaveValue(selectedClause.value)) {
         selectedFilter.value.value = '';
@@ -99,7 +100,7 @@ const label = computed(() => {
 const focusInputElement = () => {
     nextTick(() => {
         const container = document.querySelector(`#filter-${name}-${selectedFilter.value.component}-${selectedFilter.value.name}`) as HTMLElement;
-        if (container) {
+        if (container && container.querySelector('input, textarea, select')) {
             focusOnNth(container, 0);
         }
     });
