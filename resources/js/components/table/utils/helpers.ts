@@ -22,15 +22,15 @@ export const buildData = (key: string, value: any) => {
  * console.log(buildQueryKey('page.something'));       // → "page[something]"
  * console.log(buildQueryKey('page.something.else'));  // → "page[something][else]"
  */
-export const buildQueryKey = (input: string) => {
+export const buildQueryKey = (input: string): string => {
     if (input.includes('.')) {
         const [parent, child] = input.split('.');
         return `${parent}[${child}]`;
     }
     return input;
-}
+};
 
-export const getQueryParams = (except: any): Record<string, any> => {
+export const getQueryParams = (except?: string): Record<string, string> => {
     const queryParams = new URLSearchParams(window.location.search);
 
     if (except) {
@@ -38,19 +38,15 @@ export const getQueryParams = (except: any): Record<string, any> => {
     }
 
     return Object.fromEntries([...queryParams]);
-}
+};
 
-export const columnWrappingMethod = (column: TableHeaderType, stickyHeader: boolean) => {
-    if (column.options.truncate == 1) {
+export const columnWrappingMethod = (column: TableHeaderType, stickyHeader: boolean): string => {
+    if (column.options.truncate === 1) {
         return 'truncate';
     }
 
     if (column.options.truncate > 1) {
-        // line-clamp-2
-        // line-clamp-3
-        // line-clamp-4
-        // line-clamp-5
-        return 'line-clamp-' + column.options.truncate;
+        return `line-clamp-${column.options.truncate}`;
     }
 
     if (column.options.wrap) {
@@ -60,4 +56,6 @@ export const columnWrappingMethod = (column: TableHeaderType, stickyHeader: bool
     if (!stickyHeader) {
         return 'whitespace-nowrap';
     }
+
+    return '';
 };

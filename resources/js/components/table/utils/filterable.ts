@@ -1,9 +1,9 @@
 // Get initial search from query string
 import { usePage } from '@inertiajs/vue3';
-import { buildData } from '../utils/helpers';
-import type { Clause, Filter, Paginated } from '@/components/table';
-import { useRequest } from '@/components/table/utils/request';
 import { computed, reactive, ref } from 'vue';
+import type { Clause, Filter, Paginated } from '@/components/table';
+import { buildData } from '../utils/helpers';
+import { useRequest } from '@/components/table/utils/request';
 
 interface FilterValue {
     [key: string]: string | number | FilterValue | null;
@@ -22,7 +22,8 @@ export interface SearchParams {
     [key: string]: any;
 }
 
-const possibleEmptyValues = ['', null, 'contains', 'not.contains', 'starts', 'not.starts', 'ends', 'not.ends', 'not', 'in', 'not.in'];
+// Use a Set for faster lookups
+const possibleEmptyValues = new Set(['', null, 'contains', 'not.contains', 'starts', 'not.starts', 'ends', 'not.ends', 'not', 'in', 'not.in'] as const);
 
 const deepMerge = (target: any, source: any) => {
     for (const key in source) {
@@ -85,7 +86,7 @@ const processFilterValues = (newValues: Record<string, any>, currentValues: Reco
             }
         }
         // For explicit empty values or null - remove them
-        else if (possibleEmptyValues.includes(value)) {
+        else if (possibleEmptyValues.has(value)) {
             delete currentValues[key];
         }
         // For other values - update them
@@ -95,12 +96,16 @@ const processFilterValues = (newValues: Record<string, any>, currentValues: Reco
     });
 };
 
-export const clauseShouldNotHaveValue = (clause: Clause) => {
-    return ['is_set', 'is_not_set', 'is_true', 'is_false'].includes(clause.value);
+// Use Sets for better performance
+const NO_VALUE_CLAUSES = new Set(['is_set', 'is_not_set', 'is_true', 'is_false'] as const);
+const ARRAYABLE_CLAUSES = new Set(['is_in', 'is_not_in'] as const);
+
+export const clauseShouldNotHaveValue = (clause: Clause): boolean => {
+    return NO_VALUE_CLAUSES.has(clause.value as any);
 };
 
-export const clauseIsArrayable = (clause: Clause) => {
-    return ['is_in', 'is_not_in'].includes(clause.value);
+export const clauseIsArrayable = (clause: Clause): boolean => {
+    return ARRAYABLE_CLAUSES.has(clause.value as any);
 };
 
 /**
@@ -161,35 +166,29 @@ export const useFilters = (pageName: string, tableName: string, initialFilters: 
         });
     }
 
-    const searchBy = (field: string, value: string|string[], clause: string|null, callback?: (filter?: Filter) => void) => {
-        if (Array.isArray(value)) {
-            value = value.join(',')
+    const searchBy = (field: string, value: string | string[], clause: string | null, callback?: (filter?: Filter) => void) => {
+        // Normalize value to string
+        let normalizedValue = Array.isArray(value) ? value.join(',') : (value ?? '');
+
+        // Add clause prefix if provided
+        if (clause && normalizedValue) {
+            normalizedValue = `${clause}.${normalizedValue}`;
+        } else if (clause) {
+            normalizedValue = clause;
         }
 
-        if (value === null) {
-            value = '';
-        }
-
-        if (clause) {
-            value = clause + (value ? '.' + value : '');
-        }
-
-        search(setSearchParams(field, value), {
+        search(setSearchParams(field, normalizedValue), {
             onSuccess: (response: any) => {
-                const filter = (response.props[tableName] as Paginated<any>).filters.find((filter: Filter) => {
-                    return filter.name === field;
-                });
+                const responseFilters = (response.props[tableName] as Paginated<any>).filters;
+                const filter = responseFilters.find((filter: Filter) => filter.name === field);
 
-                if (callback) {
-                    callback(filter);
-                }
+                callback?.(filter);
 
                 if (filter) {
                     filters[field] = filter;
                 }
-
             }
-        })
+        });
     };
 
     const resetFilters = () => {

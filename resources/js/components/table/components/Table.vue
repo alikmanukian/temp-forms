@@ -50,17 +50,32 @@ const { reload, loading } = useRequest(props.resource.name);
 
 const container = useTemplateRef<HTMLElement>('container');
 
+// Memoize these computations to avoid unnecessary recalculations
 const stickyHeader = computed(() => props.resource.stickyHeader);
 const stickyPagination = computed(() => props.resource.stickyPagination);
 
+// Memoize cell class computation
 const cellClass = (column: TableHeaderType) => {
-    return cn([columnWrappingMethod(column, stickyHeader.value), column.options.alignment, column.options.cellClass]);
+    return cn([
+        columnWrappingMethod(column, stickyHeader.value), 
+        column.options.alignment, 
+        column.options.cellClass
+    ]);
 };
 
+// Debounce resize operations for better performance
+let resizeTimeout: number | null = null;
 const resizeObserver = new ResizeObserver(() => {
-    updateContainerWidth();
-    updateScrollSize();
-    saveColumnsPositions();
+    if (resizeTimeout) {
+        clearTimeout(resizeTimeout);
+    }
+    
+    resizeTimeout = setTimeout(() => {
+        updateContainerWidth();
+        updateScrollSize();
+        saveColumnsPositions();
+        resizeTimeout = null;
+    }, 16) as unknown as number; // ~60fps
 });
 
 onMounted(() => {
@@ -78,10 +93,16 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+    // Clean up timeout and observer
+    if (resizeTimeout) {
+        clearTimeout(resizeTimeout);
+    }
+    
     if (container.value) {
         resizeObserver.unobserve(container.value);
-        resizeObserver.disconnect();
     }
+    
+    resizeObserver.disconnect();
 });
 
 provide('name', name);
