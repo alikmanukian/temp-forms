@@ -4,8 +4,7 @@ import type { Clause, DropdownFilter, Filter } from '@/components/table';
 import * as Filters from '@/components/table/components/filters/inputs';
 import { clauseIsArrayable, clauseShouldNotHaveValue } from '@/components/table/utils/filterable';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { focusOnNth } from 'usemods';
-import { computed, inject, nextTick, onMounted, ref, watch } from 'vue';
+import { computed, inject, nextTick, ref, watch } from 'vue';
 
 interface Props {
     filter: Filter | DropdownFilter;
@@ -40,6 +39,11 @@ const onChangeClause = (value: Clause) => {
 
     if (clauseShouldNotHaveValue(selectedClause.value) || selectedFilter.value.value) {
         emit('update', props.filter.name, selectedFilter.value.value as string, selectedClause.value);
+    }
+
+    // Focus input after clause change if there's an input to focus
+    if (showComponent.value) {
+        focusInputElement();
     }
 };
 
@@ -94,25 +98,49 @@ const label = computed(() => {
         return (selectedFilter.value as DropdownFilter)?.options.find((option) => selectedFilter.value.value == option.value)?.label;
     }
 
+    // Handle DateFilter with Between clause (date ranges)
+    if (selectedFilter.value.component === 'DateFilter' && selectedClause.value.value === 'between' && Array.isArray(selectedFilter.value.value)) {
+        if (selectedFilter.value.value.length === 2) {
+            const startDate = selectedFilter.value.value[0]; // Already in YYYY-MM-DD format
+            const endDate = selectedFilter.value.value[1]; // Already in YYYY-MM-DD format
+            return `${startDate} - ${endDate}`;
+        }
+    }
+
     return selectedFilter.value.value;
 });
 
+const isDropdownOpen = ref(false);
+
 const focusInputElement = () => {
+    if (!isDropdownOpen.value) return;
+
     nextTick(() => {
         const container = document.querySelector(`#filter-${name}-${selectedFilter.value.component}-${selectedFilter.value.name}`) as HTMLElement;
-        if (container && container.querySelector('input, textarea, select')) {
-            focusOnNth(container, 0);
+
+        if (container) {
+            const input = container.querySelector('input, textarea, select') as HTMLElement;
+            if (input && !input.closest('[aria-hidden="true"]')) {
+                setTimeout(() => {
+                    // Focus the input directly instead of using focusOnNth
+                    input.focus();
+                }, 50);
+            }
         }
     });
 };
 
 const onOpenDropdown = (opened: boolean) => {
+    isDropdownOpen.value = opened;
+
     if (opened) {
+        // Wait for dropdown to be fully open before focusing
         focusInputElement();
     }
 };
 
-onMounted(() => focusInputElement());
+// Remove onMounted focus to prevent aria-hidden conflicts
+// onMounted(() => focusInputElement());
 </script>
 
 <template>
@@ -120,7 +148,7 @@ onMounted(() => focusInputElement());
         <div class="flex h-7 items-center overflow-hidden rounded-md border border-border text-sm shadow">
             <DropdownMenuTrigger class="group/filter flex h-full cursor-pointer items-center bg-gray-50 hover:bg-gray-100 hover:text-orange-600">
                 <div class="whitespace-nowrap px-2 text-left font-medium">{{ filter.title }}:</div>
-                <div class="flex max-w-48 gap-1 truncate pr-2 text-left text-muted-foreground group-hover/filter:text-orange-600">
+                <div class="flex max-w-64 gap-1 truncate pr-2 text-left text-muted-foreground group-hover/filter:text-orange-600">
                     <span class="underline underline-offset-2" v-if="filter.selectedClause">{{ filter.selectedClause?.prefix }}</span>
                     <span v-if="label">{{ label }}</span>
                 </div>

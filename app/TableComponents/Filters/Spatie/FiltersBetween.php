@@ -23,7 +23,7 @@ class FiltersBetween implements Filter
         if (! empty($value[0])) {
             try {
                 $parsedDate = Carbon::parse($value[0]);
-                $query->where($query->qualifyColumn($property), '>=', $parsedDate->startOfDay()->toDateString());
+                $query->where($query->qualifyColumn($property), '>=', $parsedDate->startOfDay()->toDateTimeString());
             } catch (InvalidFormatException) {
             }
         }
@@ -31,7 +31,7 @@ class FiltersBetween implements Filter
         if (! empty($value[1])) {
             try {
                 $parsedDate = Carbon::parse($value[1]);
-                $query->where($query->qualifyColumn($property), '<=', $parsedDate->endOfDay()->toDateString());
+                $query->where($query->qualifyColumn($property), '<=', $parsedDate->endOfDay()->toDateTimeString());
             } catch (InvalidFormatException) {
             }
         }

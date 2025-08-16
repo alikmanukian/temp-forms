@@ -1,0 +1,20 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "/Users/alik/Library/Application Support/Herd/bin/php83",
+            "args": [
+                "/Users/alik/Projects/temp/temp-forms/artisan",
+                "boost:mcp"
+            ]
+        },
+        "herd": {
+            "command": "/Users/alik/Library/Application Support/Herd/bin/php83",
+            "args": [
+                "/Applications/Herd.app/Contents/Resources/herd-mcp.phar"
+            ],
+            "env": {
+                "SITE_PATH": "/Users/alik/Projects/temp/temp-forms"
+            }
+        }
+    }
+}
