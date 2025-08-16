@@ -111,10 +111,19 @@ enum Clause: string
 
     public static function sortByLength(array $clauses): array
     {
-        return collect(self::cases())
-            ->map(fn (Clause $clause) => $clause->searchSymbol())
-            ->sortByDesc(fn (string $symbol) => Str::length($symbol))
-            ->values()
-            ->toArray();
+        static $sortedSymbols = null;
+        
+        // Cache the sorted symbols for better performance
+        if ($sortedSymbols === null) {
+            $symbols = [];
+            foreach (self::cases() as $clause) {
+                $symbols[] = $clause->searchSymbol();
+            }
+            
+            usort($symbols, fn($a, $b) => strlen($b) - strlen($a));
+            $sortedSymbols = $symbols;
+        }
+
+        return $sortedSymbols;
     }
 }

@@ -12,10 +12,12 @@ class FiltersContains extends \Spatie\QueryBuilder\Filters\FiltersPartial
     protected function getWhereRawParameters(mixed $value, string $property, string $driver): array
     {
         $value = mb_strtolower((string) $value, 'UTF8');
+        $operator = $this->negative ? 'not' : '';
+        $escapedValue = '%' . self::escapeLike($value) . '%';
 
         return [
-            "LOWER({$property}) ".($this->negative ? 'not' : '')." LIKE ?",
-            ['%'.self::escapeLike($value).'%'],
+            "LOWER({$property}) {$operator} LIKE ?",
+            [$escapedValue],
         ];
     }
 }

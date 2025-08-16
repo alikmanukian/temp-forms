@@ -240,29 +240,41 @@ class Column
         }
     }
 
+    private static array $traitCache = [];
+
     /**
      * Rewrite this function if you need to transform final value for column
      */
     public function transform(Model $inputModel, Model $outputModel): void
     {
-        if (in_array(HasIcon::class, class_uses(static::class), true)) {
+        $class = static::class;
+        
+        // Cache trait checks for better performance
+        if (!isset(self::$traitCache[$class])) {
+            $traits = class_uses($class);
+            self::$traitCache[$class] = [
+                'hasIcon' => in_array(HasIcon::class, $traits, true),
+                'hasImage' => in_array(HasImage::class, $traits, true),
+                'hasLink' => in_array(HasLink::class, $traits, true),
+            ];
+        }
+
+        $cached = self::$traitCache[$class];
+
+        if ($cached['hasIcon']) {
             /** @var HasIcon $this */
             $this->setIcon($inputModel, $outputModel);
         }
 
-        if (in_array(HasImage::class, class_uses(static::class), true)) {
+        if ($cached['hasImage']) {
             /** @var HasImage $this */
             $this->setImage($inputModel, $outputModel);
         }
 
-        if (in_array(HasLink::class, class_uses(static::class), true)) {
+        if ($cached['hasLink']) {
             /** @var HasLink $this */
             $this->setLink($inputModel, $outputModel);
         }
-
-        /*if (! in_array('_customColumnsParams', $this->appends, true)) {
-            $this->appends[] = '_customColumnsParams';
-        }*/
     }
 
     protected function setColumnParamToModel(Model $model, string $paramName, mixed $paramValue): void

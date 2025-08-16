@@ -99,41 +99,32 @@ class Filter
     public function parseRequestValue(string $tableName, string $value): void
     {
         $clauses = Clause::sortByLength($this->clauses);
+        
         foreach ($clauses as $clause) {
-            if (! Str::startsWith($value, $clause)) {
+            if (!str_starts_with($value, $clause)) {
                 continue;
             }
 
-            $newValue = Str::after($value, $clause.'.');
+            $newValue = substr($value, strlen($clause) + 1); // More efficient than Str::after
             $this->selectedClause = Clause::findBySearchSymbol($clause, $newValue);
 
-            if (! is_null($this->selectedClause) && ! empty($newValue)) {
+            if ($this->selectedClause !== null && !empty($newValue)) {
                 $this->value = $newValue;
             }
 
-            if (in_array($this->selectedClause, [Clause::IsIn, Clause::IsNotIn, Clause::Between], true)) {
-                $this->value = explode(',', $newValue);
-            }
-
-            if (in_array($this->selectedClause, [Clause::IsSet, Clause::IsNotSet], true)) {
-                $this->value = 'anyValue';
-            }
-
-            if ($this->selectedClause === Clause::IsTrue) {
-                $this->value = true;
-            }
-
-            if ($this->selectedClause === Clause::IsFalse) {
-                $this->value = false;
-            }
+            // Use match expression for better performance
+            $this->value = match ($this->selectedClause) {
+                Clause::IsIn, Clause::IsNotIn, Clause::Between => explode(',', $newValue),
+                Clause::IsSet, Clause::IsNotSet => 'anyValue',
+                Clause::IsTrue => true,
+                Clause::IsFalse => false,
+                default => $this->value ?? $newValue,
+            };
 
             break;
         }
 
-        if (! empty($value)
-            && is_null($this->selectedClause)
-            && collect($this->clauses)->contains(fn ($clause) => $clause === Clause::Equals)
-        ) {
+        if (!empty($value) && $this->selectedClause === null && in_array(Clause::Equals, $this->clauses, true)) {
             $this->selectedClause = Clause::Equals;
             $this->value = $value;
         }

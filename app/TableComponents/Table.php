@@ -100,48 +100,62 @@ abstract class Table implements JsonSerializable
 
     public function setSearch(): void
     {
-        $this->search = array_unique(
-            collect($this->columns)
-                ->filter(fn (Column $column) => $column->isSearchable())
-                ->map(fn (Column $column) => $column->getName())
-                ->values()
-                ->toArray()
-        );
+        $searchable = [];
+        
+        foreach ($this->columns as $column) {
+            if ($column->isSearchable()) {
+                $searchable[] = $column->getName();
+            }
+        }
+        
+        $this->search = array_unique($searchable);
     }
 
     private function getSearchable(): array
     {
-        return array_unique(
-            array_merge(
-                collect($this->columns)
-                    ->filter(fn (Column $column) => $column->isSearchable())
-                    ->map(fn (Column $column) => $column->getAlias())
-                    ->values()
-                    ->toArray()
-            )
-        );
+        $searchable = [];
+        
+        foreach ($this->columns as $column) {
+            if ($column->isSearchable()) {
+                $searchable[] = $column->getAlias();
+            }
+        }
+        
+        return array_unique($searchable);
     }
+
+    private static ?array $cachedCookieNames = null;
 
     public static function dontEncryptCookies(): array
     {
+        // Cache the result since this method is called frequently
+        if (self::$cachedCookieNames !== null) {
+            return self::$cachedCookieNames;
+        }
+
         $appClasses = glob(app_path('**/*.php'));
         $classMap = require base_path('vendor/composer/autoload_classmap.php');
+        $cookieNames = [];
 
-        return collect(array_intersect($classMap, $appClasses))
-            ->keys()
-            ->filter(fn (string $class) => class_exists($class) && is_subclass_of($class, self::class))
-            ->values()
-            ->map(function (string $class) {
-                $reflection = new ReflectionClass($class);
+        $intersectedClasses = array_intersect($classMap, $appClasses);
+        
+        foreach (array_keys($intersectedClasses) as $class) {
+            if (class_exists($class) && is_subclass_of($class, self::class)) {
+                try {
+                    $reflection = new ReflectionClass($class);
+                    $defaults = $reflection->getDefaultProperties();
+                    $name = $defaults['name'] ?? class_basename($class);
+                    $cookieNames[] = "perPage_" . strtolower($name);
+                } catch (\ReflectionException) {
+                    // Skip classes that can't be reflected
+                    continue;
+                }
+            }
+        }
 
-                $defaults = $reflection->getDefaultProperties();
-
-                return "perPage_" . Str::lower($defaults['name'] ?? class_basename($class));
-            })
-            ->filter()
-            ->unique()
-            ->values()
-            ->toArray();
+        self::$cachedCookieNames = array_values(array_unique(array_filter($cookieNames)));
+        
+        return self::$cachedCookieNames;
     }
 
     /**
@@ -157,30 +171,39 @@ abstract class Table implements JsonSerializable
     {
         $this->parseRequest();
 
-        return collect($this->filters)
-            ->filter()
-            ->map(function (Filter $filter) {
-                return $filter->getAllowedFilterMethod();
-            })
-            ->filter();
+        $allowedFilters = [];
+        
+        foreach ($this->filters as $filter) {
+            if ($filter) {
+                $allowedFilter = $filter->getAllowedFilterMethod();
+                if ($allowedFilter) {
+                    $allowedFilters[] = $allowedFilter;
+                }
+            }
+        }
+
+        return collect($allowedFilters);
     }
 
     private function parseRequest(): void
     {
         $request = request();
-        collect($this->filters)
-            ->filter()
-            ->map(function (Filter $filter) use ($request) {
-                $value = $request->input($filter->getQueryParam($this->name));
+        
+        foreach ($this->filters as $filter) {
+            if (!$filter) {
+                continue;
+            }
+            
+            $value = $request->input($filter->getQueryParam($this->name));
 
-                if (empty($value)) {
-                    return;
-                }
+            if (empty($value)) {
+                continue;
+            }
 
-                if (is_string($value)) {
-                    $filter->parseRequestValue($this->name, urldecode($value));
-                }
-            });
+            if (is_string($value)) {
+                $filter->parseRequestValue($this->name, urldecode($value));
+            }
+        }
     }
 
     private function getQueryBuilder(): Builder
@@ -311,18 +334,27 @@ abstract class Table implements JsonSerializable
 
     private function applyMappings(Model $inputModel, Model $outputModel): void
     {
-        collect($this->columns)->each(fn (Column $column) => $column->useMappings($inputModel, $outputModel));
+        foreach ($this->columns as $column) {
+            $column->useMappings($inputModel, $outputModel);
+        }
     }
 
     private function transformValues(Model $inputModel, Model $outputModel): void
     {
-        collect($this->columns)->each(function (Column $column) use ($inputModel, $outputModel) {
+        $appendList = [];
+        
+        foreach ($this->columns as $column) {
             $column->transform($inputModel, $outputModel);
 
             if ($column->appends) {
-                $outputModel->append($column->appends);
+                $appendList[] = $column->appends;
             }
-        });
+        }
+        
+        // Batch append all at once instead of one by one
+        if (!empty($appendList)) {
+            $outputModel->append($appendList);
+        }
     }
 
     /**
