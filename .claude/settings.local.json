@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(php:*)"
+      "Bash(php:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run lint)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -17,6 +17,7 @@ import type { Paginated, TableHeader as TableHeaderType } from '../index';
 import { init, useComponents } from '../utils/components';
 import vResizable from '../utils/resizable';
 import { useScrollable } from '../utils/scrollable';
+import { useResizeObserver } from '../utils/resize-observer';
 import * as Columns from './columns';
 import * as Filters from './filters/inputs';
 import Loader from './Loader.vue';
@@ -47,6 +48,7 @@ const { searchString, filters, showFiltersRowInHeader, filtersAreApplied, search
     useFilters(pageName, name, props.resource.filters);
 
 const { reload, loading } = useRequest(props.resource.name);
+const { observe, unobserve } = useResizeObserver();
 
 const container = useTemplateRef<HTMLElement>('container');
 
@@ -63,20 +65,12 @@ const cellClass = (column: TableHeaderType) => {
     ]);
 };
 
-// Debounce resize operations for better performance
-let resizeTimeout: number | null = null;
-const resizeObserver = new ResizeObserver(() => {
-    if (resizeTimeout) {
-        clearTimeout(resizeTimeout);
-    }
-
-    resizeTimeout = setTimeout(() => {
-        updateContainerWidth();
-        updateScrollSize();
-        saveColumnsPositions();
-        resizeTimeout = null;
-    }, 16) as unknown as number; // ~60fps
-});
+// Optimized resize handler using global ResizeObserver
+const handleResize = () => {
+    updateContainerWidth();
+    updateScrollSize();
+    saveColumnsPositions();
+};
 
 onMounted(() => {
     init(props.resource);
@@ -85,24 +79,20 @@ onMounted(() => {
         updateContainerWidth();
         updateScrollSize();
         saveColumnsPositions();
-    });
 
-    if (container.value) {
-        resizeObserver.observe(container.value);
-    }
+        if (container.value) {
+            observe(container.value, handleResize, { 
+                id: `table-${name}`, 
+                delay: 16 // ~60fps
+            });
+        }
+    });
 });
 
 onUnmounted(() => {
-    // Clean up timeout and observer
-    if (resizeTimeout) {
-        clearTimeout(resizeTimeout);
-    }
-
     if (container.value) {
-        resizeObserver.unobserve(container.value);
+        unobserve(container.value, `table-${name}`);
     }
-
-    resizeObserver.disconnect();
 });
 
 provide('name', name);
