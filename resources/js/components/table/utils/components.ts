@@ -73,7 +73,7 @@ export const useComponents = (name: string) => {
             return null;
         }
         return storage[property] || defaultValue;
-    }
+}
 
     return {
         getColumns,

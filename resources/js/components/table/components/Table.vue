@@ -11,7 +11,7 @@ import { computed, nextTick, onMounted, onUnmounted, provide, useTemplateRef } f
 import EmptyState from '../components/EmptyState.vue';
 import HeaderButton from '../components/HeaderButton.vue';
 import Pagination from '../components/Pagination.vue';
-import ScrollTableButton from '../components/ScrollTableButton.vue';
+import ScrollToRight from './ScrollToRight.vue';
 import ToolsRow from '../components/ToolsRow.vue';
 import type { Paginated, TableHeader as TableHeaderType } from '../index';
 import { init, useComponents } from '../utils/components';
@@ -57,8 +57,8 @@ const stickyPagination = computed(() => props.resource.stickyPagination);
 // Memoize cell class computation
 const cellClass = (column: TableHeaderType) => {
     return cn([
-        columnWrappingMethod(column, stickyHeader.value), 
-        column.options.alignment, 
+        columnWrappingMethod(column, stickyHeader.value),
+        column.options.alignment,
         column.options.cellClass
     ]);
 };
@@ -69,7 +69,7 @@ const resizeObserver = new ResizeObserver(() => {
     if (resizeTimeout) {
         clearTimeout(resizeTimeout);
     }
-    
+
     resizeTimeout = setTimeout(() => {
         updateContainerWidth();
         updateScrollSize();
@@ -97,11 +97,11 @@ onUnmounted(() => {
     if (resizeTimeout) {
         clearTimeout(resizeTimeout);
     }
-    
+
     if (container.value) {
         resizeObserver.unobserve(container.value);
     }
-    
+
     resizeObserver.disconnect();
 });
 
@@ -221,7 +221,7 @@ const onPageChange = (page: number) => {
                 </TableBody>
             </Table>
 
-            <ScrollTableButton />
+            <ScrollToRight />
 
             <Loader v-if="loading" class="absolute inset-0 z-10 flex justify-center bg-white/50" />
         </div>
