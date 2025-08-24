@@ -7,7 +7,9 @@ export const init = (props: Paginated<any>) => {
     tableStore.initializeTable({
         name: props.name,
         headers: props.headers,
-        hash: props.hash
+        hash: props.hash,
+        pageName: props.pageName,
+        filters: props.filters
     });
 };
 

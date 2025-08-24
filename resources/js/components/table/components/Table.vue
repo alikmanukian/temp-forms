@@ -220,7 +220,7 @@ const onPageChange = (page: number) => {
                             <div class="flex w-full items-center" :class="column.options.alignment" v-if="row[column.name] !== null">
                                 <component
                                     :is="Columns[column.type as string as ColumnTypes]"
-                                    :params="row._customColumnsParams"
+                                    :params="row._customColumnsParams || {}"
                                     :name="column.name"
                                     :alignment="column.options.alignment"
                                     :class="cellClass(column)"

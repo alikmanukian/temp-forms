@@ -7,7 +7,9 @@
       "mcp__laravel-boost__read-log-entries",
       "mcp__laravel-boost__browser-logs",
       "mcp__laravel-boost__last-error",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "mcp__laravel-boost__tinker",
+      "Bash(npm uninstall:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
