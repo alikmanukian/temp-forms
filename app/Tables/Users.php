@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 class Users extends Table
 {
     /** @var class-string */
-    protected ?string $resource = User::class;
+    protected string $resource = User::class;
 
     protected string $defaultSort = 'name';
 

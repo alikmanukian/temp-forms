@@ -30,7 +30,7 @@ abstract class Table implements JsonSerializable
     private Builder $builder;
 
     /** @var class-string $resource */
-    protected ?string $resource = null;
+    protected string $resource;
 
     protected ?string $name = null;
 
@@ -101,26 +101,26 @@ abstract class Table implements JsonSerializable
     public function setSearch(): void
     {
         $searchable = [];
-        
+
         foreach ($this->columns as $column) {
             if ($column->isSearchable()) {
                 $searchable[] = $column->getName();
             }
         }
-        
+
         $this->search = array_unique($searchable);
     }
 
     private function getSearchable(): array
     {
         $searchable = [];
-        
+
         foreach ($this->columns as $column) {
             if ($column->isSearchable()) {
                 $searchable[] = $column->getAlias();
             }
         }
-        
+
         return array_unique($searchable);
     }
 
@@ -138,7 +138,7 @@ abstract class Table implements JsonSerializable
         $cookieNames = [];
 
         $intersectedClasses = array_intersect($classMap, $appClasses);
-        
+
         foreach (array_keys($intersectedClasses) as $class) {
             if (class_exists($class) && is_subclass_of($class, self::class)) {
                 try {
@@ -154,7 +154,7 @@ abstract class Table implements JsonSerializable
         }
 
         self::$cachedCookieNames = array_values(array_unique(array_filter($cookieNames)));
-        
+
         return self::$cachedCookieNames;
     }
 
@@ -172,7 +172,7 @@ abstract class Table implements JsonSerializable
         $this->parseRequest();
 
         $allowedFilters = [];
-        
+
         foreach ($this->filters as $filter) {
             if ($filter) {
                 $allowedFilter = $filter->getAllowedFilterMethod();
@@ -188,12 +188,12 @@ abstract class Table implements JsonSerializable
     private function parseRequest(): void
     {
         $request = request();
-        
+
         foreach ($this->filters as $filter) {
             if (!$filter) {
                 continue;
             }
-            
+
             $value = $request->input($filter->getQueryParam($this->name));
 
             if (empty($value)) {
@@ -342,7 +342,7 @@ abstract class Table implements JsonSerializable
     private function transformValues(Model $inputModel, Model $outputModel): void
     {
         $appendList = [];
-        
+
         foreach ($this->columns as $column) {
             $column->transform($inputModel, $outputModel);
 
@@ -350,7 +350,7 @@ abstract class Table implements JsonSerializable
                 $appendList[] = $column->appends;
             }
         }
-        
+
         // Batch append all at once instead of one by one
         if (!empty($appendList)) {
             $outputModel->append($appendList);

@@ -56,14 +56,34 @@ const container = useTemplateRef<HTMLElement>('container');
 const stickyHeader = computed(() => props.resource.stickyHeader);
 const stickyPagination = computed(() => props.resource.stickyPagination);
 
-// Memoize cell class computation
+// Memoized cell class computation with cached results
+const cellClassCache = new Map<string, string>();
 const cellClass = (column: TableHeaderType) => {
-    return cn([
+    const cacheKey = `${column.name}-${column.options.alignment}-${column.options.cellClass}-${stickyHeader.value}`;
+
+    if (cellClassCache.has(cacheKey)) {
+        return cellClassCache.get(cacheKey)!;
+    }
+
+    const result = cn([
         columnWrappingMethod(column, stickyHeader.value),
         column.options.alignment,
         column.options.cellClass
     ]);
+
+    cellClassCache.set(cacheKey, result);
+    return result;
 };
+
+// Memoized table element references to avoid repeated DOM queries
+const tableElements = computed(() => {
+    const { getContainer, getTable, getScrollContainer } = useComponents(name);
+    return {
+        container: getContainer(),
+        table: getTable(),
+        scrollContainer: getScrollContainer()
+    };
+});
 
 // Optimized resize handler using global ResizeObserver
 const handleResize = () => {
@@ -81,8 +101,8 @@ onMounted(() => {
         saveColumnsPositions();
 
         if (container.value) {
-            observe(container.value, handleResize, { 
-                id: `table-${name}`, 
+            observe(container.value, handleResize, {
+                id: `table-${name}`,
                 delay: 16 // ~60fps
             });
         }
@@ -93,6 +113,8 @@ onUnmounted(() => {
     if (container.value) {
         unobserve(container.value, `table-${name}`);
     }
+    // Clear memoization cache to prevent memory leaks
+    cellClassCache.clear();
 });
 
 provide('name', name);
@@ -192,7 +214,7 @@ const onPageChange = (page: number) => {
                             :key="column.name"
                             :style="{ width: column.width, left: column.sticked ? column.left + 'px' : '' }"
                             :class="{
-                                'sticky bg-white/90 hover:bg-muted/50 dark:bg-background/80': column.sticked,
+                                'sticky z-10 bg-white/90 hover:bg-muted/50 dark:bg-background/80': column.sticked,
                             }"
                         >
                             <div class="flex w-full items-center" :class="column.options.alignment" v-if="row[column.name] !== null">

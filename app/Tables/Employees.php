@@ -10,7 +10,7 @@ use App\TableComponents\Filters;
 class Employees extends Table
 {
     /** @var class-string $resource */
-    protected ?string $resource = User::class;
+    protected string $resource = User::class;
 
     protected string $defaultSort = 'name';
 
