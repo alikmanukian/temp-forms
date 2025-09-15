@@ -1,12 +1,14 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(php:*)",
+      "Bash(mkdir:*)",
+      "mcp__laravel-boost__tinker"
+    ]
+  },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "laravel-boost",
     "herd"
-  ],
-  "permissions": {
-    "allow": [
-      "Bash(php:*)"
-    ]
-  }
+  ]
 }
